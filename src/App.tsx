@@ -1,4 +1,4 @@
-import { ExternalLinkIcon, InfoIcon, SettingsIcon } from '@chakra-ui/icons';
+import { InfoIcon, SettingsIcon } from '@chakra-ui/icons';
 import {
   Box,
   Center,
