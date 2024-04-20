@@ -1,15 +1,34 @@
-import { InfoIcon, SettingsIcon } from '@chakra-ui/icons';
-import {
-  Box,
-  Center,
-  Divider,
-  Heading,
-  Link,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-function App(): JSX.Element {
+import { InfoIcon, SettingsIcon } from '@chakra-ui/icons';
+import { Center, Divider, Heading, Link, Text, VStack } from '@chakra-ui/react';
+
+import { Setup } from './setup/Setup';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Home />,
+  },
+  {
+    path: '/rout3r',
+    element: <Home />,
+  },
+  {
+    path: '/rout3r/setup',
+    element: <Setup />,
+  },
+  {
+    path: '/rout3r/about',
+    element: <Text>About</Text>,
+  },
+  {
+    path: '/rout3r/routes',
+    element: <Text>Routes</Text>,
+  },
+]);
+
+function Home(): JSX.Element {
   return (
     <Center
       as="header"
@@ -27,17 +46,21 @@ function App(): JSX.Element {
         <Divider />
       </VStack>
       <VStack>
-        <Link href="/setup">
+        <Link href="/rout3r/setup">
           <SettingsIcon mx="2px" />
           &nbsp; Setup
         </Link>
-        <Link href="/about">
+        <Link href="/rout3r/about">
           <InfoIcon mx="2px" />
           &nbsp; About
         </Link>
       </VStack>
     </Center>
   );
+}
+
+function App(): JSX.Element {
+  return <RouterProvider router={router} />;
 }
 
 export default App;
