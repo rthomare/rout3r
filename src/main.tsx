@@ -7,7 +7,12 @@ import App from './App';
 import theme from './theme';
 
 const container = document.getElementById('root');
-const root = createRoot(container!);
+if (!container) {
+  console.error("Couldn't find root element");
+  process.exit(1);
+}
+
+const root = createRoot(container);
 root.render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>

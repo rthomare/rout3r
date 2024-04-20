@@ -9,10 +9,6 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap"
-      rel="stylesheet"
-    />
   </head>
   <body
     style="
@@ -20,7 +16,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      font-family: 'Roboto Slab', serif;
     "
   >
     <span
@@ -70,5 +65,26 @@
         >Donate to 0x197A002614cd5D82Fa547988A0FF0455f658894A</a
       >
     </span>
+    <script>
+      // Define routes and corresponding HTML content
+      const routes = {
+        '/': '<h1>Welcome to the Home Page</h1>',
+        '/about': '<h1>About Us</h1><p>This is the about page.</p>',
+        // Add more routes as needed
+      };
+
+      // Function to render content based on the current route
+      function renderContent() {
+        const path = window.location.hash.substr(1) || '/';
+        const contentDiv = document.getElementById('content');
+        contentDiv.innerHTML = routes[path] || '<h1>404 - Page Not Found</h1>';
+      }
+
+      // Initial render
+      renderContent();
+
+      // Handle navigation events
+      window.addEventListener('hashchange', renderContent);
+    </script>
   </body>
 </html>

@@ -1,4 +1,4 @@
-# Rout3r
+# rout3r
 
 An open source web3 based project that routes users via user defined short cuts.
 
