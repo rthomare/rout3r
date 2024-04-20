@@ -20,7 +20,6 @@ const googleRoute = {
     },
   ],
 };
-
 const FALLBACK = 'https://duckduckgo.com/?&q=%@@@';
 
 describe('rout3r engine processing', () => {
