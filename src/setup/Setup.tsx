@@ -31,7 +31,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import { createRouterURL } from '../routes/engine';
+import { createRouterURL } from '../lib/engine';
 
 function SetupCompleteModal({
   rpcUrl,
