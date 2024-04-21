@@ -10,10 +10,7 @@ const googleRoute = {
   subRoutes: [
     {
       command: 'i',
-      name: 'Images',
-      description: 'Searches Google Images',
       url: 'https://www.google.com/search?tbm=isch&q=%@@@',
-      subRoutes: [],
     },
   ],
 };
@@ -42,7 +39,7 @@ describe('rout3r engine traversal', () => {
   });
   it('traverses routes correctly with no subroutes', () => {
     const { routeData, routeQuery } = traverseRoute(
-      googleRoute.subRoutes[0],
+      { ...googleRoute.subRoutes[0], subRoutes: [] },
       'i something'
     );
     expect(routeData).toEqual({
@@ -55,7 +52,7 @@ describe('rout3r engine traversal', () => {
   });
   it('traverses routes correctly with no subcommand and no subroutes', () => {
     const { routeData, routeQuery } = traverseRoute(
-      googleRoute.subRoutes[0],
+      { ...googleRoute.subRoutes[0], subRoutes: [] },
       ''
     );
     expect(routeData).toEqual({
