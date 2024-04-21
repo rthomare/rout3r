@@ -62,7 +62,7 @@
         text-align: center;
         font-size: 12px;
         color: #888;
-        padding-bottom: 20px;
+        padding: 20px;
       "
     >
       <p>Made with love 🤍</p>
@@ -71,26 +71,5 @@
         >Donate to 0x197A002614cd5D82Fa547988A0FF0455f658894A</a
       >
     </span>
-    <script>
-      // Define routes and corresponding HTML content
-      const routes = {
-        '/': '<h1>Welcome to the Home Page</h1>',
-        '/about': '<h1>About Us</h1><p>This is the about page.</p>',
-        // Add more routes as needed
-      };
-
-      // Function to render content based on the current route
-      function renderContent() {
-        const path = window.location.hash.substr(1) || '/';
-        const contentDiv = document.getElementById('content');
-        contentDiv.innerHTML = routes[path] || '<h1>404 - Page Not Found</h1>';
-      }
-
-      // Initial render
-      renderContent();
-
-      // Handle navigation events
-      window.addEventListener('hashchange', renderContent);
-    </script>
   </body>
 </html>

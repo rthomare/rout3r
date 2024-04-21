@@ -8,15 +8,12 @@ import { getRouteUrl, processQuery } from '../engine';
 const googleRoute = {
   command: 'g',
   name: 'Google',
-  description: 'Searches Google',
+  description: 'Searches Google add `i` for images',
   url: 'https://www.google.com/search?q=%@@@',
   subRoutes: [
     {
       command: 'i',
-      name: 'Images',
-      description: 'Searches Google Images',
       url: 'https://www.google.com/search?tbm=isch&q=%@@@',
-      subRoutes: [],
     },
   ],
 };

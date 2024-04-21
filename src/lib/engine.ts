@@ -34,15 +34,12 @@ export function createRouterURL(
  * const route = {
  *   command: 'g',
  *   name: 'Google',
- *   description: 'Searches Google',
+ *   description: 'Searches Google, add `i` for images',
  *   url: 'https://google.com/search?q=%@@@',
  *   subRoutes: [
  *     {
  *       command: 'i',
- *       name: 'Images',
- *       description: 'Searches Google Images',
  *       url: 'https://google.com/search?tbm=isch&q=%@@@',
- *       subRoutes: [],
  *     },
  *   ],
  * };
@@ -54,9 +51,10 @@ export function createRouterURL(
  * -> 'something'
  */
 export function traverseRoute(
-  { subRoutes, ...routeData }: Route,
+  { subRoutes, command, url }: RouteData & { subRoutes: RouteData[] },
   routeQuery?: string
 ): { routeData: RouteData; routeQuery?: string } {
+  const routeData = { command, url };
   if (subRoutes.length === 0) {
     return { routeData, routeQuery };
   }
@@ -84,19 +82,15 @@ export function traverseRoute(
  * const route = {
  *   command: 'g',
  *   name: 'Google',
- *   description: 'Searches Google',
+ *   description: 'Searches Google, add `i` for images, `v` for video',
  *   url: 'https://google.com/search?q=%@@@',
  *   subRoutes: [
  *     {
  *       command: 'i',
- *       name: 'Images',
- *       description: 'Searches Google Images',
  *       url: 'https://google.com/search?tbm=isch&q=%@@@',
  *     },
  *     {
  *        command: 'v',
- *        name: 'Videos',
- *        description: 'Go to google vides',
  *        url: 'https://google.com/videohp',
  *      }
  *   ],
