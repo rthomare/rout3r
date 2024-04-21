@@ -1,14 +1,20 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import { InfoIcon, SettingsIcon } from '@chakra-ui/icons';
+import { TbRoute } from 'react-icons/tb';
 import { Center, Divider, Heading, Link, Text, VStack } from '@chakra-ui/react';
 
 import { Setup } from './setup/Setup';
+import { Redirect } from './components/Redirect';
+import { About } from './about/About';
+import { Routes } from './routes/Routes';
+import { AddRoute } from './new/AddRoute';
+import { EditRoute } from './route/EditRoute';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Home />,
+    element: <Redirect to="/rout3r" />,
   },
   {
     path: '/rout3r',
@@ -20,11 +26,19 @@ const router = createBrowserRouter([
   },
   {
     path: '/rout3r/about',
-    element: <Text>About</Text>,
+    element: <About />,
   },
   {
     path: '/rout3r/routes',
-    element: <Text>Routes</Text>,
+    element: <Routes />,
+  },
+  {
+    path: '/rout3r/routes/new',
+    element: <AddRoute />,
+  },
+  {
+    path: '/rout3r/route/:command',
+    element: <EditRoute />,
   },
 ]);
 
@@ -49,6 +63,10 @@ function Home(): JSX.Element {
         <Link href="/rout3r/setup">
           <SettingsIcon mx="2px" />
           &nbsp; Setup
+        </Link>
+        <Link href="/rout3r/routes">
+          <TbRoute style={{ display: 'inline' }} />
+          &nbsp; Routes
         </Link>
         <Link href="/rout3r/about">
           <InfoIcon mx="2px" />

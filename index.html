@@ -16,35 +16,41 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      background: #1a202c;
     "
   >
     <span
       style="
         display: flex;
         width: 100%;
-        justify-content: end;
-        padding-top: 20px;
-        padding-right: 20px;
+        justify-content: space-between;
+        padding: 20px;
       "
     >
-      <a
-        class="github-button"
-        href="https://github.com/rthomare"
-        data-color-scheme="no-preference: light; light: light; dark: dark;"
-        data-size="large"
-        aria-label="Follow @rthomare on GitHub"
-        >Follow @rthomare</a
-      >
-      <a
-        class="github-button"
-        href="https://github.com/rthomare/rout3r"
-        data-color-scheme="no-preference: light; light: light; dark: dark;"
-        data-icon="octicon-star"
-        data-size="large"
-        aria-label="Star rthomare/rout3r on GitHub"
-      >
-        Star
-      </a>
+      <span style="display: flex; gap: 20px">
+        <a href="/rout3r/"><h2>Home</h2></a>
+        <a href="/rout3r/about"><h2>About</h2></a>
+      </span>
+      <span style="display: flex">
+        <a
+          class="github-button"
+          href="https://github.com/rthomare"
+          data-color-scheme="no-preference: light; light: light; dark: dark;"
+          data-size="large"
+          aria-label="Follow @rthomare on GitHub"
+          >Follow @rthomare</a
+        >
+        <a
+          class="github-button"
+          href="https://github.com/rthomare/rout3r"
+          data-color-scheme="no-preference: light; light: light; dark: dark;"
+          data-icon="octicon-star"
+          data-size="large"
+          aria-label="Star rthomare/rout3r on GitHub"
+        >
+          Star
+        </a>
+      </span>
     </span>
     <div style="flex-grow: 1" id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
