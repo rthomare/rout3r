@@ -70,7 +70,6 @@ function SetupCompleteModal({
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Setup your rout3r</ModalHeader>
-
           <ModalCloseButton />
           <ModalBody minW="80%">
             <Text mb={4}>

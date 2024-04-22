@@ -73,7 +73,8 @@ export function createRouteDB() {
      */
     addRoute: async (route: Route) => {
       const db = await openRouterDB();
-      return db.add('routes', route);
+      await db.add('routes', route);
+      return route;
     },
 
     /*
@@ -88,6 +89,39 @@ export function createRouteDB() {
     removeRoute: async (command: string) => {
       const db = await openRouterDB();
       return db.delete('routes', command);
+    },
+
+    /*
+     * @function clearRoutes
+     * Clears all the routes from the database.
+     *
+     * @example
+     * routeManager.clearRoutes();
+     */
+    clearRoutes: async () => {
+      const db = await openRouterDB();
+      return db.clear('routes');
+    },
+
+    /*
+     * @function updateRoute
+     * Updates a route in the database.
+     * @param route - The route to update.
+     * @returns The route that was updated.
+     *
+     * @example
+     * routeManager.updateRoute({
+     *   command: 'g',
+     *   name: 'Google',
+     *   description: 'Searches Google',
+     *   url: 'https://www.google.com/search?q=%@@@',
+     *   subRoutes: [],
+     * });
+     */
+    updateRoute: async (command: string, route: Omit<Route, 'command'>) => {
+      const db = await openRouterDB();
+      await db.put('routes', { command, ...route });
+      return { command, ...route };
     },
   };
 }

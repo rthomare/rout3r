@@ -25,13 +25,15 @@ import {
 } from 'formik';
 import { MinusIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
+import { BsFloppyFill } from 'react-icons/bs';
 
 type RouteFormProps = {
   route: Partial<Route>;
+  disabledFields?: Array<keyof Route>;
   onSubmit: (route: Route) => Promise<void>;
 };
 
-export function RouteForm({ route, onSubmit }: RouteFormProps) {
+export function RouteForm({ route, disabledFields, onSubmit }: RouteFormProps) {
   const [formError, setFormError] = useState<Error | undefined>(undefined);
   const validation = {
     name: (name: string) => {
@@ -86,6 +88,26 @@ export function RouteForm({ route, onSubmit }: RouteFormProps) {
             flexDirection: 'column',
           }}
         >
+          <Field name="command" validate={validation.command}>
+            {({ field, form }: FieldProps) => (
+              <FormControl
+                isRequired={true}
+                isInvalid={
+                  form.touched.command && form.errors.command ? true : false
+                }
+                isDisabled={disabledFields?.includes('command')}
+              >
+                <FormLabel>Command</FormLabel>
+                <FormHelperText marginBottom="5px">
+                  Command to trigger the route
+                </FormHelperText>
+                <Input {...field} placeholder="ga" />
+                <FormErrorMessage>
+                  {form.errors.command?.toString()}
+                </FormErrorMessage>
+              </FormControl>
+            )}
+          </Field>
           <Field name="name" validate={validation.name}>
             {({ field, form }: FieldProps) => {
               return (
@@ -94,6 +116,7 @@ export function RouteForm({ route, onSubmit }: RouteFormProps) {
                   isInvalid={
                     form.touched.name && form.errors.name ? true : false
                   }
+                  isDisabled={disabledFields?.includes('name')}
                 >
                   <FormLabel>Name</FormLabel>
                   <FormHelperText marginBottom="5px">
@@ -107,30 +130,12 @@ export function RouteForm({ route, onSubmit }: RouteFormProps) {
               );
             }}
           </Field>
-          <Field name="command" validate={validation.command}>
-            {({ field, form }: FieldProps) => (
-              <FormControl
-                isRequired={true}
-                isInvalid={
-                  form.touched.command && form.errors.command ? true : false
-                }
-              >
-                <FormLabel>Command</FormLabel>
-                <FormHelperText marginBottom="5px">
-                  Command to trigger the route
-                </FormHelperText>
-                <Input {...field} placeholder="ga" />
-                <FormErrorMessage>
-                  {form.errors.command?.toString()}
-                </FormErrorMessage>
-              </FormControl>
-            )}
-          </Field>
           <Field name="url" validate={validation.url}>
             {({ field, form }: FieldProps) => (
               <FormControl
                 isRequired={true}
                 isInvalid={form.touched.url && form.errors.url ? true : false}
+                isDisabled={disabledFields?.includes('url')}
               >
                 <FormLabel>URL</FormLabel>
                 <FormHelperText marginBottom="5px">
@@ -149,7 +154,7 @@ export function RouteForm({ route, onSubmit }: RouteFormProps) {
           </Field>
           <Field name="description">
             {({ field }: FieldProps) => (
-              <FormControl>
+              <FormControl isDisabled={disabledFields?.includes('description')}>
                 <FormLabel>Description</FormLabel>
                 <FormHelperText marginBottom="5px">
                   Description of the route, feel free to add examples.{' '}
@@ -201,6 +206,9 @@ export function RouteForm({ route, onSubmit }: RouteFormProps) {
                                       ? true
                                       : false
                                   }
+                                  isDisabled={disabledFields?.includes(
+                                    'subRoutes'
+                                  )}
                                 >
                                   {index === 0 && (
                                     <FormLabel marginBottom={2}>
@@ -222,6 +230,9 @@ export function RouteForm({ route, onSubmit }: RouteFormProps) {
                                 isInvalid={
                                   touched.url && error.url ? true : false
                                 }
+                                isDisabled={disabledFields?.includes(
+                                  'subRoutes'
+                                )}
                               >
                                 {index === 0 && (
                                   <FormLabel marginBottom={2}>URL</FormLabel>
@@ -252,6 +263,7 @@ export function RouteForm({ route, onSubmit }: RouteFormProps) {
                     mt={4}
                     onClick={() => arrayHelpers.push({ command: '', url: '' })}
                     type="submit"
+                    isDisabled={disabledFields?.includes('subRoutes')}
                   >
                     + Add a Subroute
                   </Button>
@@ -259,8 +271,14 @@ export function RouteForm({ route, onSubmit }: RouteFormProps) {
               );
             }}
           />
-          <Button mt={4} isLoading={props.isSubmitting} type="submit">
-            Submit
+          <Button
+            mt={4}
+            isLoading={props.isSubmitting}
+            type="submit"
+            leftIcon={<BsFloppyFill />}
+            colorScheme="blue"
+          >
+            Save
           </Button>
           {formError && (
             <Text color="red.300" textAlign="center">
