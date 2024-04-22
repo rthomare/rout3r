@@ -4,11 +4,29 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/rout3r/assets/favicon-17e50649.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite+ReactTS+Chakra+Jest</title>
-    <script type="module" crossorigin src="/rout3r/assets/index-c9f3ff33.js"></script>
+    <title>rout3r</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
   </head>
-  <body>
+  <body style="background: #1a202c">
     <div id="root"></div>
-    
+    <script>
+      // Determine the condition based on location or any other criteria
+      var condition = window.location.pathname === '/rout3r/go';
+
+      // Dynamically load the appropriate module based on the condition
+      if (condition) {
+        var script = document.createElement('script');
+        script.type = 'module';
+        script.src = '/src/go.ts';
+        document.body.appendChild(script);
+      } else {
+        var script = document.createElement('script');
+        script.type = 'module';
+        script.src = '/src/main.tsx';
+        document.body.appendChild(script);
+      }
+    </script>
   </body>
 </html>
