@@ -35,12 +35,13 @@
   "rules": {
     "no-console": "off",
     "no-use-before-define": "off",
+    "react/require-default-props": "off",
     "react/react-in-jsx-scope": "off",
     "react/jsx-filename-extension": ["warn", { "extensions": [".tsx"] }],
     "react/jsx-props-no-spreading": "off",
     "linebreak-style": "off",
     "eol-last": "off",
-    "max-len": ["warn", { "code": 80 }],
+    "max-len": ["warn", { "code": 100 }],
     "import/extensions": ["error", "never", { "svg": "always" }],
     "prettier/prettier": [
       "error",

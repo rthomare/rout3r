@@ -8,7 +8,10 @@ export function Footer() {
       </Text>
       <Link
         style={{ margin: 0, padding: 0 }}
-        href="https://etherscan.io/address/0x197A002614cd5D82Fa547988A0FF0455f658894A"
+        href={
+          'https://etherscan.io/address/' +
+          '0x197A002614cd5D82Fa547988A0FF0455f658894A'
+        }
       >
         Donate to 0x197A002614cd5D82Fa547988A0FF0455f658894A
       </Link>

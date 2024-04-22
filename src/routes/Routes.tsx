@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+
 import {
   Button,
   Center,
@@ -16,7 +18,7 @@ import {
   Tr,
   VStack,
 } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
+
 import { useGetRoutes } from '../lib/endpoints';
 
 export function Routes(): JSX.Element {
@@ -101,7 +103,7 @@ export function Routes(): JSX.Element {
         </TableContainer>
       ) : (
         <VStack flexGrow={1} justifyContent="center">
-          <Heading size="md">You don't have any routes</Heading>
+          <Heading size="md">You don&apos;t have any routes</Heading>
           <Link href="/rout3r/routes/new">
             <Button>Create a Route</Button>
           </Link>

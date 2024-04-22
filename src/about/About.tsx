@@ -22,10 +22,10 @@ export function About(): JSX.Element {
       <Box>
         <Heading size="md">How do I get started?</Heading>
         <Text>
-          To get started, click on the "Setup" link and follow the instructions
-          to add it to your browser. Then click on the "Routes" link to view a
-          list of all routes. From there, you can click on the "Add a Route"
-          button to create a new route.
+          To get started, click on the &quot;Setup&quot; link and follow the
+          instructions to add it to your browser. Then click on the
+          &quot;Routes&quot; link to view a list of all routes. From there, you
+          can click on the &quot;Add a Route&quot; button to create a new route.
         </Text>
       </Box>
     </VStack>

@@ -1,5 +1,6 @@
 import { useToast } from '@chakra-ui/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { createRouteDB } from './database';
 import { Route } from './types';
 
@@ -94,7 +95,7 @@ export function useCreateRoute(
       queryClient.invalidateQueries({
         queryKey: ['routes'],
       });
-      onSuccess && onSuccess(route);
+      onSuccess?.(route);
     },
     onError,
   });
@@ -139,7 +140,7 @@ export function useDeleteRoute(
       queryClient.invalidateQueries({
         queryKey: ['routes'],
       });
-      onSuccess && onSuccess();
+      onSuccess?.();
     },
     onError,
   });
@@ -200,7 +201,7 @@ export function useUpdateRoute(
       queryClient.invalidateQueries({
         queryKey: ['routes', command],
       });
-      onSuccess && onSuccess(route);
+      onSuccess?.(route);
     },
     onError,
   });

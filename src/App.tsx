@@ -1,14 +1,16 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { Box, ComponentWithAs, Link, VStack } from '@chakra-ui/react';
-import { Setup } from './setup/Setup';
-import { Redirect } from './components/Redirect';
-import { About } from './about/About';
-import { Routes } from './routes/Routes';
-import { AddRoute } from './add/AddRoute';
-import { EditRoute } from './route/EditRoute';
+
+import { Box, VStack } from '@chakra-ui/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Navbar } from './components/Navbar';
+
+import { About } from './about/About';
+import { AddRoute } from './add/AddRoute';
 import { Footer } from './components/Footer';
+import { Navbar } from './components/Navbar';
+import { Redirect } from './components/Redirect';
+import { EditRoute } from './route/EditRoute';
+import { Routes } from './routes/Routes';
+import { Setup } from './setup/Setup';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -43,30 +45,6 @@ const router = createBrowserRouter([
     element: <EditRoute />,
   },
 ]);
-
-function HomeLink({
-  to,
-  Icon,
-  label,
-}: {
-  to: string;
-  Icon: ComponentWithAs<'svg', any>;
-  label: string;
-}): JSX.Element {
-  return (
-    <Link
-      href={to}
-      display="flex"
-      flexDirection="row"
-      alignItems="center"
-      gap={2}
-      fontSize="2xl"
-    >
-      <Icon mx="2px" />
-      <Box>{label}</Box>
-    </Link>
-  );
-}
 
 function App(): JSX.Element {
   return (

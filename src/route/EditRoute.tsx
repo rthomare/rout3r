@@ -1,3 +1,7 @@
+import { useCallback } from 'react';
+import { BsTrash } from 'react-icons/bs';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import {
   Button,
   Center,
@@ -15,18 +19,16 @@ import {
   useDisclosure,
   VStack,
 } from '@chakra-ui/react';
-import { useCallback } from 'react';
-import { BsTrash } from 'react-icons/bs';
-import { useNavigate, useParams } from 'react-router-dom';
+
 import { RouteForm } from '../components/RouteForm';
-import { useGetRoute, useDeleteRoute, useUpdateRoute } from '../lib/endpoints';
+import { useDeleteRoute, useGetRoute, useUpdateRoute } from '../lib/endpoints';
 
 export function EditRoute(): JSX.Element {
   const { command } = useParams();
   const navigate = useNavigate();
-  const routeQuery = useGetRoute(command!);
-  const routeUpdateMutation = useUpdateRoute(command!);
-  const routeRemoveMutation = useDeleteRoute(command!, () => {
+  const routeQuery = useGetRoute(command ?? '');
+  const routeUpdateMutation = useUpdateRoute(command ?? '');
+  const routeRemoveMutation = useDeleteRoute(command ?? '', () => {
     routeQuery.refetch();
     navigate('/rout3r/routes');
   });
