@@ -7,11 +7,17 @@ import { processQuery } from './lib/engine';
 import App from './App';
 import theme from './theme';
 
-var condition = window.location.pathname === '/rout3r/go';
+var condition = window.location.href.match('/rout3r/#go') !== null;
 
 // Dynamically load the appropriate module based on the condition
 if (condition) {
-  const params = new URLSearchParams(window.location.search);
+  // get the query parameters after /#go
+  const queryString = window.location.href.split('/#go?')[1];
+  if (!queryString) {
+    console.error('No query string');
+    process.exit(1);
+  }
+  const params = new URLSearchParams(queryString);
   const searchFallback = params.get('searchFallback');
   const query = params.get('q');
   if (!searchFallback) {

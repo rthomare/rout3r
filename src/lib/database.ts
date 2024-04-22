@@ -18,19 +18,19 @@ const reservedRoutes: { [key: string]: Route } = {
     subRoutes: [
       {
         command: 'setup',
-        url: `${origin}/rout3r/setup`,
+        url: `${origin}/rout3r/#setup`,
       },
       {
         command: 'about',
-        url: `${origin}/rout3r/about`,
+        url: `${origin}/rout3r/#about`,
       },
       {
         command: 'new',
-        url: `${origin}/rout3r/routes/new`,
+        url: `${origin}/rout3r/#routes/new`,
       },
       {
         command: 'edit',
-        url: `${origin}/rout3r/route/%@@@`,
+        url: `${origin}/rout3r/#route/%@@@`,
       },
     ],
     type: 'reserved',

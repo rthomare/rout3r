@@ -21,13 +21,13 @@ import {
   HStack,
   IconButton,
   Input,
-  Link,
   Text,
   Textarea,
   VStack,
 } from '@chakra-ui/react';
 
 import { Route, RouteData } from '../lib/types';
+import { Link } from 'react-router-dom';
 
 type RouteFormProps = {
   route: Partial<Route>;
@@ -162,11 +162,12 @@ export function RouteForm({
                 <FormHelperText marginBottom="5px">
                   Description of the route, feel free to add examples.{' '}
                   <Link
-                    textDecoration="underline"
                     target="_blank"
-                    href="https://www.markdownguide.org/cheat-sheet/"
+                    to="https://www.markdownguide.org/cheat-sheet/"
                   >
-                    Supports Markdown
+                    <Box as="span" textDecor="underline">
+                      Supports Markdown
+                    </Box>
                   </Link>
                 </FormHelperText>
                 <Textarea
@@ -183,7 +184,7 @@ export function RouteForm({
             name="subRoutes"
             render={(arrayHelpers) => (
               <VStack alignItems="flex-start" gap={3}>
-                {props.values.subRoutes?.map((routeData, index) => {
+                {props.values.subRoutes?.map((_, index) => {
                   const touched: FormikTouched<RouteData> =
                     props.touched.subRoutes?.[index] ?? {};
                   const ne =
@@ -195,11 +196,7 @@ export function RouteForm({
                     error.command || error.url;
                   const wasTouched = touched.command && touched.url;
                   return (
-                    <Box
-                      as="span"
-                      key={`${routeData.command}${routeData.url}`}
-                      width="100%"
-                    >
+                    <Box as="span" key={index} width="100%">
                       <HStack gap={2}>
                         <Field
                           name={`subRoutes.${index}.command`}

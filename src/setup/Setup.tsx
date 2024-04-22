@@ -190,22 +190,21 @@ export function Setup(): JSX.Element {
       justifyContent="center"
       h="100%"
       fontSize="3xl"
+      gap={4}
     >
-      <VStack>
-        <Heading size="2xl">Setup your rout3r</Heading>
-        <Text fontSize="lg">Login with your wallet to start setup</Text>
-        <Input
-          placeholder="Enter your RPC URL"
-          value={rpcUrl}
-          onChange={(e) => setRpcUrl(e.target.value)}
-        />
-        <Input
-          placeholder="Enter your Fallback Search URL"
-          value={searchFallback}
-          onChange={(e) => setSearchFallback(e.target.value)}
-        />
-        <SetupCompleteModal rpcUrl={rpcUrl} searchFallback={searchFallback} />
-      </VStack>
+      <Heading size="2xl">Setup your rout3r</Heading>
+      <Text fontSize="lg">Login with your wallet to start setup</Text>
+      <Input
+        placeholder="Enter your RPC URL"
+        value={rpcUrl}
+        onChange={(e) => setRpcUrl(e.target.value)}
+      />
+      <Input
+        placeholder="Enter your Fallback Search URL"
+        value={searchFallback}
+        onChange={(e) => setSearchFallback(e.target.value)}
+      />
+      <SetupCompleteModal rpcUrl={rpcUrl} searchFallback={searchFallback} />
     </Center>
   );
 }

@@ -7,7 +7,7 @@ describe('rout3r engine creation', () => {
     const rpcUrl = 'http://localhost:8545';
     const searchFallback = 'https://google.com/search/?q=%@@@';
     const origin = 'http://localhost:3000';
-    const expectedUrl = `${origin}/rout3r/go?rpcUrl=${encodeURIComponent(
+    const expectedUrl = `${origin}/rout3r/#go?rpcUrl=${encodeURIComponent(
       rpcUrl
     )}&searchFallback=${encodeURIComponent(searchFallback)}&q=%s`;
     expect(createRouterURL(origin, rpcUrl, searchFallback)).toBe(expectedUrl);

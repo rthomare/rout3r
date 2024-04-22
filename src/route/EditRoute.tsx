@@ -30,7 +30,7 @@ export function EditRoute(): JSX.Element {
   const routeUpdateMutation = useUpdateRoute(command ?? '');
   const routeRemoveMutation = useDeleteRoute(command ?? '', () => {
     routeQuery.refetch();
-    navigate('/rout3r/routes');
+    navigate('/routes');
   });
   const { isOpen, onOpen, onClose: onDisclosureClose } = useDisclosure();
   const onClose = useCallback(() => {

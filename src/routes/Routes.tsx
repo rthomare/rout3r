@@ -1,12 +1,11 @@
 import { BsCheckSquare, BsInfoCircle, BsSquare } from 'react-icons/bs';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import {
   Button,
   Center,
   Heading,
   HStack,
-  Link,
   Spinner,
   Table,
   TableContainer,
@@ -15,8 +14,8 @@ import {
   Text,
   Th,
   Thead,
-  Tooltip,
   Tr,
+  useColorMode,
   VStack,
 } from '@chakra-ui/react';
 
@@ -25,6 +24,7 @@ import { useGetRoutes } from '../lib/endpoints';
 export function Routes(): JSX.Element {
   const routesQuery = useGetRoutes();
   const navigate = useNavigate();
+  const colorMode = useColorMode();
   if (routesQuery.isLoading) {
     return (
       <Center h="100%">
@@ -56,7 +56,7 @@ export function Routes(): JSX.Element {
     <VStack h="100%">
       <HStack w="100%" justifyContent="space-between">
         <Heading size="lg">Routes</Heading>
-        <Link href="/rout3r/routes/new">
+        <Link to="/routes/new">
           <Button>+ Add a Route</Button>
         </Link>
       </HStack>
@@ -77,10 +77,13 @@ export function Routes(): JSX.Element {
                 <Tr
                   cursor="pointer"
                   onClick={() => {
-                    navigate(`/rout3r/route/${route.command}`);
+                    navigate(`/route/${route.command}`);
                   }}
                   transition="background-color 0.2s"
-                  _hover={{ bg: 'gray.700' }}
+                  _hover={{
+                    bg:
+                      colorMode.colorMode === 'light' ? 'gray.200' : 'gray.700',
+                  }}
                   key={route.command}
                 >
                   <Td>{route.command}</Td>
@@ -102,7 +105,7 @@ export function Routes(): JSX.Element {
       ) : (
         <VStack flexGrow={1} justifyContent="center">
           <Heading size="md">You don&apos;t have any routes</Heading>
-          <Link href="/rout3r/routes/new">
+          <Link to="/routes/new">
             <Button>Create a Route</Button>
           </Link>
         </VStack>

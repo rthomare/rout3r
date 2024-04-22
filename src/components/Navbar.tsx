@@ -1,18 +1,20 @@
-import { StarIcon } from '@chakra-ui/icons';
-import { Button, HStack, Link } from '@chakra-ui/react';
+import { MoonIcon, StarIcon, SunIcon } from '@chakra-ui/icons';
+import { Box, Button, HStack, Switch, useColorMode } from '@chakra-ui/react';
 import { BsGithub } from 'react-icons/bs';
+import { Link } from 'react-router-dom';
 
 export function Navbar() {
+  const { colorMode, toggleColorMode } = useColorMode();
   return (
     <HStack justifyContent="space-between" w="100%">
       <HStack fontSize="lg" gap={4}>
-        <a href="/rout3r/routes">Routes</a>
-        <a href="/rout3r/setup">Setup</a>
-        <a href="/rout3r/about">About</a>
+        <Link to="/routes">Routes</Link>
+        <Link to="/setup">Setup</Link>
+        <Link to="/about">About</Link>
       </HStack>
       <HStack fontSize="lg" gap={0}>
         <Link
-          href="https://github.com/rthomare"
+          to="https://github.com/rthomare"
           aria-label="Follow @rthomare on GitHub"
           target={'_blank'}
         >
@@ -29,7 +31,7 @@ export function Navbar() {
           </Button>
         </Link>
         <Link
-          href="https://github.com/rthomare/rout3r"
+          to="https://github.com/rthomare/rout3r"
           aria-label="Star rthomare/rout3r on GitHub"
           target={'_blank'}
         >
@@ -45,6 +47,31 @@ export function Navbar() {
             Star
           </Button>
         </Link>
+        <Box position="relative">
+          <Switch
+            size="lg"
+            isChecked={colorMode === 'light'}
+            onChange={toggleColorMode}
+            aria-label="Toggle color mode"
+            colorScheme={colorMode === 'light' ? 'gray' : 'whiteAlpha'}
+          />
+          <MoonIcon
+            fontSize="md"
+            position="absolute"
+            top="8px"
+            left="5px"
+            color="white"
+            pointerEvents={'none'}
+          />
+          <SunIcon
+            fontSize="md"
+            position="absolute"
+            top="8px"
+            right="5px"
+            color="white"
+            pointerEvents={'none'}
+          />
+        </Box>
       </HStack>
     </HStack>
   );

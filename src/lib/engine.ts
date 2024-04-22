@@ -18,7 +18,7 @@ export function createRouterURL(
   searchFallback: string
 ): string {
   // url encode rpcUrl and searchFallback
-  return `${origin}/rout3r/go?rpcUrl=${encodeURIComponent(
+  return `${origin}/rout3r/#go?rpcUrl=${encodeURIComponent(
     rpcUrl
   )}&searchFallback=${encodeURIComponent(searchFallback)}&q=%s`;
 }
