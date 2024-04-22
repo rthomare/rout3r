@@ -33,9 +33,15 @@ type RouteFormProps = {
   route: Partial<Route>;
   onSubmit: (route: Route) => Promise<void>;
   disabledFields?: Array<keyof Route>;
+  disabled?: boolean;
 };
 
-export function RouteForm({ route, onSubmit, disabledFields }: RouteFormProps) {
+export function RouteForm({
+  route,
+  onSubmit,
+  disabledFields,
+  disabled,
+}: RouteFormProps) {
   const [formError, setFormError] = useState<Error | undefined>(undefined);
   const validation = {
     name: (name: string) => {
@@ -69,6 +75,7 @@ export function RouteForm({ route, onSubmit, disabledFields }: RouteFormProps) {
         url: route.url || '',
         description: route.description || '',
         subRoutes: route.subRoutes || [],
+        type: 'manual',
       }}
       onSubmit={(values, actions) => {
         actions.setSubmitting(true);
@@ -266,6 +273,7 @@ export function RouteForm({ route, onSubmit, disabledFields }: RouteFormProps) {
             type="submit"
             leftIcon={<BsFloppyFill />}
             colorScheme="blue"
+            isDisabled={disabled}
           >
             Save
           </Button>

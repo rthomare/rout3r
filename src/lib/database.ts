@@ -2,6 +2,34 @@ import { DBSchema, openDB } from 'idb';
 
 import { Route } from './types';
 
+const reservedRoutes: { [key: string]: Route } = {
+  r3: {
+    command: 'r3',
+    name: 'rout3r Menu',
+    description: 'Takes you to rout3r',
+    url: window.location.origin + '/rout3r/',
+    subRoutes: [
+      {
+        command: 'setup',
+        url: window.location.origin + '/rout3r/setup',
+      },
+      {
+        command: 'about',
+        url: window.location.origin + '/rout3r/about',
+      },
+      {
+        command: 'new',
+        url: window.location.origin + '/rout3r/routes/new',
+      },
+      {
+        command: 'edit',
+        url: window.location.origin + '/rout3r/route/%@@@',
+      },
+    ],
+    type: 'reserved',
+  },
+};
+
 interface routerDB extends DBSchema {
   routes: {
     value: Route;
@@ -39,6 +67,9 @@ export function createRouteDB() {
      * routeManager.getRoute().then((route) => console.log(route));
      */
     getRoute: async (command: string) => {
+      if (reservedRoutes[command]) {
+        return reservedRoutes[command];
+      }
       const db = await openRouterDB();
       return db.get('routes', command);
     },
@@ -53,7 +84,9 @@ export function createRouteDB() {
      */
     getAllRoutes: async () => {
       const db = await openRouterDB();
-      return db.getAll('routes');
+      return db.getAll('routes').then((routes) => {
+        return [...Object.values(reservedRoutes), ...routes];
+      });
     },
 
     /*
@@ -73,20 +106,27 @@ export function createRouteDB() {
      */
     addRoute: async (route: Route) => {
       const db = await openRouterDB();
-      await db.add('routes', route);
+      const existingItem = await db.get('routes', route.command);
+      if (existingItem) {
+        throw new Error('An item with the same key already exists!');
+      }
+      await db.add('routes', { ...route, type: 'manual' });
       return route;
     },
 
     /*
-     * @function removeRoute
+     * @function deleteRoute
      * Removes a route from the database.
      * @param command - The command of the route to remove.
      * @returns The route that was removed.
      *
      * @example
-     * routeManager.removeRoute('g').then((route) => console.log(route));
+     * routeManager.deleteRoute('g').then((route) => console.log(route));
      */
-    removeRoute: async (command: string) => {
+    deleteRoute: async (command: string) => {
+      if (reservedRoutes[command]) {
+        throw new Error('Cannot remove a reserved route!');
+      }
       const db = await openRouterDB();
       return db.delete('routes', command);
     },
@@ -119,6 +159,9 @@ export function createRouteDB() {
      * });
      */
     updateRoute: async (command: string, route: Omit<Route, 'command'>) => {
+      if (reservedRoutes[command]) {
+        throw new Error('Cannot update a reserved route!');
+      }
       const db = await openRouterDB();
       await db.put('routes', { command, ...route });
       return { command, ...route };

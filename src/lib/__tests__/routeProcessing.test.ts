@@ -16,6 +16,7 @@ const googleRoute = {
       url: 'https://www.google.com/search?tbm=isch&q=%@@@',
     },
   ],
+  type: 'manual' as const,
 };
 
 const FALLBACK = 'https://duckduckgo.com/?&q=%@@@';

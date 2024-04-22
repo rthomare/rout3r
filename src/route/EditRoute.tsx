@@ -72,6 +72,7 @@ export function EditRoute(): JSX.Element {
           onClick={onOpen}
           isLoading={routeRemoveMutation.isPending}
           leftIcon={<BsTrash />}
+          isDisabled={routeQuery.data.type === 'reserved'}
         >
           Delete
         </Button>
@@ -83,6 +84,7 @@ export function EditRoute(): JSX.Element {
           routeQuery.refetch();
         }}
         disabledFields={['command']}
+        disabled={routeQuery.data.type === 'reserved'}
       />
       <Modal onClose={onClose} isOpen={isOpen} isCentered>
         <ModalOverlay />
@@ -100,6 +102,7 @@ export function EditRoute(): JSX.Element {
               mr={3}
               onClick={() => routeRemoveMutation.mutate()}
               isLoading={routeRemoveMutation.isPending}
+              disabled={routeQuery.data.type === 'reserved'}
             >
               Delete
             </Button>

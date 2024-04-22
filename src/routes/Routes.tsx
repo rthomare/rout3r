@@ -20,6 +20,7 @@ import {
 } from '@chakra-ui/react';
 
 import { useGetRoutes } from '../lib/endpoints';
+import { BsCheckSquare, BsSquare } from 'react-icons/bs';
 
 export function Routes(): JSX.Element {
   const routesQuery = useGetRoutes();
@@ -68,6 +69,7 @@ export function Routes(): JSX.Element {
                 <Th>Name</Th>
                 <Th>URL</Th>
                 <Th isNumeric>Subroutes</Th>
+                <Th>Reserved</Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -95,6 +97,13 @@ export function Routes(): JSX.Element {
                     <Td>{route.name}</Td>
                     <Td isTruncated>{route.url}</Td>
                     <Td isNumeric>{route.subRoutes.length}</Td>
+                    <Td>
+                      {route.type === 'reserved' ? (
+                        <BsCheckSquare />
+                      ) : (
+                        <BsSquare />
+                      )}
+                    </Td>
                   </Tr>
                 </Tooltip>
               ))}

@@ -126,7 +126,7 @@ export function useDeleteRoute(
   const queryClient = useQueryClient();
   const toast = useToast();
   return useMutation({
-    mutationFn: () => db.removeRoute(command),
+    mutationFn: () => db.deleteRoute(command),
     onSuccess: () => {
       toast({
         title: 'Route Deleted.',

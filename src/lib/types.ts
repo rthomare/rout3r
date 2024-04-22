@@ -44,4 +44,5 @@ export type Route = RouteData & {
   name: string;
   description: string;
   subRoutes: RouteData[];
+  type: 'manual' | 'reserved';
 };
