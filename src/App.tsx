@@ -1,24 +1,26 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-
-import { InfoIcon, SettingsIcon } from '@chakra-ui/icons';
-import { TbRoute } from 'react-icons/tb';
-import { Center, Divider, Heading, Link, Text, VStack } from '@chakra-ui/react';
-
+import { Box, ComponentWithAs, Link, VStack } from '@chakra-ui/react';
 import { Setup } from './setup/Setup';
 import { Redirect } from './components/Redirect';
 import { About } from './about/About';
 import { Routes } from './routes/Routes';
-import { AddRoute } from './new/AddRoute';
+import { AddRoute } from './add/AddRoute';
 import { EditRoute } from './route/EditRoute';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Navbar } from './components/Navbar';
+import { Footer } from './components/Footer';
+
+// Create a client
+const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Redirect to="/rout3r" />,
+    element: <Redirect to="/rout3r/routes" />,
   },
   {
     path: '/rout3r',
-    element: <Home />,
+    element: <Routes />,
   },
   {
     path: '/rout3r/setup',
@@ -42,43 +44,42 @@ const router = createBrowserRouter([
   },
 ]);
 
-function Home(): JSX.Element {
+function HomeLink({
+  to,
+  Icon,
+  label,
+}: {
+  to: string;
+  Icon: ComponentWithAs<'svg', any>;
+  label: string;
+}): JSX.Element {
   return (
-    <Center
-      as="header"
-      flexDirection="column"
+    <Link
+      href={to}
+      display="flex"
+      flexDirection="row"
       alignItems="center"
-      justifyContent="center"
-      h="100%"
-      fontSize="3xl"
+      gap={2}
+      fontSize="2xl"
     >
-      <VStack>
-        <Heading size="2xl">welcome to rout3r</Heading>
-        <Text fontSize="lg">
-          Open sourced web3 routes to simplify browsing.
-        </Text>
-        <Divider />
-      </VStack>
-      <VStack>
-        <Link href="/rout3r/setup">
-          <SettingsIcon mx="2px" />
-          &nbsp; Setup
-        </Link>
-        <Link href="/rout3r/routes">
-          <TbRoute style={{ display: 'inline' }} />
-          &nbsp; Routes
-        </Link>
-        <Link href="/rout3r/about">
-          <InfoIcon mx="2px" />
-          &nbsp; About
-        </Link>
-      </VStack>
-    </Center>
+      <Icon mx="2px" />
+      <Box>{label}</Box>
+    </Link>
   );
 }
 
 function App(): JSX.Element {
-  return <RouterProvider router={router} />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <VStack h="100vh" w="100vw" padding={8}>
+        <Navbar />
+        <Box flexGrow={1} w="100%" padding="1rem 0">
+          <RouterProvider router={router} />
+        </Box>
+        <Footer />
+      </VStack>
+    </QueryClientProvider>
+  );
 }
 
 export default App;
