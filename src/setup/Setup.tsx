@@ -65,7 +65,7 @@ function SetupCompleteModal({
 
   return (
     <>
-      <Button onClick={generateLink}>Open Modal</Button>
+      <Button onClick={generateLink}>Generate Link</Button>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>

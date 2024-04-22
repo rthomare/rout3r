@@ -2,28 +2,35 @@ import { DBSchema, openDB } from 'idb';
 
 import { Route } from './types';
 
+let origin;
+try {
+  origin = window.location.origin;
+} catch {
+  origin = '';
+}
+
 const reservedRoutes: { [key: string]: Route } = {
   r3: {
     command: 'r3',
     name: 'rout3r Menu',
     description: 'Takes you to rout3r',
-    url: window.location.origin + '/rout3r/',
+    url: `${origin}/rout3r/`,
     subRoutes: [
       {
         command: 'setup',
-        url: window.location.origin + '/rout3r/setup',
+        url: `${origin}/rout3r/setup`,
       },
       {
         command: 'about',
-        url: window.location.origin + '/rout3r/about',
+        url: `${origin}/rout3r/about`,
       },
       {
         command: 'new',
-        url: window.location.origin + '/rout3r/routes/new',
+        url: `${origin}/rout3r/routes/new`,
       },
       {
         command: 'edit',
-        url: window.location.origin + '/rout3r/route/%@@@',
+        url: `${origin}/rout3r/route/%@@@`,
       },
     ],
     type: 'reserved',
@@ -84,9 +91,9 @@ export function createRouteDB() {
      */
     getAllRoutes: async () => {
       const db = await openRouterDB();
-      return db.getAll('routes').then((routes) => {
-        return [...Object.values(reservedRoutes), ...routes];
-      });
+      return db
+        .getAll('routes')
+        .then((routes) => [...Object.values(reservedRoutes), ...routes]);
     },
 
     /*

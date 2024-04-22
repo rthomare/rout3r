@@ -1,3 +1,4 @@
+import { BsCheckSquare, BsInfoCircle, BsSquare } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -20,7 +21,6 @@ import {
 } from '@chakra-ui/react';
 
 import { useGetRoutes } from '../lib/endpoints';
-import { BsCheckSquare, BsSquare } from 'react-icons/bs';
 
 export function Routes(): JSX.Element {
   const routesQuery = useGetRoutes();
@@ -74,38 +74,27 @@ export function Routes(): JSX.Element {
             </Thead>
             <Tbody>
               {routesQuery.data.map((route) => (
-                <Tooltip
-                  hasArrow
-                  placement="top-start"
-                  label={
-                    route.description === '' || !route.description
-                      ? 'No Description. Click here to edit.'
-                      : `${route.description} Click here to edit.`
-                  }
-                  aria-label="Add a new route"
+                <Tr
+                  cursor="pointer"
+                  onClick={() => {
+                    navigate(`/rout3r/route/${route.command}`);
+                  }}
+                  transition="background-color 0.2s"
+                  _hover={{ bg: 'gray.700' }}
+                  key={route.command}
                 >
-                  <Tr
-                    cursor="pointer"
-                    onClick={() => {
-                      navigate(`/rout3r/route/${route.command}`);
-                    }}
-                    transition="background-color 0.2s"
-                    _hover={{ bg: 'gray.700' }}
-                    key={route.command}
-                  >
-                    <Td>{route.command}</Td>
-                    <Td>{route.name}</Td>
-                    <Td isTruncated>{route.url}</Td>
-                    <Td isNumeric>{route.subRoutes.length}</Td>
-                    <Td>
-                      {route.type === 'reserved' ? (
-                        <BsCheckSquare />
-                      ) : (
-                        <BsSquare />
-                      )}
-                    </Td>
-                  </Tr>
-                </Tooltip>
+                  <Td>{route.command}</Td>
+                  <Td>{route.name}</Td>
+                  <Td isTruncated>{route.url}</Td>
+                  <Td isNumeric>{route.subRoutes.length}</Td>
+                  <Td>
+                    {route.type === 'reserved' ? (
+                      <BsCheckSquare />
+                    ) : (
+                      <BsSquare />
+                    )}
+                  </Td>
+                </Tr>
               ))}
             </Tbody>
           </Table>

@@ -20,8 +20,6 @@ describe('rout3r engine traversal', () => {
     const { routeData, routeQuery } = traverseRoute(googleRoute, 'i something');
     expect(routeData).toEqual({
       command: 'i',
-      name: 'Images',
-      description: 'Searches Google Images',
       url: 'https://www.google.com/search?tbm=isch&q=%@@@',
     });
     expect(routeQuery).toBe('something');
@@ -31,8 +29,6 @@ describe('rout3r engine traversal', () => {
     const { routeData, routeQuery } = traverseRoute(googleRoute, query);
     expect(routeData).toEqual({
       command: 'g',
-      name: 'Google',
-      description: 'Searches Google',
       url: 'https://www.google.com/search?q=%@@@',
     });
     expect(routeQuery).toBe('');
@@ -44,8 +40,6 @@ describe('rout3r engine traversal', () => {
     );
     expect(routeData).toEqual({
       command: 'i',
-      name: 'Images',
-      description: 'Searches Google Images',
       url: 'https://www.google.com/search?tbm=isch&q=%@@@',
     });
     expect(routeQuery).toBe('i something');
@@ -57,8 +51,6 @@ describe('rout3r engine traversal', () => {
     );
     expect(routeData).toEqual({
       command: 'i',
-      name: 'Images',
-      description: 'Searches Google Images',
       url: 'https://www.google.com/search?tbm=isch&q=%@@@',
     });
     expect(routeQuery).toBe('');

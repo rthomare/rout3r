@@ -1,5 +1,6 @@
-import { HStack } from '@chakra-ui/react';
-import GitHubButton from 'react-github-btn';
+import { StarIcon } from '@chakra-ui/icons';
+import { Button, HStack, Link } from '@chakra-ui/react';
+import { BsGithub } from 'react-icons/bs';
 
 export function Navbar() {
   return (
@@ -9,22 +10,41 @@ export function Navbar() {
         <a href="/rout3r/setup">Setup</a>
         <a href="/rout3r/about">About</a>
       </HStack>
-      <HStack fontSize="lg" gap={1}>
-        <GitHubButton
+      <HStack fontSize="lg" gap={0}>
+        <Link
           href="https://github.com/rthomare"
-          data-color-scheme="no-preference: light; light: light; dark: dark;"
-          data-size="large"
+          aria-label="Follow @rthomare on GitHub"
+          target={'_blank'}
         >
-          Follow @rthomare
-        </GitHubButton>
-        <GitHubButton
+          <Button
+            size="xs"
+            leftIcon={<BsGithub />}
+            border="1px solid"
+            _hover={{
+              bg: 'gray.600',
+            }}
+            transition="all 0.2s"
+          >
+            Follow @rthomare
+          </Button>
+        </Link>
+        <Link
           href="https://github.com/rthomare/rout3r"
-          data-icon="star"
-          data-color-scheme="no-preference: light; light: light; dark: dark;"
-          data-size="large"
+          aria-label="Star rthomare/rout3r on GitHub"
+          target={'_blank'}
         >
-          Star
-        </GitHubButton>
+          <Button
+            size="xs"
+            leftIcon={<StarIcon />}
+            border="1px solid"
+            _hover={{
+              bg: 'gray.600',
+            }}
+            transition="all 0.2s"
+          >
+            Star
+          </Button>
+        </Link>
       </HStack>
     </HStack>
   );
