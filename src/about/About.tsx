@@ -1,9 +1,53 @@
-import { Box, Heading, Text, VStack } from '@chakra-ui/react';
+import { StarIcon } from '@chakra-ui/icons';
+import { Box, Button, Flex, Heading, Text, VStack } from '@chakra-ui/react';
+import { BsGithub } from 'react-icons/bs';
+import { Link } from 'react-router-dom';
 
 export function About(): JSX.Element {
   return (
     <VStack alignItems="start" gap={5}>
       <Heading>About rout3r</Heading>
+      <Flex
+        style={{
+          marginTop: 0,
+        }}
+        gap={2}
+      >
+        <Link
+          to="https://github.com/rthomare"
+          aria-label="Follow @rthomare on GitHub"
+          target={'_blank'}
+        >
+          <Button
+            size="xs"
+            leftIcon={<BsGithub />}
+            border="1px solid"
+            _hover={{
+              bg: 'gray.600',
+            }}
+            transition="all 0.2s"
+          >
+            Follow @rthomare
+          </Button>
+        </Link>
+        <Link
+          to="https://github.com/rthomare/rout3r"
+          aria-label="Star rthomare/rout3r on GitHub"
+          target={'_blank'}
+        >
+          <Button
+            size="xs"
+            leftIcon={<StarIcon />}
+            border="1px solid"
+            _hover={{
+              bg: 'gray.600',
+            }}
+            transition="all 0.2s"
+          >
+            Star
+          </Button>
+        </Link>
+      </Flex>
       <Box>
         <Heading size="md">What is rout3r?</Heading>
         <Text>

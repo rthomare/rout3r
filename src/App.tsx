@@ -1,38 +1,66 @@
-import { Routes, Route, HashRouter } from 'react-router-dom';
-import { Box, VStack } from '@chakra-ui/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { About } from './about/About';
-import { AddRoute } from './add/AddRoute';
+import { Route, Routes } from 'react-router-dom';
+import { Box, Center, Spinner, VStack, useColorMode } from '@chakra-ui/react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Footer } from './components/Footer';
 import { Navbar } from './components/Navbar';
-import { EditRoute } from './route/EditRoute';
-import { Routes as Rout3s } from './routes/Routes';
-import { Setup } from './setup/Setup';
-import { Redirect } from './components/Redirect';
+import { WagmiProvider } from 'wagmi';
+import { config } from './web3/config';
+import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
+import '@rainbow-me/rainbowkit/styles.css';
+import { queryClient } from './lib/queryClient';
+import { useAppDestinations } from './hooks/useAppDestinations';
 
-// Create a client
-const queryClient = new QueryClient();
+function NavRoutes() {
+  const { isLoading, destinations } = useAppDestinations();
+  if (isLoading) {
+    return (
+      <Center h="100%">
+        <Spinner />
+      </Center>
+    );
+  }
+  return (
+    <Routes>
+      {destinations.map((destination) => (
+        <Route
+          key={destination.path}
+          path={destination.path}
+          element={destination.content}
+        />
+      ))}
+    </Routes>
+  );
+}
 
 function App(): JSX.Element {
+  const { colorMode } = useColorMode();
+
   return (
-    <HashRouter>
+    <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <VStack h="100vh" w="100vw" padding={8}>
-          <Navbar />
-          <Box flexGrow={1} w="100%" padding="1rem 0">
-            <Routes>
-              <Route path="/" element={<Redirect to="/routes" />} />
-              <Route path="/setup" element={<Setup />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/routes" element={<Rout3s />} />
-              <Route path="/routes/new" element={<AddRoute />} />
-              <Route path="/route/:command" element={<EditRoute />} />
-            </Routes>
-          </Box>
-          <Footer />
-        </VStack>
+        <RainbowKitProvider
+          theme={
+            colorMode === 'dark'
+              ? darkTheme({
+                  accentColor: '#0f0f0f',
+                  accentColorForeground: 'white',
+                  borderRadius: 'large',
+                  fontStack: 'rounded',
+                  overlayBlur: 'small',
+                })
+              : undefined
+          }
+        >
+          <VStack h="100vh" w="100vw" padding={8}>
+            <Navbar />
+            <Box flexGrow={1} w="100%" padding="1rem 0">
+              <NavRoutes />
+            </Box>
+            <Footer />
+          </VStack>
+        </RainbowKitProvider>
       </QueryClientProvider>
-    </HashRouter>
+    </WagmiProvider>
   );
 }
 

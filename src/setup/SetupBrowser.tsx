@@ -5,7 +5,6 @@ import {
   BsBrowserSafari,
   BsThreeDotsVertical,
 } from 'react-icons/bs';
-
 import {
   Accordion,
   AccordionButton,
@@ -26,27 +25,21 @@ import {
   ModalOverlay,
   OrderedList,
   Text,
+  VStack,
   useDisclosure,
   useToast,
-  VStack,
 } from '@chakra-ui/react';
 
 import { createRouterURL } from '../lib/engine';
 
-function SetupCompleteModal({
-  rpcUrl,
-  searchFallback,
-}: {
-  rpcUrl: string;
-  searchFallback: string;
-}) {
+function SetupCompleteModal({ searchFallback }: { searchFallback: string }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [generatedRouterUrl, setGeneratedRouterUrl] = useState('');
   const generateLink = useCallback(() => {
-    const url = createRouterURL(window.location.origin, rpcUrl, searchFallback);
+    const url = createRouterURL(window.location.origin, searchFallback);
     setGeneratedRouterUrl(url);
     onOpen();
-  }, [rpcUrl, searchFallback, onOpen, setGeneratedRouterUrl]);
+  }, [searchFallback, onOpen, setGeneratedRouterUrl]);
   const toast = useToast();
 
   const copy = useCallback(
@@ -65,7 +58,7 @@ function SetupCompleteModal({
 
   return (
     <>
-      <Button onClick={generateLink}>Generate Link</Button>
+      <Button onClick={generateLink}>Get Instructions</Button>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
@@ -176,35 +169,21 @@ function SetupCompleteModal({
   );
 }
 
-export function Setup(): JSX.Element {
-  const [rpcUrl, setRpcUrl] = useState('');
+export function SetupBrowser(): JSX.Element {
   const [searchFallback, setSearchFallback] = useState(
     'https://www.google.com/search?q=%@@@'
   );
 
   return (
-    <Center
-      as="header"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      h="100%"
-      fontSize="3xl"
-      gap={4}
-    >
-      <Heading size="2xl">Setup your rout3r</Heading>
-      <Text fontSize="lg">Login with your wallet to start setup</Text>
+    <VStack alignItems="flex-start">
+      <Text fontSize="lg">Add a fallback search url:</Text>
       <Input
-        placeholder="Enter your RPC URL"
-        value={rpcUrl}
-        onChange={(e) => setRpcUrl(e.target.value)}
-      />
-      <Input
+        mb={3}
         placeholder="Enter your Fallback Search URL"
         value={searchFallback}
         onChange={(e) => setSearchFallback(e.target.value)}
       />
-      <SetupCompleteModal rpcUrl={rpcUrl} searchFallback={searchFallback} />
-    </Center>
+      <SetupCompleteModal searchFallback={searchFallback} />
+    </VStack>
   );
 }

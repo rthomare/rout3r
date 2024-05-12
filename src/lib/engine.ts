@@ -14,13 +14,12 @@ import { Route, RouteData } from './types';
  */
 export function createRouterURL(
   origin: string,
-  rpcUrl: string,
   searchFallback: string
 ): string {
   // url encode rpcUrl and searchFallback
-  return `${origin}/rout3r/#go?rpcUrl=${encodeURIComponent(
-    rpcUrl
-  )}&searchFallback=${encodeURIComponent(searchFallback)}&q=%s`;
+  return `${origin}/rout3r/#go?searchFallback=${encodeURIComponent(
+    searchFallback
+  )}&q=%s`;
 }
 
 /*
