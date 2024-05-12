@@ -4,14 +4,13 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { BsGithub } from 'react-icons/bs';
 import { Link } from 'react-router-dom';
 import { useAppState } from '../hooks/useAppState';
-import { useAppDestinations } from '../hooks/useAppDestinations';
+import { AppDestinationsResponse } from '../hooks/useAppDestinations';
 
-export function Navbar() {
+export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();
   const appState = useAppState();
-  const { destinations } = useAppDestinations();
 
-  if (appState.isLoading) {
+  if (appState.isLoading || isLoading) {
     return null;
   }
   return (

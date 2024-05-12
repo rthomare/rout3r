@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useConnectorClient } from 'wagmi';
+import { useMemo } from 'react';
+import { useAccount } from 'wagmi';
 import { useSetup } from './useSetup';
 
 export type AppState = {
@@ -11,32 +11,39 @@ export type AppState = {
 };
 
 export function useAppState() {
-  const connection = useConnectorClient();
+  const { isConnected } = useAccount();
   const { contractExists } = useSetup();
-  if (connection.isLoading || contractExists.isLoading) {
-    return {
-      isLoading: true,
-      isWalletConnected: false,
-      isContractDeployed: false,
-      cachedBlock: 0,
-      error: null,
-    };
-  }
-  if (connection.status === 'error' || !connection.data?.account) {
-    // just make sure we're not connected with a wallet
+  return useMemo(() => {
+    if (!isConnected) {
+      // just make sure we're not connected with a wallet
+      return {
+        isLoading: false,
+        isWalletConnected: false,
+        isContractDeployed: false,
+        cachedBlock: 0,
+        error: null,
+      };
+    }
+    if (contractExists.isLoading) {
+      return {
+        isLoading: true,
+        isWalletConnected: false,
+        isContractDeployed: false,
+        cachedBlock: 0,
+        error: null,
+      };
+    }
     return {
       isLoading: false,
-      isWalletConnected: false,
-      isContractDeployed: false,
+      isWalletConnected: true,
+      isContractDeployed: contractExists.data,
       cachedBlock: 0,
       error: null,
     };
-  }
-  return {
-    isLoading: false,
-    isWalletConnected: true,
-    isContractDeployed: contractExists.data,
-    cachedBlock: 0,
-    error: null,
-  };
+  }, [
+    isConnected,
+    contractExists.data,
+    contractExists.isLoading,
+    contractExists.error,
+  ]);
 }

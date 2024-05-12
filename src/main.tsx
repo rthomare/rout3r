@@ -6,7 +6,10 @@ import { processQuery } from './lib/engine';
 
 import App from './App';
 import theme from './theme';
-import { HashRouter } from 'react-router-dom';
+import { WagmiProvider } from 'wagmi';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './lib/queryClient';
+import { config } from './web3/config';
 
 var condition = window.location.href.match('/rout3r/#go') !== null;
 
@@ -42,12 +45,14 @@ if (condition) {
   const root = createRoot(container);
   root.render(
     <React.StrictMode>
-      <HashRouter>
-        <ChakraProvider theme={theme}>
-          <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-          <App />
-        </ChakraProvider>
-      </HashRouter>
+      <ChakraProvider theme={theme}>
+        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <App />
+          </QueryClientProvider>
+        </WagmiProvider>
+      </ChakraProvider>
     </React.StrictMode>
   );
 }

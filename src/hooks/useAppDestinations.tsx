@@ -9,15 +9,20 @@ import { EditRoute } from '../route/EditRoute';
 import { Routes as Rout3s } from '../routes/Routes';
 import { useMemo } from 'react';
 
-export type AppDestinations = {
+type AppDestinations = {
   content: React.ReactElement;
   path: string;
   name: string;
 };
 
-export function useAppDestinations() {
-  const appState = useAppState();
+export type AppDestinationsResponse = {
+  isLoading: boolean;
+  destinations: AppDestinations[];
+  basename: string;
+};
 
+export function useAppDestinations(): AppDestinationsResponse {
+  const appState = useAppState();
   return useMemo(() => {
     if (appState.isLoading) {
       return {
@@ -131,6 +136,7 @@ export function useAppDestinations() {
           name: 'About',
         },
       ],
+      basename: 'rout3r',
     };
   }, [appState]);
 }
