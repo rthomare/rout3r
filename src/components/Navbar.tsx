@@ -3,20 +3,28 @@ import { Box, HStack, Icon, Switch, useColorMode } from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { BsGithub } from 'react-icons/bs';
 import { Link } from 'react-router-dom';
-import { useConnectorClient } from 'wagmi';
+import { useAppState } from '../hooks/useAppState';
+import { useAppDestinations } from '../hooks/useAppDestinations';
 
 export function Navbar() {
   const { colorMode, toggleColorMode } = useColorMode();
-  const result = useConnectorClient();
+  const appState = useAppState();
+  const { destinations } = useAppDestinations();
+
+  if (appState.isLoading) {
+    return null;
+  }
   return (
     <HStack justifyContent="space-between" w="100%">
       <HStack fontSize="lg" gap={4}>
-        <Link to="/">Home</Link>
-        {result.status === 'success' && <Link to="/setup">Setup</Link>}
-        <Link to="/about">About</Link>
+        {destinations.map((dest) => (
+          <Link key={dest.path} to={dest.path}>
+            {dest.name}
+          </Link>
+        ))}
       </HStack>
       <HStack fontSize="lg" gap={4}>
-        {result.status === 'success' && (
+        {appState.isWalletConnected && (
           <ConnectButton accountStatus="address" showBalance={false} />
         )}
         <Link
@@ -29,7 +37,6 @@ export function Navbar() {
             display="block"
             transition="color 0.2s"
             fontSize="2xl"
-            size="2xl"
             _hover={{ color: 'gray.600' }}
           />
         </Link>
