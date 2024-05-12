@@ -45,6 +45,16 @@ async function _contractAddress(
   return undefined;
 }
 
+/*
+ * Check if the rout3r contract exists onchain
+ * @param from - the address to check for the contract
+ * @param client - the public client to use for RPC requests
+ * @returns the contract address if it exists, otherwise undefined
+ *
+ * @example
+ * const publicClient = usePublicClient();
+ * const contractAddress = await contractExists('0x1234...', publicClient);
+ */
 export async function contractAddress(
   from: Address,
   client: PublicClient
@@ -63,6 +73,16 @@ export async function contractAddress(
   return add;
 }
 
+/*
+ * Deploy the rout3r contract onchain
+ * @param client - the wallet client to use for deployment
+ * @returns the contract address if successful
+ * @throws an error if the client does not have an account
+ *
+ * @example
+ * const walletClient = useWalletClient();
+ * const contractAddress = await deployContract(walletClient);
+ */
 export async function deployContract(client: WalletClient): Promise<Address> {
   if (!client.account) {
     throw new Error('No account found to deploy contract.');

@@ -2,6 +2,13 @@ import { useMemo } from 'react';
 import { useAccount } from 'wagmi';
 import { useRouterContract } from './useRouterContract';
 
+/*
+ * The type depicting Application State
+ * isLoading: boolean - whether the app is loading
+ * isWalletConnected: boolean - whether the wallet is connected
+ * isContractDeployed: boolean - whether the contract is deployed
+ * cachedBlock: number - the block number
+ */
 export type AppState = {
   isLoading: boolean;
   isWalletConnected: boolean;
@@ -10,6 +17,10 @@ export type AppState = {
   error: Error | null;
 };
 
+/*
+ * Hook to get the application state
+ * @returns the application state
+ */
 export function useAppState() {
   const { isConnected } = useAccount();
   const { address } = useRouterContract();

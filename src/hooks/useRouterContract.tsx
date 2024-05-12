@@ -2,6 +2,13 @@ import { usePublicClient, useWalletClient } from 'wagmi';
 import { contractAddress, deployContract } from '../lib/onchain';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
+/*
+ * Hook to deploy and check for the router contract address
+ * @returns a deploy mutation and a query for the contract address
+ *
+ * @example
+ * const { deploy, address } = useRouterContract();
+ */
 export function useRouterContract() {
   const walletClientQuery = useWalletClient();
   const publicClientQuery = usePublicClient();

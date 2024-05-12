@@ -16,12 +16,22 @@ type AppDestinations = {
   shouldHideNav?: boolean;
 };
 
+/*
+ * The type depicting the different destinations in the application
+ * isLoading: boolean - whether the destinations are loading
+ * destinations: AppDestinations[] - the different destinations
+ * basename: string - the base path of the application
+ */
 export type AppDestinationsResponse = {
   isLoading: boolean;
   destinations: AppDestinations[];
   basename: string;
 };
 
+/*
+ * Hook to get the different destinations in the application
+ * @returns the different destinations in the application based on the application state
+ */
 export function useAppDestinations(): AppDestinationsResponse {
   const appState = useAppState();
   return useMemo(() => {
