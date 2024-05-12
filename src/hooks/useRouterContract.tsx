@@ -5,7 +5,7 @@ import {
 } from '../lib/onchain';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-export function useSetup() {
+export function useRouterContract() {
   const walletClientQuery = useWalletClient();
   const publicClientQuery = usePublicClient();
   const deploy = useMutation({

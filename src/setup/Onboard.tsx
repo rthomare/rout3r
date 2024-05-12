@@ -1,83 +1,91 @@
-import { CheckCircleIcon } from '@chakra-ui/icons';
 import {
   Accordion,
   AccordionButton,
   AccordionItem,
   AccordionPanel,
-  Button,
+  Box,
   Flex,
   Heading,
+  Text,
+  VStack,
 } from '@chakra-ui/react';
-import { useSetup } from '../hooks/useSetup';
+import { useRouterContract } from '../hooks/useRouterContract';
 import { SetupBrowser } from './SetupBrowser';
+import { BsCheckCircle, BsCheckCircleFill } from 'react-icons/bs';
+import { DeployContract } from './DeployContract';
 
 function OnboardingStep({
   title,
+  subtitle,
   completed,
   children,
-}: React.PropsWithChildren<{ title: string; completed: boolean }>) {
+}: React.PropsWithChildren<{
+  title: string;
+  subtitle?: string;
+  completed: boolean;
+}>) {
   return (
     <AccordionItem border="solid 1px" borderRadius={10} marginBottom={5}>
-      {({ isExpanded }) => (
-        <>
-          <AccordionButton>
-            <Flex w="100%" alignItems="center" justifyContent="space-between">
-              <Heading
-                size="md"
-                fontWeight="bold"
-                color={isExpanded || completed ? undefined : 'gray.500'}
+      {({ isExpanded }) => {
+        const highlighted = isExpanded || completed;
+        return (
+          <>
+            <AccordionButton>
+              <VStack
+                w="100%"
+                alignItems="flex-start"
+                color={highlighted ? undefined : 'gray.500'}
+                gap={0}
               >
-                {title}
-              </Heading>
-              <CheckCircleIcon
-                fontSize="large"
-                color={completed ? 'green.500' : 'gray.500'}
-              />
-            </Flex>
-          </AccordionButton>
-          <AccordionPanel pb={4}>{children}</AccordionPanel>
-        </>
-      )}
+                <Flex
+                  w="100%"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <Heading size="md" fontWeight="bold">
+                    {title}
+                  </Heading>
+                  <Box color={completed ? 'green.500' : undefined}>
+                    {completed ? <BsCheckCircleFill /> : <BsCheckCircle />}
+                  </Box>
+                </Flex>
+                {subtitle && <Text fontSize="md">{subtitle}</Text>}
+              </VStack>
+            </AccordionButton>
+            <AccordionPanel pb={4}>{children}</AccordionPanel>
+          </>
+        );
+      }}
     </AccordionItem>
   );
 }
 
 export function Onboard() {
-  const setup = useSetup();
-
+  const routerContract = useRouterContract();
+  const defaultIndex = routerContract.contractExists ? [0] : [1];
   return (
-    <>
-      <Accordion>
-        <OnboardingStep
-          title="Step 1: Deploy the Router"
-          completed={setup.deploy.isSuccess}
-        >
-          <p>
-            The router is a smart contract that will allow you to create and
-            manage your routes.
-          </p>
-          <Button
-            mt={2}
-            onClick={() => setup.deploy.mutateAsync}
-            isLoading={setup.deploy.isPending}
-          >
-            Deploy Router
-          </Button>
-        </OnboardingStep>
-        <OnboardingStep
-          title="Step 2: Deploy the Router"
-          completed={setup.deploy.isSuccess}
-        >
-          <p>
-            The router is a smart contract that will allow you to create and
-            manage your routes.
-          </p>
-          <Button isLoading={setup.deploy.isPending}>Deploy Router</Button>
-        </OnboardingStep>
-        <OnboardingStep title="Step 3: Setup your browser" completed={false}>
-          <SetupBrowser />
-        </OnboardingStep>
-      </Accordion>
-    </>
+    <Accordion defaultIndex={defaultIndex}>
+      <OnboardingStep
+        title="Step 1: Deploy the Router"
+        subtitle="Deploy your router to create and manage your routes"
+        completed={routerContract.deploy.isSuccess}
+      >
+        <DeployContract />
+      </OnboardingStep>
+      <OnboardingStep
+        title="Step 2: Setup your Browser"
+        subtitle="Setup a search fallback and your browser"
+        completed={false}
+      >
+        <SetupBrowser />
+      </OnboardingStep>
+      <OnboardingStep
+        title="Step 3: Try your first route"
+        subtitle="Create a route and test it out!"
+        completed={false}
+      >
+        <Box>Coming soon...</Box>
+      </OnboardingStep>
+    </Accordion>
   );
 }

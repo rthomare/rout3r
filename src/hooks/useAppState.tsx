@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useAccount } from 'wagmi';
-import { useSetup } from './useSetup';
+import { useRouterContract } from './useRouterContract';
 
 export type AppState = {
   isLoading: boolean;
@@ -12,7 +12,7 @@ export type AppState = {
 
 export function useAppState() {
   const { isConnected } = useAccount();
-  const { contractExists } = useSetup();
+  const { contractExists } = useRouterContract();
   return useMemo(() => {
     if (!isConnected) {
       // just make sure we're not connected with a wallet
