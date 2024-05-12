@@ -1,15 +1,13 @@
 import { usePublicClient, useWalletClient } from 'wagmi';
-import {
-  contractExists as _contractExists,
-  deployContract,
-} from '../lib/onchain';
+import { contractAddress, deployContract } from '../lib/onchain';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 export function useRouterContract() {
   const walletClientQuery = useWalletClient();
   const publicClientQuery = usePublicClient();
+  const accountAddress = walletClientQuery.data?.account.address;
   const deploy = useMutation({
-    onMutate: async () => {
+    mutationFn: async () => {
       const client = walletClientQuery.data;
       if (!client) {
         throw new Error('Client not loaded');
@@ -18,17 +16,16 @@ export function useRouterContract() {
     },
   });
 
-  const contractExists = useQuery({
-    queryKey: ['contractExists'],
+  const address = useQuery({
+    queryKey: ['address', accountAddress],
     queryFn: async () => {
       const pclient = publicClientQuery;
-      const wclient = walletClientQuery.data;
-      if (!pclient || !wclient) {
+      if (!pclient || !accountAddress) {
         throw new Error('Client not loaded');
       }
-      return _contractExists(wclient.account.address, pclient);
+      return contractAddress(accountAddress, pclient);
     },
   });
 
-  return { deploy, contractExists };
+  return { deploy, address };
 }

@@ -4,7 +4,6 @@ import {
   PublicClient,
   WalletClient,
   getContractAddress,
-  toBytes,
 } from 'viem';
 import ROUTER_V1_0_0 from '../../contracts/versions/Router-1.0.0.json';
 
@@ -13,32 +12,62 @@ import ROUTER_V1_0_0 from '../../contracts/versions/Router-1.0.0.json';
 // If there is an existing user never change this value. First deploy this bytecode,
 // then update the contract onchain.
 const PINNED_CONTRACT_BYTECODE: Hex = ROUTER_V1_0_0.bytecode.object as Hex;
-const SALT = 'testv1';
+const LOCAL_STORAGE_KEY = 'ROUTER_CONTRACT_ADDRESS_KEY_';
 
-export function contractAddress(from: Address): Address {
-  return getContractAddress({
-    bytecode: PINNED_CONTRACT_BYTECODE,
-    from,
-    opcode: 'CREATE2',
-    salt: toBytes(''),
-  });
+// simple heuristic to check if the contract is the pinned contract by just checking the first 10 and last 10 bytes
+function matchesPinnedContract(code?: Hex): boolean {
+  if (!code) {
+    return false;
+  }
+  return (
+    code.startsWith(PINNED_CONTRACT_BYTECODE.slice(0, 10)) &&
+    code.endsWith(PINNED_CONTRACT_BYTECODE.slice(-10))
+  );
 }
 
-export async function contractExists(
+async function _contractAddress(
+  from: Address,
+  publicClient: PublicClient
+): Promise<Address | undefined> {
+  const count = await publicClient.getTransactionCount({ address: from });
+  let nonce = BigInt(count - 1);
+  while (nonce > 0) {
+    const contractAddress = getContractAddress({
+      from,
+      nonce,
+    });
+    const code = await publicClient.getBytecode({ address: contractAddress });
+    if (matchesPinnedContract(code)) {
+      return contractAddress;
+    }
+    nonce = nonce - 1n;
+  }
+  return undefined;
+}
+
+export async function contractAddress(
   from: Address,
   client: PublicClient
-): Promise<boolean> {
-  const address = contractAddress(from);
-  // Check if the contract exists
-  const code = await client.getBytecode({ address });
-  return code ? code !== '0x' : false;
+): Promise<Address | undefined> {
+  // Check local storage for the contract address
+  const storedContractAddress = localStorage.getItem(
+    `${LOCAL_STORAGE_KEY}${from}`
+  ) as Address;
+  if (storedContractAddress) {
+    return storedContractAddress;
+  }
+  const add = await _contractAddress(from, client);
+  if (add) {
+    localStorage.setItem(`${LOCAL_STORAGE_KEY}${from}`, add);
+  }
+  return add;
 }
 
 export async function deployContract(client: WalletClient): Promise<Address> {
   if (!client.account) {
     throw new Error('No account found to deploy contract.');
   }
-  return client.deployContract({
+  const deploymentAddress = await client.deployContract({
     abi: ROUTER_V1_0_0.abi,
     account: client.account.address,
     bytecode: PINNED_CONTRACT_BYTECODE,
@@ -46,4 +75,9 @@ export async function deployContract(client: WalletClient): Promise<Address> {
     blobs: [],
     chain: client.chain,
   });
+  localStorage.setItem(
+    `${LOCAL_STORAGE_KEY}${client.account.address}`,
+    deploymentAddress
+  );
+  return deploymentAddress;
 }

@@ -13,6 +13,7 @@ type AppDestinations = {
   content: React.ReactElement;
   path: string;
   name: string;
+  shouldHideNav?: boolean;
 };
 
 export type AppDestinationsResponse = {
@@ -88,14 +89,16 @@ export function useAppDestinations(): AppDestinationsResponse {
         isLoading: false,
         destinations: [
           {
-            content: <Redirect to="/routes" />,
-            path: '/',
+            content: <Rout3s />,
+            path: '/routes',
             name: 'Home',
+            shouldHideNav: false,
           },
           {
-            content: <About />,
-            path: '/about',
-            name: 'About',
+            content: <Redirect to="/routes" />,
+            path: '/',
+            name: 'Root',
+            shouldHideNav: true,
           },
           {
             content: <Onboard />,
@@ -103,19 +106,21 @@ export function useAppDestinations(): AppDestinationsResponse {
             name: 'Setup',
           },
           {
-            content: <Rout3s />,
-            path: '/routes',
-            name: 'Routes',
+            content: <About />,
+            path: '/about',
+            name: 'About',
           },
           {
             content: <AddRoute />,
             path: '/routes/new',
             name: 'New Route',
+            shouldHideNav: true,
           },
           {
             content: <EditRoute />,
             path: '/route/:command',
             name: 'Edit Route',
+            shouldHideNav: true,
           },
         ],
         basename: 'rout3r',

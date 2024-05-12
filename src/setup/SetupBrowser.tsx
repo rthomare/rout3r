@@ -10,34 +10,19 @@ import {
   AccordionButton,
   AccordionItem,
   AccordionPanel,
-  Button,
   Code,
   Heading,
   Input,
   ListItem,
   OrderedList,
-  Text,
   VStack,
-  useToast,
 } from '@chakra-ui/react';
 import { isChrome, isSafari, isFirefox } from 'react-device-detect';
 import { createRouterURL } from '../lib/engine';
+import { useCopy } from '../hooks/useCopy';
 
 export function SetupBrowser(): JSX.Element {
-  const toast = useToast();
-  const copy = useCallback(
-    (item: string) => () => {
-      navigator.clipboard.writeText(item);
-      toast({
-        position: 'top',
-        title: 'Copied!',
-        status: 'success',
-        duration: 2000,
-        isClosable: true,
-      });
-    },
-    [toast]
-  );
+  const copy = useCopy();
   const [searchFallback, setSearchFallback] = useState(
     'https://www.google.com/search?q=%@@@'
   );
@@ -109,13 +94,6 @@ export function SetupBrowser(): JSX.Element {
                   }}
                 />
                 &nbsp;and select <b>Make default</b>.
-              </ListItem>
-              <ListItem>
-                Try it out by typing in{' '}
-                <Code cursor="pointer" onClick={copy('r list')}>
-                  r list
-                </Code>{' '}
-                into your browser address bar.
               </ListItem>
             </OrderedList>
           </AccordionPanel>

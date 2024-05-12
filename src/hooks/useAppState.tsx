@@ -12,7 +12,7 @@ export type AppState = {
 
 export function useAppState() {
   const { isConnected } = useAccount();
-  const { contractExists } = useRouterContract();
+  const { address } = useRouterContract();
   return useMemo(() => {
     if (!isConnected) {
       // just make sure we're not connected with a wallet
@@ -24,7 +24,7 @@ export function useAppState() {
         error: null,
       };
     }
-    if (contractExists.isLoading) {
+    if (address.isLoading) {
       return {
         isLoading: true,
         isWalletConnected: false,
@@ -36,14 +36,9 @@ export function useAppState() {
     return {
       isLoading: false,
       isWalletConnected: true,
-      isContractDeployed: contractExists.data,
+      isContractDeployed: address.data,
       cachedBlock: 0,
       error: null,
     };
-  }, [
-    isConnected,
-    contractExists.data,
-    contractExists.isLoading,
-    contractExists.error,
-  ]);
+  }, [isConnected, address.data, address.isLoading, address.error]);
 }

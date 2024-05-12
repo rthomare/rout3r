@@ -5,6 +5,7 @@ export function useErrorToast(title: string) {
   const toast = useToast();
   return useCallback(
     (error?: Error) => {
+      console.error(error);
       toast({
         position: 'top',
         title: (

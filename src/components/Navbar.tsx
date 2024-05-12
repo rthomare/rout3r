@@ -1,14 +1,22 @@
 import { MoonIcon, SunIcon } from '@chakra-ui/icons';
-import { Box, HStack, Icon, Switch, useColorMode } from '@chakra-ui/react';
+import {
+  Box,
+  HStack,
+  Heading,
+  Icon,
+  Switch,
+  useColorMode,
+} from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { BsGithub } from 'react-icons/bs';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAppState } from '../hooks/useAppState';
 import { AppDestinationsResponse } from '../hooks/useAppDestinations';
 
 export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();
   const appState = useAppState();
+  const location = useLocation();
 
   if (appState.isLoading || isLoading) {
     return null;
@@ -16,11 +24,19 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   return (
     <HStack justifyContent="space-between" w="100%">
       <HStack fontSize="lg" gap={4}>
-        {destinations.map((dest) => (
-          <Link key={dest.path} to={dest.path}>
-            {dest.name}
-          </Link>
-        ))}
+        {destinations
+          .filter((v) => !v.shouldHideNav)
+          .map((dest) => (
+            <Link key={dest.path} to={dest.path}>
+              <Heading
+                size="md"
+                color={location.pathname === dest.path ? undefined : 'gray'}
+                transition="color 0.2s"
+              >
+                {dest.name}
+              </Heading>
+            </Link>
+          ))}
       </HStack>
       <HStack fontSize="lg" gap={4}>
         {appState.isWalletConnected && (

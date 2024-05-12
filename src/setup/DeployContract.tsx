@@ -1,26 +1,29 @@
-import {
-  Button,
-  Flex,
-  Spinner,
-  Text,
-  VStack,
-  useToast,
-} from '@chakra-ui/react';
+import { Button, Flex, Spinner, Text, VStack } from '@chakra-ui/react';
 import { useRouterContract } from '../hooks/useRouterContract';
 import { useErrorToast } from '../hooks/useErrorToast';
+import { useAccount } from 'wagmi';
+import { Link } from 'react-router-dom';
 
 export function DeployContract(): JSX.Element {
-  const { contractExists, deploy } = useRouterContract();
+  const { chain } = useAccount();
+  const { address, deploy } = useRouterContract();
   const deployErrorToast = useErrorToast('Failed to deploy contract');
   return (
     <Flex>
-      {contractExists.isLoading && <Spinner />}
-      {!contractExists.isLoading && contractExists.data && (
+      {address.isLoading && <Spinner />}
+      {!address.isLoading && address.data && (
         <VStack alignItems="flex-start">
-          <Text>Router contract already deployed</Text>
+          <Link
+            to={`${chain?.blockExplorers.default.url}/search?q=${address.data}`}
+            target="_blank"
+          >
+            <Text textDecoration="underline">
+              Router contract already deployed at {address.data}
+            </Text>
+          </Link>
         </VStack>
       )}
-      {!contractExists.isLoading && !contractExists.data && (
+      {!address.isLoading && !address.data && (
         <VStack alignItems="flex-start">
           <Text>Router contract not deployed</Text>
           <Button
