@@ -77,7 +77,7 @@ export function Routes(): JSX.Element {
                 <Tr
                   cursor="pointer"
                   onClick={() => {
-                    navigate(`/route/${route.command}`);
+                    navigate(`/route/${route.id}`);
                   }}
                   transition="background-color 0.2s"
                   _hover={{

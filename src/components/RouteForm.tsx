@@ -28,6 +28,7 @@ import {
 
 import { Route, RouteData } from '../lib/types';
 import { Link } from 'react-router-dom';
+import { useErrorToast } from '../hooks/useErrorToast';
 
 type RouteFormProps = {
   route: Partial<Route>;
@@ -80,13 +81,9 @@ export function RouteForm({
       onSubmit={(values, actions) => {
         actions.setSubmitting(true);
         setFormError(undefined);
-        onSubmit(values as Route)
-          .catch((error) => {
-            setFormError(error);
-          })
-          .finally(() => {
-            actions.setSubmitting(false);
-          });
+        onSubmit(values as Route).finally(() => {
+          actions.setSubmitting(false);
+        });
       }}
     >
       {(props) => (

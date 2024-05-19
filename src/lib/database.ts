@@ -2,41 +2,6 @@ import { DBSchema, openDB } from 'idb';
 
 import { Route } from './types';
 
-let origin;
-try {
-  origin = window.location.origin;
-} catch {
-  origin = '';
-}
-
-const reservedRoutes: { [key: string]: Route } = {
-  r3: {
-    command: 'r3',
-    name: 'rout3r Menu',
-    description: 'Takes you to rout3r',
-    url: `${origin}/rout3r/`,
-    subRoutes: [
-      {
-        command: 'setup',
-        url: `${origin}/rout3r/#setup`,
-      },
-      {
-        command: 'about',
-        url: `${origin}/rout3r/#about`,
-      },
-      {
-        command: 'new',
-        url: `${origin}/rout3r/#routes/new`,
-      },
-      {
-        command: 'edit',
-        url: `${origin}/rout3r/#route/%@@@`,
-      },
-    ],
-    type: 'reserved',
-  },
-};
-
 interface routerDB extends DBSchema {
   routes: {
     value: Route;
@@ -74,9 +39,6 @@ export function createRouteDB() {
      * routeManager.getRoute().then((route) => console.log(route));
      */
     getRoute: async (command: string) => {
-      if (reservedRoutes[command]) {
-        return reservedRoutes[command];
-      }
       const db = await openRouterDB();
       return db.get('routes', command);
     },
@@ -91,9 +53,7 @@ export function createRouteDB() {
      */
     getAllRoutes: async () => {
       const db = await openRouterDB();
-      return db
-        .getAll('routes')
-        .then((routes) => [...Object.values(reservedRoutes), ...routes]);
+      return db.getAll('routes').then((routes) => [...routes]);
     },
 
     /*
@@ -131,9 +91,6 @@ export function createRouteDB() {
      * routeManager.deleteRoute('g').then((route) => console.log(route));
      */
     deleteRoute: async (command: string) => {
-      if (reservedRoutes[command]) {
-        throw new Error('Cannot remove a reserved route!');
-      }
       const db = await openRouterDB();
       return db.delete('routes', command);
     },
@@ -166,9 +123,6 @@ export function createRouteDB() {
      * });
      */
     updateRoute: async (command: string, route: Omit<Route, 'command'>) => {
-      if (reservedRoutes[command]) {
-        throw new Error('Cannot update a reserved route!');
-      }
       const db = await openRouterDB();
       await db.put('routes', { command, ...route });
       return { command, ...route };

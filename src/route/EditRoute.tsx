@@ -24,11 +24,14 @@ import { RouteForm } from '../components/RouteForm';
 import { useDeleteRoute, useGetRoute, useUpdateRoute } from '../lib/endpoints';
 
 export function EditRoute(): JSX.Element {
-  const { command } = useParams();
+  const { id } = useParams();
+  if (!id) {
+    throw new Error('No id found in route params.');
+  }
   const navigate = useNavigate();
-  const routeQuery = useGetRoute(command ?? '');
-  const routeUpdateMutation = useUpdateRoute(command ?? '');
-  const routeRemoveMutation = useDeleteRoute(command ?? '', () => {
+  const routeQuery = useGetRoute(BigInt(id));
+  const routeUpdateMutation = useUpdateRoute(BigInt(id));
+  const routeRemoveMutation = useDeleteRoute(BigInt(id), () => {
     routeQuery.refetch();
     navigate('/routes');
   });

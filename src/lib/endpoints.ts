@@ -1,10 +1,17 @@
 import { useToast } from '@chakra-ui/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
-import { createRouteDB } from './database';
 import { Route } from './types';
+import {
+  addRoute,
+  deleteRoute,
+  getRoute,
+  getRoutes,
+  updateRoute,
+} from './onchain';
+import { useWalletClient } from 'wagmi';
+import { useErrorToast } from '../hooks/useErrorToast';
 
-const db = createRouteDB();
+// TODO: Solve cache staleness for routes (repro? try update route on UI)
 
 /*
  * @function useGetRoute
@@ -16,12 +23,35 @@ const db = createRouteDB();
  * const routeQuery = useGetRoute('g');
  * console.log(routeQuery.data);
  */
-export function useGetRoute(command: string) {
+export function useGetRoute(id: bigint) {
+  const walletClientQuery = useWalletClient();
+  const errorToast = useErrorToast("Route couldn't updated");
+  if (!walletClientQuery.data) {
+    throw new Error('No wallet client found.');
+  }
   return useQuery({
-    queryKey: ['routes', command],
+    queryKey: ['routes', id.toString()],
     queryFn: async () => {
-      const route = await db.getRoute(command);
-      return route;
+      return getRoute(walletClientQuery.data, id)
+        .then(
+          (data) =>
+            ({
+              id: data.id,
+              command: data.route.command,
+              name: data.route.name,
+              description: '',
+              url: data.route.url,
+              subRoutes: data.route.subRoutes.map((subRoute) => {
+                const [command, url] = subRoute.split('::');
+                return { command, url };
+              }),
+              type: 'manual',
+            } as Route)
+        )
+        .catch((error) => {
+          errorToast(error);
+          throw error;
+        });
     },
   });
 }
@@ -36,9 +66,36 @@ export function useGetRoute(command: string) {
  * console.log(routesQuery.data);
  */
 export function useGetRoutes() {
+  const walletClientQuery = useWalletClient();
+  const errorToast = useErrorToast("Route couldn't updated");
+  if (!walletClientQuery.data) {
+    throw new Error('No wallet client found.');
+  }
   return useQuery({
     queryKey: ['routes'],
-    queryFn: db.getAllRoutes,
+    queryFn: () =>
+      getRoutes(walletClientQuery.data, 0n, 100n)
+        .then((datas) =>
+          datas.map(
+            (data) =>
+              ({
+                id: data.id,
+                command: data.route.command,
+                url: data.route.url,
+                name: data.route.name,
+                description: '',
+                subRoutes: data.route.subRoutes.map((subRoute) => {
+                  const [command, url] = subRoute.split('::');
+                  return { command, url };
+                }),
+                type: 'manual',
+              } as Route)
+          )
+        )
+        .catch((error) => {
+          errorToast(error);
+          throw error;
+        }),
   });
 }
 
@@ -79,9 +136,36 @@ export function useCreateRoute(
   onError?: (error: Error) => void
 ) {
   const queryClient = useQueryClient();
+  const walletClientQuery = useWalletClient();
   const toast = useToast();
+  const errorToast = useErrorToast("Route couldn't updated");
+  if (!walletClientQuery.data) {
+    throw new Error('No wallet client found.');
+  }
   return useMutation({
-    mutationFn: db.addRoute,
+    mutationFn: async (route: Route) =>
+      addRoute(walletClientQuery.data, {
+        command: route.command,
+        name: route.name,
+        url: route.url,
+        subRoutes: route.subRoutes.map(
+          (subRoute) => `${subRoute.command}:${subRoute.url}`
+        ),
+        isValue: true,
+      }).then((v) => {
+        return {
+          id: v.id,
+          command: v.route.command,
+          name: v.route.name,
+          description: '',
+          url: v.route.url,
+          subRoutes: v.route.subRoutes.map((subRoute) => {
+            const [command, url] = subRoute.split('::');
+            return { command, url };
+          }),
+          type: 'manual',
+        } as Route;
+      }),
     onSuccess: (route) => {
       toast({
         title: 'Route created.',
@@ -97,7 +181,10 @@ export function useCreateRoute(
       });
       onSuccess?.(route);
     },
-    onError,
+    onError: (error) => {
+      errorToast(error);
+      onError?.(error);
+    },
   });
 }
 
@@ -119,18 +206,23 @@ export function useCreateRoute(
  * await mutateAsync('b');
  */
 export function useDeleteRoute(
-  command: string,
+  id: bigint,
   onSuccess?: () => void,
   onError?: (error: Error) => void
 ) {
   const queryClient = useQueryClient();
+  const walletClientQuery = useWalletClient();
   const toast = useToast();
+  const errorToast = useErrorToast("Route couldn't updated");
+  if (!walletClientQuery.data) {
+    throw new Error('No wallet client found.');
+  }
   return useMutation({
-    mutationFn: () => db.deleteRoute(command),
+    mutationFn: async () => deleteRoute(walletClientQuery.data, id),
     onSuccess: () => {
       toast({
         title: 'Route Deleted.',
-        description: `Route ${command} has been deleted.`,
+        description: `Route (id: ${id}) has been deleted.`,
         status: 'info',
         duration: 3000,
         isClosable: true,
@@ -140,9 +232,15 @@ export function useDeleteRoute(
       queryClient.invalidateQueries({
         queryKey: ['routes'],
       });
+      queryClient.invalidateQueries({
+        queryKey: ['routes', id],
+      });
       onSuccess?.();
     },
-    onError,
+    onError: (error) => {
+      errorToast(error);
+      onError?.(error);
+    },
   });
 }
 
@@ -179,19 +277,32 @@ export function useDeleteRoute(
  * });
  */
 export function useUpdateRoute(
-  command: string,
+  id: bigint,
   onSuccess?: (route: Route) => void,
   onError?: (error: Error) => void
 ) {
   const queryClient = useQueryClient();
+  const walletClientQuery = useWalletClient();
   const toast = useToast();
+  const errorToast = useErrorToast("Route couldn't updated");
+  if (!walletClientQuery.data) {
+    throw new Error('No wallet client found.');
+  }
   return useMutation({
-    mutationFn: (route: Omit<Route, 'command'>) =>
-      db.updateRoute(command, route),
+    mutationFn: async (route: Route) =>
+      updateRoute(walletClientQuery.data, id, {
+        name: route.name,
+        command: route.command,
+        url: route.url,
+        subRoutes: route.subRoutes.map(
+          (subRoute) => `${subRoute.command}:${subRoute.url}`
+        ),
+        isValue: true,
+      }).then(() => route),
     onSuccess: (route) => {
       toast({
         title: 'Route Updated.',
-        description: `Route ${command} has been updated.`,
+        description: `Route ${route.command} has been updated.`,
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -199,10 +310,13 @@ export function useUpdateRoute(
       });
       // Invalidate the cache
       queryClient.invalidateQueries({
-        queryKey: ['routes', command],
+        queryKey: ['routes', id.toString()],
       });
       onSuccess?.(route);
     },
-    onError,
+    onError: (error) => {
+      errorToast(error);
+      onError?.(error);
+    },
   });
 }

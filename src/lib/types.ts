@@ -1,3 +1,5 @@
+// TODO: Condence this type with ContractStoredRouteData
+
 /*
  * @type RouteData
  * The shape of the data that is stored in the database.
@@ -41,6 +43,7 @@ export type RouteData = {
  * }
  */
 export type Route = RouteData & {
+  id: bigint;
   name: string;
   description: string;
   subRoutes: RouteData[];

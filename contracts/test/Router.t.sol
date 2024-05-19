@@ -38,6 +38,12 @@ contract RouterTest is Test {
         assertEq(routes[0].route.name, "name1");
         assertEq(routes[1].route.name, "name2");
         assertEq(cursor, 0);
+
+        Route memory route = router.getRoute(routes[0].id);
+        assertEq(routes[0].id, 0);
+        assertEq(route.name, "name1");
+        assertEq(route.url, "url1");
+        assertTrue(route.isValue);
     }
 
     function test_RoutePagination() public {
@@ -47,9 +53,21 @@ contract RouterTest is Test {
         (RouteResult[] memory routes, uint256 length, uint256 cursor) = router.getRoutes(0, 10);
         assertEq(length, 10);
         assertEq(cursor, 10);
+        assertEq(routes[0].id, 0);
+        assertEq(routes[0].route.command, "command");
+        assertEq(routes[0].route.url, "url");
+        assertEq(routes[9].id, 9);
+        assertEq(routes[9].route.command, "command");
+        assertEq(routes[9].route.url, "url");
         (routes, length, cursor) = router.getRoutes(cursor, 10);
         assertEq(length, 5);
         assertEq(cursor, 0);
+        assertEq(routes[0].id, 10);
+        assertEq(routes[0].route.command, "command");
+        assertEq(routes[0].route.url, "url");
+        assertEq(routes[4].id, 14);
+        assertEq(routes[4].route.command, "command");
+        assertEq(routes[4].route.url, "url");
     }
 
     function test_DeleteRoute() public {

@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0 
 pragma solidity ^0.8.23;
 
+// TODO: Stop duplicate commands from being added or updated for a route
+// TODO: Move reserved routes into the contract, will need special 'origin' code to handle these routes
+// TODO: Consider adding events for creation, update, and deletion of routes
+
 /// @title The Route Struct - represents a route in the Router contract
 /// @dev The route format is specific as follows:
 /// command: the command to be executed (string)
 /// name: the name of the route (string)
 /// url: the url of the route (string)
-/// subRoutes: the sub routes of the route (string[]) in the format of command:url
+/// subRoutes: the sub routes of the route (string[]) in the format of command::url (double colon)
 /// isValue: a boolean flag to check if the route is valid
 struct Route {
     string command;
