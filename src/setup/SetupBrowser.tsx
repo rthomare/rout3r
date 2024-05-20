@@ -1,8 +1,10 @@
 import { useCallback, useState } from 'react';
 import {
+  BsArrowDown,
   BsBrowserChrome,
   BsBrowserFirefox,
   BsBrowserSafari,
+  BsChevronDown,
   BsThreeDotsVertical,
 } from 'react-icons/bs';
 import {
@@ -11,6 +13,7 @@ import {
   AccordionItem,
   AccordionPanel,
   Code,
+  Divider,
   Heading,
   Input,
   ListItem,
@@ -85,6 +88,24 @@ export function SetupBrowser(): JSX.Element {
               </ListItem>
               <ListItem>
                 Click <b>Add</b> to save.
+              </ListItem>
+            </OrderedList>
+            <Divider my={3} />
+            <Heading marginTop={3} marginBottom={1} fontWeight={600} size="sm">
+              (Optional) Make Rout3r the default search engine
+            </Heading>
+            <OrderedList>
+              <ListItem>
+                Find the router entry by clicking on{' '}
+                <b>
+                  Additional sites{' '}
+                  <BsChevronDown
+                    style={{
+                      display: 'inline',
+                    }}
+                  />
+                </b>{' '}
+                and finding it under the name <b>rout3r</b>.
               </ListItem>
               <ListItem>
                 (Optional) Click the three dots&nbsp;

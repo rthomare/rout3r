@@ -25,7 +25,7 @@ export function useAppState() {
   const onchain = useOnchainRaw();
   const routerAddress = useGetRouterAddress();
   return useMemo(() => {
-    if (!onchain?.config.account) {
+    if (!onchain?.config.account.address) {
       // just make sure we're not connected with a wallet
       return {
         isLoading: false,
@@ -52,7 +52,7 @@ export function useAppState() {
       error: null,
     };
   }, [
-    onchain?.config.account,
+    onchain?.config.account.address,
     routerAddress.data,
     routerAddress.isLoading,
     routerAddress.error,

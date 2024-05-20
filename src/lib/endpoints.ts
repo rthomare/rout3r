@@ -151,20 +151,28 @@ export function useCreateRoute(
           (subRoute) => `${subRoute.command}:${subRoute.url}`
         ),
         isValue: true,
-      }).then((v) => {
-        return {
-          id: v.id,
-          command: v.route.command,
-          name: v.route.name,
-          description: '',
-          url: v.route.url,
-          subRoutes: v.route.subRoutes.map((subRoute) => {
-            const [command, url] = subRoute.split('::');
-            return { command, url };
-          }),
-          type: 'manual',
-        } as Route;
-      }),
+      })
+        .then((v) => {
+          return {
+            id: v.id,
+            command: v.route.command,
+            name: v.route.name,
+            description: '',
+            url: v.route.url,
+            subRoutes: v.route.subRoutes.map((subRoute) => {
+              const [command, url] = subRoute.split('::');
+              return { command, url };
+            }),
+            type: 'manual',
+          } as Route;
+        })
+        .then(async (v) => {
+          // Invalidate the cache
+          await queryClient.invalidateQueries({
+            queryKey: ['routes', config.account.address, config.chain.id],
+          });
+          return v;
+        }),
     onSuccess: (route) => {
       toast({
         title: 'Route created.',
@@ -173,10 +181,6 @@ export function useCreateRoute(
         duration: 3000,
         isClosable: true,
         position: 'top',
-      });
-      // Invalidate the cache
-      queryClient.invalidateQueries({
-        queryKey: ['routes', config.account.address, config.chain.id],
       });
       onSuccess?.(route);
     },
@@ -214,7 +218,16 @@ export function useDeleteRoute(
   const toast = useToast();
   const errorToast = useErrorToast("Route couldn't updated");
   return useMutation({
-    mutationFn: async () => deleteRoute(config, id),
+    mutationFn: async () =>
+      deleteRoute(config, id).then(async (v) => {
+        // Invalidate the cache
+        await queryClient.invalidateQueries({
+          queryKey: ['routes', config.account.address, config.chain.id],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ['routes', config.account.address, config.chain.id, id],
+        });
+      }),
     onSuccess: () => {
       toast({
         title: 'Route Deleted.',
@@ -223,13 +236,6 @@ export function useDeleteRoute(
         duration: 3000,
         isClosable: true,
         position: 'top',
-      });
-      // Invalidate the cache
-      queryClient.invalidateQueries({
-        queryKey: ['routes', config.account.address, config.chain.id],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['routes', config.account.address, config.chain.id, id],
       });
       onSuccess?.();
     },
@@ -291,7 +297,19 @@ export function useUpdateRoute(
           (subRoute) => `${subRoute.command}:${subRoute.url}`
         ),
         isValue: true,
-      }).then(() => route),
+      })
+        .then(async (v) => {
+          // Invalidate the cache
+          await queryClient.invalidateQueries({
+            queryKey: [
+              'routes',
+              config.account.address,
+              config.chain.id,
+              id.toString(),
+            ],
+          });
+        })
+        .then(() => route),
     onSuccess: (route) => {
       toast({
         title: 'Route Updated.',
@@ -300,15 +318,6 @@ export function useUpdateRoute(
         duration: 3000,
         isClosable: true,
         position: 'top',
-      });
-      // Invalidate the cache
-      queryClient.invalidateQueries({
-        queryKey: [
-          'routes',
-          config.account.address,
-          config.chain.id,
-          id.toString(),
-        ],
       });
       onSuccess?.(route);
     },
@@ -346,20 +355,22 @@ export function useDeployRouter(
   const errorToast = useErrorToast("Route couldn't updated");
   return useMutation({
     mutationFn: async () => {
-      return deployContract(config);
+      return deployContract(config).then(async (address) => {
+        // Invalidate the cache
+        await queryClient.invalidateQueries({
+          queryKey: ['router_address', config.chain.id, config.account.address],
+        });
+        return address;
+      });
     },
     onSuccess: (address) => {
       toast({
         title: 'Router Deployed!',
-        description: `Route contracted at ${address}.`,
+        description: `Route deployed at ${address}.`,
         status: 'success',
         duration: 3000,
         isClosable: true,
         position: 'top',
-      });
-      // Invalidate the cache
-      queryClient.invalidateQueries({
-        queryKey: ['routes', config.account.address, config.chain.id],
       });
       onSuccess?.(address);
     },
@@ -375,7 +386,7 @@ export function useGetRouterAddress() {
   const errorToast = useErrorToast("Couldn't get router address");
   return useQuery({
     queryKey: [
-      'appstate_router_address',
+      'router_address',
       onchain?.config.chain.id ?? 'unknown chain',
       onchain?.config.account.address ?? 'unknown account',
     ],

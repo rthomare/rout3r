@@ -8,6 +8,8 @@ import {
   Code,
   Flex,
   Heading,
+  ListItem,
+  OrderedList,
   Text,
   VStack,
 } from '@chakra-ui/react';
@@ -16,7 +18,9 @@ import { SetupBrowser } from './SetupBrowser';
 import { BsCheckCircle, BsCheckCircleFill } from 'react-icons/bs';
 import { DeployContract } from './DeployContract';
 import { useCopy } from '../hooks/useCopy';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { RouteForm } from '../components/RouteForm';
+import { useCreateRoute, useGetRoutes } from '../lib/endpoints';
 
 function OnboardingStep({
   title,
@@ -77,42 +81,149 @@ function OnboardingStep({
 
 export function Onboard() {
   const routerContract = useRouterContract();
-  const [index, setIndex] = useState(routerContract.isDeployed ? 1 : 0);
+  const createRouteMutation = useCreateRoute();
+  const [setupBrowser, setSetupBrowser] = useState(false);
+  const [createdRoute, setCreatedRoute] = useState<any>(undefined);
+  const conditions = [
+    true,
+    routerContract.isDeployed,
+    !!setupBrowser,
+    !!createdRoute,
+  ];
+  const [index, setManualIndex] = useState(conditions.findIndex((v) => !v) - 1);
+  const setIndex = useCallback(
+    (index: number, override?: boolean) => () => {
+      (conditions[index] || override) && setManualIndex(index);
+    },
+    [conditions, setManualIndex]
+  );
   const copy = useCopy();
   return (
     <Accordion index={index}>
+      <Heading size="md" fontWeight="400" marginBottom={5}>
+        To get started, let's follow the steps below:
+      </Heading>
       <OnboardingStep
         title="Step 1: Deploy the Router"
         subtitle="Deploy your router to create and manage your routes"
-        completed={routerContract.isDeployed}
-        onClick={() => setIndex(0)}
+        completed={conditions[1]}
+        onClick={setIndex(0)}
       >
-        <DeployContract />
+        <DeployContract onComplete={setIndex(1, true)} />
       </OnboardingStep>
       <OnboardingStep
         title="Step 2: Setup your Browser"
         subtitle="Setup a search fallback and your browser"
-        completed={index > 1}
-        onClick={() => setIndex(1)}
+        completed={conditions[2]}
+        onClick={setIndex(1)}
       >
         <SetupBrowser />
-        <Button onClick={() => setIndex(2)} mt={2}>
+        <Button
+          onClick={() => {
+            setSetupBrowser(() => {
+              setIndex(2, true)();
+              return true;
+            });
+          }}
+          mt={2}
+        >
           Next
         </Button>
       </OnboardingStep>
       <OnboardingStep
-        title="Step 3: Try your first route"
+        title="Step 3: Create your first route"
         subtitle="Create a route and test it out!"
-        completed={false}
-        onClick={() => setIndex(2)}
+        completed={conditions[3]}
+        onClick={setIndex(2)}
       >
-        <Text>
-          Try it out by typing in{' '}
-          <Code cursor="pointer" onClick={copy('r list')}>
-            r list
-          </Code>{' '}
-          into your browser address bar!
-        </Text>
+        {!!createdRoute ? (
+          <Heading size="md" marginBottom={3}>
+            Your route has been created!
+          </Heading>
+        ) : (
+          <RouteForm
+            route={{}}
+            onSubmit={async (routeData) => {
+              const route = await createRouteMutation.mutateAsync(routeData);
+              setCreatedRoute(route);
+              setIndex(3, true)();
+            }}
+          />
+        )}
+      </OnboardingStep>
+      <OnboardingStep
+        title="Step 4: Try out your first route"
+        subtitle="Test out your new route in the browser!"
+        completed={false}
+        onClick={setIndex(3)}
+      >
+        {createdRoute && (
+          <>
+            <Heading marginBottom={1} fontWeight={600} size="sm">
+              If you made rout3r your default (in step 2):
+            </Heading>
+            <OrderedList>
+              <ListItem>
+                <Text>
+                  Try it out by{' '}
+                  <Box
+                    as="span"
+                    cursor="pointer"
+                    textDecor="underline"
+                    onClick={() => window.open('')}
+                  >
+                    creating a new tab.
+                  </Box>
+                </Text>
+              </ListItem>
+              <ListItem>
+                <Text>
+                  Then type in
+                  <Code cursor="pointer" onClick={copy(createdRoute.command)}>
+                    {createdRoute.command}
+                  </Code>{' '}
+                  into your browser address bar! And go!
+                </Text>
+              </ListItem>
+            </OrderedList>
+            <Heading marginTop={6} marginBottom={1} fontWeight={600} size="sm">
+              If you made rout3r is NOT your default search engine (in step 2):
+            </Heading>
+            <OrderedList>
+              <ListItem>
+                <Text>
+                  Try it out by{' '}
+                  <Box
+                    as="span"
+                    cursor="pointer"
+                    textDecor="underline"
+                    onClick={() => window.open('')}
+                  >
+                    creating a new tab.
+                  </Box>
+                </Text>
+              </ListItem>
+              <ListItem>
+                <Text>
+                  Select rout3r as the search by typing in
+                  <Code cursor="pointer" onClick={copy('r')}>
+                    r
+                  </Code>{' '}
+                  into your browser address bar and hitting tab!
+                </Text>
+              </ListItem>
+              <ListItem>
+                <Text>
+                  Then type in
+                  <Code cursor="pointer" onClick={copy(createdRoute.command)}>
+                    {createdRoute.command}
+                  </Code>{' '}
+                  into your browser address bar! And go!
+                </Text>
+              </ListItem>
+            </OrderedList>
+          </>
+        )}
       </OnboardingStep>
     </Accordion>
   );

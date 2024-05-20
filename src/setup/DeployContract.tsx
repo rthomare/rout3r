@@ -1,13 +1,16 @@
 import { Button, Flex, Spinner, Text, VStack } from '@chakra-ui/react';
 import { useRouterContract } from '../hooks/useRouterContract';
-import { useErrorToast } from '../hooks/useErrorToast';
 import { useAccount } from 'wagmi';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-export function DeployContract(): JSX.Element {
+export function DeployContract({
+  onComplete,
+}: {
+  onComplete?: () => void;
+}): JSX.Element {
   const { chain } = useAccount();
   const { isDeployed, address, deploy } = useRouterContract();
-  const deployErrorToast = useErrorToast('Failed to deploy contract');
+  const navigate = useNavigate();
   return (
     <Flex>
       {address.isLoading && <Spinner />}
@@ -25,11 +28,14 @@ export function DeployContract(): JSX.Element {
       )}
       {!address.isLoading && !isDeployed && (
         <VStack alignItems="flex-start">
-          <Text>Router contract not deployed</Text>
+          <Text>Click the button below to deploy your router</Text>
           <Button
             onClick={() =>
               deploy.mutate(void 0, {
-                onError: deployErrorToast,
+                onSuccess: () => {
+                  onComplete?.();
+                  navigate('/setup');
+                },
               })
             }
             isLoading={deploy.isPending}

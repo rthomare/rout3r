@@ -56,7 +56,7 @@ export function useAppDestinations(): AppDestinationsResponse {
               </VStack>
             ),
             path: '/',
-            name: 'Home',
+            name: 'Routes',
           },
           {
             content: <About />,
@@ -83,7 +83,7 @@ export function useAppDestinations(): AppDestinationsResponse {
               </VStack>
             ),
             path: '/',
-            name: 'Home',
+            name: 'Routes',
           },
           {
             content: <About />,
@@ -108,7 +108,7 @@ export function useAppDestinations(): AppDestinationsResponse {
           {
             content: <Rout3s />,
             path: '/routes',
-            name: 'Home',
+            name: 'Routes',
             shouldHideNav: false,
           },
           {
@@ -154,13 +154,25 @@ export function useAppDestinations(): AppDestinationsResponse {
       isLoading: false,
       destinations: [
         {
-          content: <Onboard />,
+          content: <Redirect to="/setup" />,
           path: '/',
-          name: 'Home',
+          name: 'Root',
+          shouldHideNav: true,
+        },
+        {
+          content: <Redirect to="/setup" />,
+          path: '/routes',
+          name: 'Routes',
+          shouldHideNav: false,
+        },
+        {
+          content: <Onboard />,
+          path: '/setup',
+          name: 'Setup',
         },
         {
           content: <About />,
-          path: '/setup',
+          path: '/about',
           name: 'About',
         },
       ],

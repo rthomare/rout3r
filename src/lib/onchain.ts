@@ -87,7 +87,7 @@ async function _contractAddress(
     address: config.account.address,
   });
   let nonce = BigInt(count - 1);
-  while (nonce > 0) {
+  while (nonce > -1) {
     const contractAddress = getContractAddress({
       from: config.account.address,
       nonce,
@@ -293,7 +293,9 @@ export async function deleteRoute(config: OnchainConfig, id: bigint) {
     throw new Error('Command is reserved.');
   }
   const contract = await getRouteContract(config);
-  const { request } = await contract.simulate.deleteRoute([id]);
+  const { request } = await contract.simulate.deleteRoute([id], {
+    account: config.account as any,
+  });
   return config.walletClient.writeContract({
     ...request,
     account: config.account,
