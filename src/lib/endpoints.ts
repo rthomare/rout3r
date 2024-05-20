@@ -3,13 +3,16 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Route } from './types';
 import {
   addRoute,
+  contractAddress,
   deleteRoute,
+  deployContract,
   getRoute,
   getRoutes,
   updateRoute,
 } from './onchain';
 import { useErrorToast } from '../hooks/useErrorToast';
-import { useOnchain } from '../hooks/useOnchain';
+import { useOnchain, useOnchainRaw } from '../hooks/useOnchain';
+import { Address } from 'viem';
 
 // TODO: Solve cache staleness for routes (repro? try update route on UI)
 
@@ -27,7 +30,12 @@ export function useGetRoute(id: bigint) {
   const { config } = useOnchain();
   const errorToast = useErrorToast("Route couldn't updated");
   return useQuery({
-    queryKey: ['routes', id.toString()],
+    queryKey: [
+      'routes',
+      config.account.address,
+      config.chain.id,
+      id.toString(),
+    ],
     queryFn: async () => {
       return getRoute(config, id)
         .then(
@@ -66,7 +74,7 @@ export function useGetRoutes() {
   const { config } = useOnchain();
   const errorToast = useErrorToast("Route couldn't updated");
   return useQuery({
-    queryKey: ['routes'],
+    queryKey: ['routes', config.account.address, config.chain.id],
     queryFn: () =>
       getRoutes(config, 0n, 100n)
         .then((datas) =>
@@ -168,7 +176,7 @@ export function useCreateRoute(
       });
       // Invalidate the cache
       queryClient.invalidateQueries({
-        queryKey: ['routes'],
+        queryKey: ['routes', config.account.address, config.chain.id],
       });
       onSuccess?.(route);
     },
@@ -218,10 +226,10 @@ export function useDeleteRoute(
       });
       // Invalidate the cache
       queryClient.invalidateQueries({
-        queryKey: ['routes'],
+        queryKey: ['routes', config.account.address, config.chain.id],
       });
       queryClient.invalidateQueries({
-        queryKey: ['routes', id],
+        queryKey: ['routes', config.account.address, config.chain.id, id],
       });
       onSuccess?.();
     },
@@ -295,13 +303,90 @@ export function useUpdateRoute(
       });
       // Invalidate the cache
       queryClient.invalidateQueries({
-        queryKey: ['routes', id.toString()],
+        queryKey: [
+          'routes',
+          config.account.address,
+          config.chain.id,
+          id.toString(),
+        ],
       });
       onSuccess?.(route);
     },
     onError: (error) => {
       errorToast(error);
       onError?.(error);
+    },
+  });
+}
+
+/*
+ * @function useDeployRouter
+ * Mutation hook to deploy the router contract.
+ * @param onSuccess - The function to call on success.
+ * @param onError - The function to call on error.
+ * @returns The mutation.
+ *
+ * @example
+ * const { mutate, mutateAsync } = useDeployRouter(
+ *   () => console.log('Router deployed'),
+ *   (error) => console.error(error)
+ * );
+ *
+ * mutate();
+ *
+ * await mutateAsync();
+ */
+export function useDeployRouter(
+  onSuccess?: (address: Address) => void,
+  onError?: (error: Error) => void
+) {
+  const { config } = useOnchain();
+  const queryClient = useQueryClient();
+  const toast = useToast();
+  const errorToast = useErrorToast("Route couldn't updated");
+  return useMutation({
+    mutationFn: async () => {
+      return deployContract(config);
+    },
+    onSuccess: (address) => {
+      toast({
+        title: 'Router Deployed!',
+        description: `Route contracted at ${address}.`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+        position: 'top',
+      });
+      // Invalidate the cache
+      queryClient.invalidateQueries({
+        queryKey: ['routes', config.account.address, config.chain.id],
+      });
+      onSuccess?.(address);
+    },
+    onError: (error) => {
+      errorToast(error);
+      onError?.(error);
+    },
+  });
+}
+
+export function useGetRouterAddress() {
+  const onchain = useOnchainRaw();
+  const errorToast = useErrorToast("Couldn't get router address");
+  return useQuery({
+    queryKey: [
+      'appstate_router_address',
+      onchain?.config.chain.id ?? 'unknown chain',
+      onchain?.config.account.address ?? 'unknown account',
+    ],
+    queryFn: async () => {
+      if (!onchain?.config) {
+        return '0x';
+      }
+      return contractAddress(onchain.config).catch((error) => {
+        errorToast(error);
+        throw error;
+      });
     },
   });
 }

@@ -5,3 +5,5 @@ export const transientOptions: Parameters<CreateStyled>[1] = {
 };
 
 export default transientOptions;
+
+export const IS_FULL_DEV = import.meta.env.VITE_FULL_DEV ? true : false;

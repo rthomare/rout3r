@@ -6,12 +6,12 @@ import { Link } from 'react-router-dom';
 
 export function DeployContract(): JSX.Element {
   const { chain } = useAccount();
-  const { address, deploy } = useRouterContract();
+  const { isDeployed, address, deploy } = useRouterContract();
   const deployErrorToast = useErrorToast('Failed to deploy contract');
   return (
     <Flex>
       {address.isLoading && <Spinner />}
-      {!address.isLoading && address.data && (
+      {isDeployed && (
         <VStack alignItems="flex-start">
           <Link
             to={`${chain?.blockExplorers.default.url}/search?q=${address.data}`}
@@ -23,7 +23,7 @@ export function DeployContract(): JSX.Element {
           </Link>
         </VStack>
       )}
-      {!address.isLoading && !address.data && (
+      {!address.isLoading && !isDeployed && (
         <VStack alignItems="flex-start">
           <Text>Router contract not deployed</Text>
           <Button

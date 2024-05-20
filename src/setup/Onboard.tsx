@@ -77,14 +77,14 @@ function OnboardingStep({
 
 export function Onboard() {
   const routerContract = useRouterContract();
-  const [index, setIndex] = useState(routerContract.address.data ? 1 : 0);
+  const [index, setIndex] = useState(routerContract.isDeployed ? 1 : 0);
   const copy = useCopy();
   return (
     <Accordion index={index}>
       <OnboardingStep
         title="Step 1: Deploy the Router"
         subtitle="Deploy your router to create and manage your routes"
-        completed={!!routerContract.address.data}
+        completed={routerContract.isDeployed}
         onClick={() => setIndex(0)}
       >
         <DeployContract />

@@ -1,6 +1,7 @@
 import { contractAddress, deployContract } from '../lib/onchain';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { usePublicClient, useWalletClient } from 'wagmi';
+import { useOnchain } from './useOnchain';
+import { useDeployRouter, useGetRouterAddress } from '../lib/endpoints';
 
 /*
  * Hook to deploy and check for the router contract address
@@ -10,47 +11,11 @@ import { usePublicClient, useWalletClient } from 'wagmi';
  * const { deploy, address } = useRouterContract();
  */
 export function useRouterContract() {
-  const walletClientQuery = useWalletClient();
-  const publicClient = usePublicClient();
+  const { config } = useOnchain();
+  const deploy = useDeployRouter();
+  const address = useGetRouterAddress();
 
-  const deploy = useMutation({
-    mutationFn: async () => {
-      if (walletClientQuery.isLoading || !walletClientQuery.data) {
-        return undefined;
-      }
-      const config = {
-        account: walletClientQuery.data?.account,
-        walletClient: walletClientQuery.data,
-        publicClient,
-        chain: walletClientQuery.data?.chain,
-      };
-      return deployContract(config);
-    },
-  });
+  const isDeployed = !!address.data && address.data !== '0x';
 
-  const address = useQuery({
-    queryKey: [
-      'router_address',
-      walletClientQuery.data?.account?.address ?? '',
-    ],
-    queryFn: async () => {
-      if (walletClientQuery.isLoading || !walletClientQuery.data) {
-        return null;
-      }
-      const config = {
-        account: walletClientQuery.data?.account,
-        walletClient: walletClientQuery.data,
-        publicClient,
-        chain: walletClientQuery.data?.chain,
-      };
-      return contractAddress({
-        account: config.account,
-        walletClient: config.walletClient,
-        publicClient: config.publicClient,
-        chain: config.chain,
-      });
-    },
-  });
-
-  return { deploy, address };
+  return { isDeployed, deploy, address };
 }

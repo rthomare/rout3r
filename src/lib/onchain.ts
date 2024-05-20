@@ -11,6 +11,7 @@ import {
   http,
 } from 'viem';
 import ROUTER_V1_0_0 from '../../contracts/versions/Router-1.0.0.json';
+import { IS_FULL_DEV } from '../utils/general';
 
 let origin;
 try {
@@ -25,7 +26,7 @@ try {
 // then update the contract onchain.
 const PINNED_CONTRACT_BYTECODE: Hex = ROUTER_V1_0_0.bytecode.object as Hex;
 const PINNED_CONTRACT_ABI = ROUTER_V1_0_0.abi;
-const LOCAL_STORAGE_KEY = 'ROUTER_CONTRACT_ADDRESS_KEY_';
+const LOCAL_STORAGE_KEY = 'ROUTER_CONTRACT_ADDRESS_KEY';
 
 /*
  * The type depicting the stored route data
@@ -133,21 +134,18 @@ function isReservedId(id: bigint) {
  * const publicClient = usePublicClient();
  * const contractAddress = await contractExists('0x1234...', publicClient);
  */
-export async function contractAddress(
-  config: OnchainConfig
-): Promise<Address | undefined> {
+export async function contractAddress(config: OnchainConfig): Promise<Address> {
   // Check local storage for the contract address
-  const storedContractAddress = localStorage.getItem(
-    `${LOCAL_STORAGE_KEY}${config.account.address}`
-  ) as Address;
-  if (storedContractAddress) {
+  const key = `${LOCAL_STORAGE_KEY}_${config.account.address}_${config.chain.id}`;
+  const storedContractAddress = localStorage.getItem(key) as Address;
+  if (storedContractAddress && !IS_FULL_DEV) {
     return storedContractAddress;
   }
   const add = await _contractAddress(config);
   if (add) {
-    localStorage.setItem(`${LOCAL_STORAGE_KEY}${config.account.address}`, add);
+    localStorage.setItem(key, add);
   }
-  return add;
+  return add ?? '0x';
 }
 
 /*
@@ -208,7 +206,9 @@ export async function getRoute(
     return value;
   }
   const contract = await getRouteContract(config);
-  const route = (await contract.read.getRoute([id])) as any;
+  const route = (await contract.read.getRoute([id], {
+    account: config.account as any,
+  })) as any;
   return {
     id,
     route,
@@ -221,11 +221,9 @@ export async function getRoutes(
   limit: bigint
 ): Promise<ContractStoredRoute[]> {
   const contract = await getRouteContract(config);
-  const data = (await contract.read.getRoutes([cursor, limit])) as [
-    ContractStoredRoute[],
-    bigint,
-    bigint
-  ];
+  const data = (await contract.read.getRoutes([cursor, limit], {
+    account: config.account as any,
+  })) as [ContractStoredRoute[], bigint, bigint];
   const contractRoutes = data[0].filter((val) => val.route.isValue);
   return RESERVED_ROUTES.concat(contractRoutes);
 }
@@ -245,7 +243,9 @@ export async function addRoute(
   const { result: id } = await contract.simulate.addRoute([route], {
     account: config.account as any,
   });
-  const hash = await contract.write.addRoute([route]);
+  const hash = await contract.write.addRoute([route], {
+    account: config.account as any,
+  });
   await createPublicClient({
     chain: config.chain,
     transport: http(),

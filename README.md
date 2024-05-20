@@ -21,34 +21,30 @@ This is a [React](https://reactjs.org) + [TypeScript](https://www.typescriptlang
 
 ## Getting started
 
-1. Create the project.
+1. Install yarn dependencies
 
    ```bash
-   npx degit The24thDS/vite-reactts18-chakra-jest-husky my-app
-   ```
-
-2. Access the project directory.
-
-   ```bash
-   cd my-app
-   ```
-
-3. Initialize a git repository.
-
-   ```bash
-   git init
-   ```
-
-4. Install dependencies.
-
-   ```bash
+   ## install yarn dependencies
    yarn
    ```
 
-5. Serve with hot reload at http://localhost:5173.
+2. Install forge by following instructions here: https://book.getfoundry.sh/getting-started/installation
+
+3. Serve with hot reload at http://localhost:5173.
+
    ```bash
    yarn dev
    ```
+
+4. (Optionally) run in with local chain
+
+   ```bash
+   yarn dev --full
+   ```
+
+## Develop the Contracts
+
+All contract logic is located in the `contracts` directory. To compile and deploy the contracts see the [README](./contracts/README.md) in the `contracts` directory.
 
 ## Recommended VS Code extensions
 
@@ -86,16 +82,12 @@ yarn build
   yarn test:watch
   ```
 
-### Commit commands
-
-This project use [commitlint](https://github.com/conventional-changelog/commitlint) to ensure that commit messages are [conventional-changelog](https://github.com/conventional-changelog/commitlint/tree/master/@commitlint/config-conventional) compliants.
-
-To help you build more efficient commit messages, you can use the [commitizen](https://github.com/commitizen/cz-cli) package by running this command :
+### Deploy command
 
 ```bash
-yarn cz
+yarn deploy
 ```
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the GPL License.

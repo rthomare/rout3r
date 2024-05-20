@@ -9,7 +9,6 @@ import { EditRoute } from '../route/EditRoute';
 import { Routes as Rout3s } from '../routes/Routes';
 import { useMemo } from 'react';
 import { Debug } from '../debug/Debug';
-import { ConfigProvider } from '../hooks/useOnchain';
 
 type AppDestinations = {
   content: React.ReactElement;
@@ -107,11 +106,7 @@ export function useAppDestinations(): AppDestinationsResponse {
         isLoading: false,
         destinations: [
           {
-            content: (
-              <ConfigProvider>
-                <Rout3s />
-              </ConfigProvider>
-            ),
+            content: <Rout3s />,
             path: '/routes',
             name: 'Home',
             shouldHideNav: false,
@@ -123,11 +118,7 @@ export function useAppDestinations(): AppDestinationsResponse {
             shouldHideNav: true,
           },
           {
-            content: (
-              <ConfigProvider>
-                <Onboard />
-              </ConfigProvider>
-            ),
+            content: <Onboard />,
             path: '/setup',
             name: 'Setup',
           },
@@ -137,31 +128,19 @@ export function useAppDestinations(): AppDestinationsResponse {
             name: 'About',
           },
           {
-            content: (
-              <ConfigProvider>
-                <AddRoute />
-              </ConfigProvider>
-            ),
+            content: <AddRoute />,
             path: '/routes/new',
             name: 'New Route',
             shouldHideNav: true,
           },
           {
-            content: (
-              <ConfigProvider>
-                <EditRoute />
-              </ConfigProvider>
-            ),
+            content: <EditRoute />,
             path: '/route/:id',
             name: 'Edit Route',
             shouldHideNav: true,
           },
           {
-            content: (
-              <ConfigProvider>
-                <Debug />
-              </ConfigProvider>
-            ),
+            content: <Debug />,
             path: '/debug',
             name: 'Debug',
             shouldHideNav: true,

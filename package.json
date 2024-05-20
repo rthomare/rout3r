@@ -3,15 +3,13 @@
   "version": "0.0.0",
   "homepage": "https://rthomare.github.io/rout3r/",
   "author": {
-    "name": "David Sima",
-    "email": "hello@david-sima.dev",
-    "url": "https://github.com/The24thDS"
+    "name": "Rohan Thomare",
+    "url": "https://github.com/rthomare"
   },
   "private": true,
   "license": "MIT",
   "scripts": {
-    "full-dev": "concurrently \"yarn dev\" \"anvil\"",
-    "dev": "vite",
+    "dev": "./fulldev.sh",
     "build": "tsc && vite build",
     "serve": "vite preview",
     "predeploy": "npm run build",

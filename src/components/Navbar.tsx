@@ -12,6 +12,7 @@ import { BsGithub } from 'react-icons/bs';
 import { Link, useLocation } from 'react-router-dom';
 import { useAppState } from '../hooks/useAppState';
 import { AppDestinationsResponse } from '../hooks/useAppDestinations';
+import { IS_FULL_DEV } from '../utils/general';
 
 export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -39,8 +40,13 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
           ))}
       </HStack>
       <HStack fontSize="lg" gap={4}>
-        {appState.isWalletConnected && (
+        {appState.isWalletConnected && !IS_FULL_DEV && (
           <ConnectButton accountStatus="address" showBalance={false} />
+        )}
+        {appState.isWalletConnected && IS_FULL_DEV && (
+          <Box pointerEvents="none">
+            <ConnectButton label={`Dev Mode`} />
+          </Box>
         )}
         <Link
           aria-label="Go to rout3r github"
