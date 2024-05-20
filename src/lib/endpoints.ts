@@ -8,8 +8,8 @@ import {
   getRoutes,
   updateRoute,
 } from './onchain';
-import { useWalletClient } from 'wagmi';
 import { useErrorToast } from '../hooks/useErrorToast';
+import { useOnchain } from '../hooks/useOnchain';
 
 // TODO: Solve cache staleness for routes (repro? try update route on UI)
 
@@ -24,15 +24,12 @@ import { useErrorToast } from '../hooks/useErrorToast';
  * console.log(routeQuery.data);
  */
 export function useGetRoute(id: bigint) {
-  const walletClientQuery = useWalletClient();
+  const { config } = useOnchain();
   const errorToast = useErrorToast("Route couldn't updated");
-  if (!walletClientQuery.data) {
-    throw new Error('No wallet client found.');
-  }
   return useQuery({
     queryKey: ['routes', id.toString()],
     queryFn: async () => {
-      return getRoute(walletClientQuery.data, id)
+      return getRoute(config, id)
         .then(
           (data) =>
             ({
@@ -66,15 +63,12 @@ export function useGetRoute(id: bigint) {
  * console.log(routesQuery.data);
  */
 export function useGetRoutes() {
-  const walletClientQuery = useWalletClient();
+  const { config } = useOnchain();
   const errorToast = useErrorToast("Route couldn't updated");
-  if (!walletClientQuery.data) {
-    throw new Error('No wallet client found.');
-  }
   return useQuery({
     queryKey: ['routes'],
     queryFn: () =>
-      getRoutes(walletClientQuery.data, 0n, 100n)
+      getRoutes(config, 0n, 100n)
         .then((datas) =>
           datas.map(
             (data) =>
@@ -136,15 +130,12 @@ export function useCreateRoute(
   onError?: (error: Error) => void
 ) {
   const queryClient = useQueryClient();
-  const walletClientQuery = useWalletClient();
+  const { config } = useOnchain();
   const toast = useToast();
   const errorToast = useErrorToast("Route couldn't updated");
-  if (!walletClientQuery.data) {
-    throw new Error('No wallet client found.');
-  }
   return useMutation({
     mutationFn: async (route: Route) =>
-      addRoute(walletClientQuery.data, {
+      addRoute(config, {
         command: route.command,
         name: route.name,
         url: route.url,
@@ -211,14 +202,11 @@ export function useDeleteRoute(
   onError?: (error: Error) => void
 ) {
   const queryClient = useQueryClient();
-  const walletClientQuery = useWalletClient();
+  const { config } = useOnchain();
   const toast = useToast();
   const errorToast = useErrorToast("Route couldn't updated");
-  if (!walletClientQuery.data) {
-    throw new Error('No wallet client found.');
-  }
   return useMutation({
-    mutationFn: async () => deleteRoute(walletClientQuery.data, id),
+    mutationFn: async () => deleteRoute(config, id),
     onSuccess: () => {
       toast({
         title: 'Route Deleted.',
@@ -282,15 +270,12 @@ export function useUpdateRoute(
   onError?: (error: Error) => void
 ) {
   const queryClient = useQueryClient();
-  const walletClientQuery = useWalletClient();
+  const { config } = useOnchain();
   const toast = useToast();
   const errorToast = useErrorToast("Route couldn't updated");
-  if (!walletClientQuery.data) {
-    throw new Error('No wallet client found.');
-  }
   return useMutation({
     mutationFn: async (route: Route) =>
-      updateRoute(walletClientQuery.data, id, {
+      updateRoute(config, id, {
         name: route.name,
         command: route.command,
         url: route.url,

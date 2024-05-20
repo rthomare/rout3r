@@ -9,6 +9,7 @@ import { EditRoute } from '../route/EditRoute';
 import { Routes as Rout3s } from '../routes/Routes';
 import { useMemo } from 'react';
 import { Debug } from '../debug/Debug';
+import { ConfigProvider } from '../hooks/useOnchain';
 
 type AppDestinations = {
   content: React.ReactElement;
@@ -63,12 +64,6 @@ export function useAppDestinations(): AppDestinationsResponse {
             path: '/about',
             name: 'About',
           },
-          {
-            content: <Debug />,
-            path: '/debug',
-            name: 'Debug',
-            shouldHideNav: true,
-          },
         ],
         basename: 'rout3r',
       };
@@ -112,7 +107,11 @@ export function useAppDestinations(): AppDestinationsResponse {
         isLoading: false,
         destinations: [
           {
-            content: <Rout3s />,
+            content: (
+              <ConfigProvider>
+                <Rout3s />
+              </ConfigProvider>
+            ),
             path: '/routes',
             name: 'Home',
             shouldHideNav: false,
@@ -124,7 +123,11 @@ export function useAppDestinations(): AppDestinationsResponse {
             shouldHideNav: true,
           },
           {
-            content: <Onboard />,
+            content: (
+              <ConfigProvider>
+                <Onboard />
+              </ConfigProvider>
+            ),
             path: '/setup',
             name: 'Setup',
           },
@@ -134,19 +137,31 @@ export function useAppDestinations(): AppDestinationsResponse {
             name: 'About',
           },
           {
-            content: <AddRoute />,
+            content: (
+              <ConfigProvider>
+                <AddRoute />
+              </ConfigProvider>
+            ),
             path: '/routes/new',
             name: 'New Route',
             shouldHideNav: true,
           },
           {
-            content: <EditRoute />,
+            content: (
+              <ConfigProvider>
+                <EditRoute />
+              </ConfigProvider>
+            ),
             path: '/route/:id',
             name: 'Edit Route',
             shouldHideNav: true,
           },
           {
-            content: <Debug />,
+            content: (
+              <ConfigProvider>
+                <Debug />
+              </ConfigProvider>
+            ),
             path: '/debug',
             name: 'Debug',
             shouldHideNav: true,

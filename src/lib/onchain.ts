@@ -1,5 +1,7 @@
 import {
+  Account,
   Address,
+  Chain,
   Hex,
   PublicClient,
   WalletClient,
@@ -51,6 +53,13 @@ export type ContractStoredRoute = {
   route: ContractStoredRouteData;
 };
 
+export type OnchainConfig = {
+  account: Account;
+  chain: Chain;
+  publicClient: PublicClient;
+  walletClient: WalletClient;
+};
+
 export const RESERVED_ROUTES: ContractStoredRoute[] = [
   {
     id: -1n,
@@ -71,17 +80,20 @@ export const RESERVED_ROUTES: ContractStoredRoute[] = [
 
 // a funtion to get the contract address given the address, nonce, and bytecode
 async function _contractAddress(
-  from: Address,
-  publicClient: PublicClient
+  config: OnchainConfig
 ): Promise<Address | undefined> {
-  const count = await publicClient.getTransactionCount({ address: from });
+  const count = await config.publicClient.getTransactionCount({
+    address: config.account.address,
+  });
   let nonce = BigInt(count - 1);
   while (nonce > 0) {
     const contractAddress = getContractAddress({
-      from,
+      from: config.account.address,
       nonce,
     });
-    const code = await publicClient.getBytecode({ address: contractAddress });
+    const code = await config.publicClient.getBytecode({
+      address: contractAddress,
+    });
     if (matchesPinnedContract(code)) {
       return contractAddress;
     }
@@ -122,19 +134,18 @@ function isReservedId(id: bigint) {
  * const contractAddress = await contractExists('0x1234...', publicClient);
  */
 export async function contractAddress(
-  from: Address,
-  client: PublicClient
+  config: OnchainConfig
 ): Promise<Address | undefined> {
   // Check local storage for the contract address
   const storedContractAddress = localStorage.getItem(
-    `${LOCAL_STORAGE_KEY}${from}`
+    `${LOCAL_STORAGE_KEY}${config.account.address}`
   ) as Address;
   if (storedContractAddress) {
     return storedContractAddress;
   }
-  const add = await _contractAddress(from, client);
+  const add = await _contractAddress(config);
   if (add) {
-    localStorage.setItem(`${LOCAL_STORAGE_KEY}${from}`, add);
+    localStorage.setItem(`${LOCAL_STORAGE_KEY}${config.account.address}`, add);
   }
   return add;
 }
@@ -146,40 +157,30 @@ export async function contractAddress(
  * @throws an error if the client does not have an account
  *
  * @example
- * const walletClient = useWalletClient();
+ * const { config } = useOnchain();
  * const contractAddress = await deployContract(walletClient);
  */
-export async function deployContract(client: WalletClient): Promise<Address> {
-  if (!client.account) {
+export async function deployContract(config: OnchainConfig): Promise<Address> {
+  if (!config.account) {
     throw new Error('No account found to deploy contract.');
   }
-  const deploymentAddress = await client.deployContract({
+  const deploymentAddress = await config.walletClient.deployContract({
     abi: ROUTER_V1_0_0.abi,
-    account: client.account.address,
+    account: config.account.address,
     bytecode: PINNED_CONTRACT_BYTECODE,
     maxFeePerBlobGas: 0n,
     blobs: [],
-    chain: client.chain,
+    chain: config.walletClient.chain,
   });
   localStorage.setItem(
-    `${LOCAL_STORAGE_KEY}${client.account.address}`,
+    `${LOCAL_STORAGE_KEY}${config.account.address}`,
     deploymentAddress
   );
   return deploymentAddress;
 }
 
-export async function getRouteContract(walletClient: WalletClient) {
-  if (!walletClient.account) {
-    throw new Error('No account found to get route.');
-  }
-  const publicClient = createPublicClient({
-    chain: walletClient.chain,
-    transport: http(),
-  });
-  const address = await contractAddress(
-    walletClient.account.address,
-    publicClient
-  );
+export async function getRouteContract(config: OnchainConfig) {
+  const address = await contractAddress(config);
   if (!address) {
     throw new Error('Contract not deployed.');
   }
@@ -189,14 +190,14 @@ export async function getRouteContract(walletClient: WalletClient) {
     address,
     abi: PINNED_CONTRACT_ABI,
     client: {
-      wallet: walletClient,
-      public: publicClient,
+      public: config.publicClient,
+      wallet: config.walletClient,
     },
   });
 }
 
 export async function getRoute(
-  walletClient: WalletClient,
+  config: OnchainConfig,
   id: bigint
 ): Promise<ContractStoredRoute> {
   if (id < 0n) {
@@ -206,7 +207,7 @@ export async function getRoute(
     }
     return value;
   }
-  const contract = await getRouteContract(walletClient);
+  const contract = await getRouteContract(config);
   const route = (await contract.read.getRoute([id])) as any;
   return {
     id,
@@ -215,12 +216,12 @@ export async function getRoute(
 }
 
 export async function getRoutes(
-  walletClient: WalletClient,
+  config: OnchainConfig,
   cursor: bigint,
   limit: bigint
 ): Promise<ContractStoredRoute[]> {
-  const contract = await getRouteContract(walletClient);
-  const data = (await contract.read.getRoutes([0n, 10n])) as [
+  const contract = await getRouteContract(config);
+  const data = (await contract.read.getRoutes([cursor, limit])) as [
     ContractStoredRoute[],
     bigint,
     bigint
@@ -231,22 +232,22 @@ export async function getRoutes(
 
 //here
 export async function addRoute(
-  walletClient: WalletClient,
+  config: OnchainConfig,
   route: ContractStoredRouteData
 ): Promise<ContractStoredRoute> {
-  if (!walletClient.account) {
+  if (!config.account) {
     throw new Error('No account found to add route.');
   }
   if (isReservedCommand(route.command)) {
     throw new Error('Command is reserved.');
   }
-  const contract = await getRouteContract(walletClient);
+  const contract = await getRouteContract(config);
   const { result: id } = await contract.simulate.addRoute([route], {
-    account: walletClient.account as any,
+    account: config.account as any,
   });
   const hash = await contract.write.addRoute([route]);
   await createPublicClient({
-    chain: walletClient.chain,
+    chain: config.chain,
     transport: http(),
   }).waitForTransactionReceipt({ hash });
   return {
@@ -256,11 +257,11 @@ export async function addRoute(
 }
 
 export async function updateRoute(
-  walletClient: WalletClient,
+  config: OnchainConfig,
   id: bigint,
   routeData: ContractStoredRouteData
 ) {
-  if (!walletClient.account) {
+  if (!config.account) {
     throw new Error('No account found to add route.');
   }
   if (isReservedCommand(routeData.command)) {
@@ -269,16 +270,16 @@ export async function updateRoute(
   if (isReservedId(id)) {
     throw new Error('Command is reserved.');
   }
-  const contract = await getRouteContract(walletClient);
+  const contract = await getRouteContract(config);
   const { request } = await contract.simulate.updateRoute([id, routeData], {
-    account: walletClient.account as any,
+    account: config.account as any,
   });
-  const hash = await walletClient.writeContract({
+  const hash = await config.walletClient.writeContract({
     ...request,
-    account: walletClient.account,
+    account: config.account,
   });
   await createPublicClient({
-    chain: walletClient.chain,
+    chain: config.chain,
     transport: http(),
   }).waitForTransactionReceipt({ hash });
   return {
@@ -287,17 +288,14 @@ export async function updateRoute(
   };
 }
 
-export async function deleteRoute(walletClient: WalletClient, id: bigint) {
-  if (!walletClient.account) {
-    throw new Error('No account found to add route.');
-  }
+export async function deleteRoute(config: OnchainConfig, id: bigint) {
   if (isReservedId(id)) {
     throw new Error('Command is reserved.');
   }
-  const contract = await getRouteContract(walletClient);
+  const contract = await getRouteContract(config);
   const { request } = await contract.simulate.deleteRoute([id]);
-  return walletClient.writeContract({
+  return config.walletClient.writeContract({
     ...request,
-    account: walletClient.account,
+    account: config.account,
   });
 }

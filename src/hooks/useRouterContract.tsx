@@ -1,6 +1,6 @@
-import { usePublicClient, useWalletClient } from 'wagmi';
 import { contractAddress, deployContract } from '../lib/onchain';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { usePublicClient, useWalletClient } from 'wagmi';
 
 /*
  * Hook to deploy and check for the router contract address
@@ -11,26 +11,44 @@ import { useMutation, useQuery } from '@tanstack/react-query';
  */
 export function useRouterContract() {
   const walletClientQuery = useWalletClient();
-  const publicClientQuery = usePublicClient();
-  const accountAddress = walletClientQuery.data?.account.address;
+  const publicClient = usePublicClient();
+
   const deploy = useMutation({
     mutationFn: async () => {
-      const client = walletClientQuery.data;
-      if (!client) {
-        throw new Error('Client not loaded');
+      if (walletClientQuery.isLoading || !walletClientQuery.data) {
+        return undefined;
       }
-      return deployContract(client);
+      const config = {
+        account: walletClientQuery.data?.account,
+        walletClient: walletClientQuery.data,
+        publicClient,
+        chain: walletClientQuery.data?.chain,
+      };
+      return deployContract(config);
     },
   });
 
   const address = useQuery({
-    queryKey: ['address', accountAddress],
+    queryKey: [
+      'router_address',
+      walletClientQuery.data?.account?.address ?? '',
+    ],
     queryFn: async () => {
-      const pclient = publicClientQuery;
-      if (!pclient || !accountAddress) {
-        throw new Error('Client not loaded');
+      if (walletClientQuery.isLoading || !walletClientQuery.data) {
+        return null;
       }
-      return contractAddress(accountAddress, pclient);
+      const config = {
+        account: walletClientQuery.data?.account,
+        walletClient: walletClientQuery.data,
+        publicClient,
+        chain: walletClientQuery.data?.chain,
+      };
+      return contractAddress({
+        account: config.account,
+        walletClient: config.walletClient,
+        publicClient: config.publicClient,
+        chain: config.chain,
+      });
     },
   });
 
