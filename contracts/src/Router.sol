@@ -29,8 +29,6 @@ struct RouteResult {
     Route route;
 }
 
-uint256 constant NULL = 0;
-uint256 constant HEAD = 0;
 bool constant PREV = false;
 bool constant NEXT = true;
 
@@ -40,14 +38,16 @@ bool constant NEXT = true;
 contract Router {
     address owner;
     uint256 idNum;
+    uint256 public head;
     mapping (uint256 => mapping (bool => uint256)) cll;
     mapping (uint256 => Route) routes;
 
     constructor() {
         owner = msg.sender;
         idNum = 0;
-        cll[HEAD][NEXT] = NULL;
-        cll[HEAD][PREV] = NULL;
+        head = 0;
+        cll[head][NEXT] = head;
+        cll[head][PREV] = head;
     }
 
     modifier onlyOwner() {
@@ -58,10 +58,10 @@ contract Router {
     /// @notice Adds a node to the linked list at end of the list
     function addRoute(Route memory route) onlyOwner public returns (uint256) {
         uint256 id = idNum;
-        cll[id][PREV] = cll[HEAD][PREV];
-        cll[cll[HEAD][PREV]][NEXT] = id;
-        cll[id][NEXT] = HEAD;
-        cll[HEAD][PREV] = id;
+        cll[id][PREV] = cll[head][PREV];
+        cll[cll[head][PREV]][NEXT] = id;
+        cll[id][NEXT] = head;
+        cll[head][PREV] = id;
         routes[id] = route;
         idNum++;
         return id;
@@ -74,8 +74,16 @@ contract Router {
 
     /// @notice Removes a node from the linked list
     function deleteRoute(uint256 id) onlyOwner public {
-        cll[cll[id][PREV]][NEXT] = cll[id][NEXT];
-        cll[cll[id][NEXT]][PREV] = cll[id][PREV];
+        require(isValidRoute(id));
+        uint256 prev = cll[id][PREV];
+        uint256 next = cll[id][NEXT];
+        cll[prev][NEXT] = next;
+        cll[next][PREV] = prev;
+
+        if (id == head) {
+            head = next;
+        }
+
         delete cll[id][PREV];
         delete cll[id][NEXT];
         delete routes[id];
@@ -93,16 +101,15 @@ contract Router {
 
     /// @notice Returns the values of the linked list of paginated size n
     function getRoutes(uint256 cursor, uint256 n) public view returns (RouteResult[] memory, uint256, uint256) {
-        require(cursor == 0 || isValidRoute(cursor));
-        RouteResult[] memory values = new RouteResult[](n);
-        for (uint256 i = 0; i < n; i++) {
-            values[i].route = routes[cursor];
-            values[i].id = cursor;
-            cursor = cll[cursor][NEXT];
-            if (cursor == NULL || values[i].route.isValue == false) {
-                return (values, i+1, cursor);
-            }
-        }
-        return (values, n, cursor);
+        RouteResult[] memory results = new RouteResult[](n);
+        uint256 length = 0;
+        uint256 pointer = cursor == 0 ? head : cursor;
+        do {
+            results[length] = RouteResult(pointer, routes[pointer]);
+            pointer = cll[pointer][NEXT];
+            length++;
+        } while (pointer != head && length < n);
+        uint256 nextCursor = pointer == head ? 0 : pointer;
+        return (results, length, nextCursor);
     }
 }

@@ -113,4 +113,21 @@ contract RouterTest is Test {
         vm.expectRevert();
         router.getRoute(id);
     }
+
+    function test_RoutePaginationAfterDelete() public {
+        for (uint i = 0; i < 5; i++) {
+            router.addRoute(newRoute());
+        }
+        router.deleteRoute(0);
+        (RouteResult[] memory routes, uint256 length, uint256 cursor) = router.getRoutes(0, 10);
+        assertEq(length, 4);
+        assertEq(cursor, 0);
+        assertEq(routes[0].id, 1);
+        router.deleteRoute(1);
+        (routes, length, cursor) = router.getRoutes(0, 10);
+        assertEq(length, 3);
+        assertEq(cursor, 0);
+        assertEq(routes[0].id, 2);
+        assertEq(routes[2].id, 4);
+    }
 }
