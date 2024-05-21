@@ -13,13 +13,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAppState } from '../hooks/useAppState';
 import { AppDestinationsResponse } from '../hooks/useAppDestinations';
 import { IS_FULL_DEV, shortenAddress } from '../utils/general';
-import { useOnchain } from '../hooks/useOnchain';
+import { useOnchainRaw } from '../hooks/useOnchain';
 import { useCopy } from '../hooks/useCopy';
 
 export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();
   const appState = useAppState();
-  const { config } = useOnchain();
+  const onchain = useOnchainRaw();
+  const address = onchain?.config.account.address ?? 'unknown address';
   const location = useLocation();
   const copy = useCopy();
 
@@ -53,10 +54,10 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
             borderRadius={10}
             p="10px 20px"
             background="Background"
-            onClick={copy(config.account.address, 'Copied Address')}
+            onClick={copy(address, 'Copied Address')}
             cursor="pointer"
           >
-            Dev Mode: {shortenAddress(config.account.address)}
+            Dev Mode: {shortenAddress(address)}
           </Heading>
         )}
         <Link
