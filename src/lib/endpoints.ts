@@ -1,7 +1,13 @@
 import { useToast } from '@chakra-ui/react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useIsMutating,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { Route } from './types';
 import {
+  OnchainConfig,
   addRoute,
   contractAddress,
   deleteRoute,
@@ -14,7 +20,13 @@ import { useErrorToast } from '../hooks/useErrorToast';
 import { useOnchain, useOnchainRaw } from '../hooks/useOnchain';
 import { Address } from 'viem';
 
-// TODO: Solve cache staleness for routes (repro? try update route on UI)
+function queryKeyForRoute(id: bigint, config: OnchainConfig) {
+  return ['routes', config.account.address, config.chain.id, id.toString()];
+}
+
+function queryKeyForRoutes(config: OnchainConfig) {
+  return ['routes', config.account.address, config.chain.id];
+}
 
 /*
  * @function useGetRoute
@@ -28,6 +40,9 @@ import { Address } from 'viem';
  */
 export function useGetRoute(id: bigint) {
   const { config } = useOnchain();
+  const queryClient = useQueryClient();
+  const qk = queryKeyForRoute(id, config);
+  const isMutating = useIsMutating({ mutationKey: qk }, queryClient);
   const errorToast = useErrorToast("Route couldn't updated");
   return useQuery({
     queryKey: [
@@ -54,10 +69,13 @@ export function useGetRoute(id: bigint) {
             } as Route)
         )
         .catch((error) => {
-          errorToast(error);
+          !isMutating && errorToast(error);
           throw error;
         });
     },
+    // stale after 1 hours (unless invalidated)
+    staleTime: 1000 * 60 * 60,
+    enabled: !isMutating,
   });
 }
 
@@ -72,6 +90,9 @@ export function useGetRoute(id: bigint) {
  */
 export function useGetRoutes() {
   const { config } = useOnchain();
+  const queryClient = useQueryClient();
+  const qk = queryKeyForRoutes(config);
+  const isMutating = useIsMutating({ mutationKey: qk }, queryClient);
   const errorToast = useErrorToast("Route couldn't updated");
   return useQuery({
     queryKey: ['routes', config.account.address, config.chain.id],
@@ -95,9 +116,12 @@ export function useGetRoutes() {
           )
         )
         .catch((error) => {
-          errorToast(error);
+          !isMutating && errorToast(error);
           throw error;
         }),
+    enabled: !isMutating,
+    // stale after 1 hours (unless invalidated)
+    staleTime: 1000 * 60 * 60,
   });
 }
 
@@ -140,8 +164,10 @@ export function useCreateRoute(
   const queryClient = useQueryClient();
   const { config } = useOnchain();
   const toast = useToast();
+  const qk = queryKeyForRoutes(config);
   const errorToast = useErrorToast("Route couldn't updated");
   return useMutation({
+    mutationKey: qk,
     mutationFn: async (route: Route) =>
       addRoute(config, {
         command: route.command,
@@ -169,7 +195,7 @@ export function useCreateRoute(
         .then(async (v) => {
           // Invalidate the cache
           await queryClient.invalidateQueries({
-            queryKey: ['routes', config.account.address, config.chain.id],
+            queryKey: qk,
           });
           return v;
         }),
@@ -215,17 +241,20 @@ export function useDeleteRoute(
 ) {
   const queryClient = useQueryClient();
   const { config } = useOnchain();
+  const qk = queryKeyForRoute(id, config);
+  const qrk = queryKeyForRoutes(config);
   const toast = useToast();
   const errorToast = useErrorToast("Route couldn't updated");
   return useMutation({
+    mutationKey: qk,
     mutationFn: async () =>
       deleteRoute(config, id).then(async (v) => {
         // Invalidate the cache
         await queryClient.invalidateQueries({
-          queryKey: ['routes', config.account.address, config.chain.id],
+          queryKey: qk,
         });
         await queryClient.invalidateQueries({
-          queryKey: ['routes', config.account.address, config.chain.id, id],
+          queryKey: qrk,
         });
       }),
     onSuccess: () => {
@@ -285,9 +314,11 @@ export function useUpdateRoute(
 ) {
   const queryClient = useQueryClient();
   const { config } = useOnchain();
+  const qk = queryKeyForRoute(id, config);
   const toast = useToast();
   const errorToast = useErrorToast("Route couldn't updated");
   return useMutation({
+    mutationKey: qk,
     mutationFn: async (route: Route) =>
       updateRoute(config, id, {
         name: route.name,
@@ -301,12 +332,7 @@ export function useUpdateRoute(
         .then(async (v) => {
           // Invalidate the cache
           await queryClient.invalidateQueries({
-            queryKey: [
-              'routes',
-              config.account.address,
-              config.chain.id,
-              id.toString(),
-            ],
+            queryKey: qk,
           });
         })
         .then(() => route),
@@ -399,5 +425,7 @@ export function useGetRouterAddress() {
         throw error;
       });
     },
+    // stale after 24 hours
+    staleTime: 1000 * 60 * 60 * 24,
   });
 }

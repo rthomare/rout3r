@@ -4,6 +4,7 @@ pragma solidity ^0.8.23;
 // TODO: Stop duplicate commands from being added or updated for a route
 // TODO: Move reserved routes into the contract, will need special 'origin' code to handle these routes
 // TODO: Consider adding events for creation, update, and deletion of routes
+// TODO: Make contract upgradable
 
 /// @title The Route Struct - represents a route in the Router contract
 /// @dev The route format is specific as follows:
