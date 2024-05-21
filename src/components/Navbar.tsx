@@ -12,12 +12,16 @@ import { BsGithub } from 'react-icons/bs';
 import { Link, useLocation } from 'react-router-dom';
 import { useAppState } from '../hooks/useAppState';
 import { AppDestinationsResponse } from '../hooks/useAppDestinations';
-import { IS_FULL_DEV } from '../utils/general';
+import { IS_FULL_DEV, shortenAddress } from '../utils/general';
+import { useOnchain } from '../hooks/useOnchain';
+import { useCopy } from '../hooks/useCopy';
 
 export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();
   const appState = useAppState();
+  const { config } = useOnchain();
   const location = useLocation();
+  const copy = useCopy();
 
   if (appState.isLoading || isLoading) {
     return null;
@@ -44,9 +48,16 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
           <ConnectButton accountStatus="address" showBalance={false} />
         )}
         {appState.isWalletConnected && IS_FULL_DEV && (
-          <Box pointerEvents="none">
-            <ConnectButton label={`Dev Mode`} />
-          </Box>
+          <Heading
+            size="md"
+            borderRadius={10}
+            p="10px 20px"
+            background="Background"
+            onClick={copy(config.account.address, 'Copied Address')}
+            cursor="pointer"
+          >
+            Dev Mode: {shortenAddress(config.account.address)}
+          </Heading>
         )}
         <Link
           aria-label="Go to rout3r github"

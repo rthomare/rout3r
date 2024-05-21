@@ -14,11 +14,11 @@ import { useCallback } from 'react';
 export function useCopy() {
   const toast = useToast();
   return useCallback(
-    (item: string) => () => {
+    (item: string, toastTitle?: string) => () => {
       navigator.clipboard.writeText(item);
       toast({
         position: 'top',
-        title: 'Copied!',
+        title: toastTitle ?? 'Copied!',
         status: 'success',
         duration: 2000,
         isClosable: true,
