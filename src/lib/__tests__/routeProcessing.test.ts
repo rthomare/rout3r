@@ -6,6 +6,7 @@ import { createRouteDB } from '../database';
 import { getRouteUrl, processQuery } from '../engine';
 
 const googleRoute = {
+  id: 1n,
   command: 'g',
   name: 'Google',
   description: 'Searches Google add `i` for images',

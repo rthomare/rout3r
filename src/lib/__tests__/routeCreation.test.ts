@@ -10,6 +10,6 @@ describe('rout3r engine creation', () => {
     const expectedUrl = `${origin}/rout3r/#go?rpcUrl=${encodeURIComponent(
       rpcUrl
     )}&searchFallback=${encodeURIComponent(searchFallback)}&q=%s`;
-    expect(createRouterURL(origin, rpcUrl, searchFallback)).toBe(expectedUrl);
+    expect(createRouterURL(origin, searchFallback)).toBe(expectedUrl);
   });
 });
