@@ -9,7 +9,6 @@ import { Route } from './types';
 import {
   OnchainConfig,
   addRoute,
-  contractAddress,
   deleteRoute,
   deployContract,
   getRoute,
@@ -17,15 +16,24 @@ import {
   updateRoute,
 } from './onchain';
 import { useErrorToast } from '../hooks/useErrorToast';
-import { useOnchain, useOnchainRaw } from '../hooks/useOnchain';
+import { useOnchain } from '../hooks/useOnchain';
 import { Address } from 'viem';
 
 function queryKeyForRoute(id: bigint, config: OnchainConfig) {
-  return ['routes', config.account.address, config.chain.id, id.toString()];
+  return [
+    'routes',
+    config.walletClient.account.address,
+    config.walletClient.chain.id,
+    id.toString(),
+  ];
 }
 
 function queryKeyForRoutes(config: OnchainConfig) {
-  return ['routes', config.account.address, config.chain.id];
+  return [
+    'routes',
+    config.walletClient.account.address,
+    config.walletClient.chain.id,
+  ];
 }
 
 /*
@@ -47,8 +55,8 @@ export function useGetRoute(id: bigint) {
   return useQuery({
     queryKey: [
       'routes',
-      config.account.address,
-      config.chain.id,
+      config.walletClient.account.address,
+      config.walletClient.chain.id,
       id.toString(),
     ],
     queryFn: async () => {
@@ -95,7 +103,11 @@ export function useGetRoutes() {
   const isMutating = useIsMutating({ mutationKey: qk }, queryClient);
   const errorToast = useErrorToast("Route couldn't updated");
   return useQuery({
-    queryKey: ['routes', config.account.address, config.chain.id],
+    queryKey: [
+      'routes',
+      config.walletClient.account.address,
+      config.walletClient.chain.id,
+    ],
     queryFn: () =>
       getRoutes(config, 0n, 100n)
         .then((datas) =>
@@ -384,7 +396,11 @@ export function useDeployRouter(
       return deployContract(config).then(async (address) => {
         // Invalidate the cache
         await queryClient.invalidateQueries({
-          queryKey: ['router_address', config.chain.id, config.account.address],
+          queryKey: [
+            'router_address',
+            config.walletClient.chain.id,
+            config.walletClient.account.address,
+          ],
         });
         return address;
       });
@@ -398,34 +414,19 @@ export function useDeployRouter(
         isClosable: true,
         position: 'top',
       });
+      queryClient.setQueryData(
+        [
+          'router_address',
+          config.walletClient.chain.id,
+          config.walletClient.account.address,
+        ],
+        address
+      );
       onSuccess?.(address);
     },
     onError: (error) => {
       errorToast(error);
       onError?.(error);
     },
-  });
-}
-
-export function useGetRouterAddress() {
-  const onchain = useOnchainRaw();
-  const errorToast = useErrorToast("Couldn't get router address");
-  return useQuery({
-    queryKey: [
-      'router_address',
-      onchain?.config.chain.id ?? 'unknown chain',
-      onchain?.config.account.address ?? 'unknown account',
-    ],
-    queryFn: async () => {
-      if (!onchain?.config) {
-        return '0x';
-      }
-      return contractAddress(onchain.config).catch((error) => {
-        errorToast(error);
-        throw error;
-      });
-    },
-    // stale after 24 hours
-    staleTime: 1000 * 60 * 60 * 24,
   });
 }

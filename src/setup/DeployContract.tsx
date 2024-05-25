@@ -1,4 +1,4 @@
-import { Button, Flex, Spinner, Text, VStack } from '@chakra-ui/react';
+import { Button, Flex, Text, VStack } from '@chakra-ui/react';
 import { useRouterContract } from '../hooks/useRouterContract';
 import { useAccount } from 'wagmi';
 import { Link, useNavigate } from 'react-router-dom';
@@ -9,24 +9,23 @@ export function DeployContract({
   onComplete?: () => void;
 }): JSX.Element {
   const { chain } = useAccount();
-  const { isDeployed, address, deploy } = useRouterContract();
+  const { isDeployed, contract, deploy } = useRouterContract();
   const navigate = useNavigate();
   return (
     <Flex>
-      {address.isLoading && <Spinner />}
       {isDeployed && (
         <VStack alignItems="flex-start">
           <Link
-            to={`${chain?.blockExplorers.default.url}/search?q=${address.data}`}
+            to={`${chain?.blockExplorers.default.url}/search?q=${contract?.address}`}
             target="_blank"
           >
             <Text textDecoration="underline">
-              Router contract already deployed at {address.data}
+              Router contract already deployed at {contract?.address}
             </Text>
           </Link>
         </VStack>
       )}
-      {!address.isLoading && !isDeployed && (
+      {!isDeployed && (
         <VStack alignItems="flex-start">
           <Text>Click the button below to deploy your router</Text>
           <Button

@@ -2,8 +2,10 @@ import {
   Account,
   Address,
   Chain,
+  GetContractReturnType,
   Hex,
   PublicClient,
+  Transport,
   WalletClient,
   createPublicClient,
   getContract,
@@ -11,7 +13,6 @@ import {
   http,
 } from 'viem';
 import ROUTER_V1_0_0 from '../../contracts/versions/Router-1.0.0.json';
-import { IS_FULL_DEV } from '../utils/general';
 
 let origin;
 try {
@@ -24,9 +25,9 @@ try {
 // Warning: Changing this value changes the contract addresses moving forward.
 // If there is an existing user never change this value. First deploy this bytecode,
 // then update the contract onchain.
-const PINNED_CONTRACT_BYTECODE: Hex = ROUTER_V1_0_0.bytecode.object as Hex;
+const PINNED_CONTRACT_BYTECODE: Hex = ROUTER_V1_0_0.deployedBytecode
+  .object as Hex;
 const PINNED_CONTRACT_ABI = ROUTER_V1_0_0.abi;
-const LOCAL_STORAGE_KEY = 'ROUTER_CONTRACT_ADDRESS_KEY';
 
 /*
  * The type depicting the stored route data
@@ -55,10 +56,12 @@ export type ContractStoredRoute = {
 };
 
 export type OnchainConfig = {
-  account: Account;
-  chain: Chain;
   publicClient: PublicClient;
-  walletClient: WalletClient;
+  walletClient: WalletClient<Transport, Chain, Account>;
+  contract?: GetContractReturnType<
+    typeof PINNED_CONTRACT_ABI,
+    WalletClient & PublicClient
+  >;
 };
 
 export const RESERVED_ROUTES: ContractStoredRoute[] = [
@@ -79,39 +82,45 @@ export const RESERVED_ROUTES: ContractStoredRoute[] = [
   },
 ];
 
-// a funtion to get the contract address given the address, nonce, and bytecode
-async function _contractAddress(
-  config: OnchainConfig
-): Promise<Address | undefined> {
-  const count = await config.publicClient.getTransactionCount({
-    address: config.account.address,
+/*
+ * A function to get the the rout3r contract if it exists onchain
+ * @param config - the onchain config to use that contains the account, chain and client info
+ *
+ * @example
+ * const publicClient = usePublicClient();
+ * const walletClient = useWalletClient();
+ * const contract = await getRouterContract(publicClient, walletClient);
+ */
+export async function getRouterContract(
+  publicClient: PublicClient,
+  walletClient: WalletClient<Transport, Chain, Account>
+): Promise<OnchainConfig['contract']> {
+  const count = await publicClient.getTransactionCount({
+    address: walletClient.account.address,
   });
   let nonce = BigInt(count - 1);
   while (nonce > -1) {
     const contractAddress = getContractAddress({
-      from: config.account.address,
+      from: walletClient.account.address,
       nonce,
     });
-    const code = await config.publicClient.getBytecode({
+    const code = await publicClient.getBytecode({
       address: contractAddress,
     });
-    if (matchesPinnedContract(code)) {
-      return contractAddress;
+    // simple heuristic to check if the contract is the pinned contract by just checking the first 10 and last 10 bytes
+    if (code && code === PINNED_CONTRACT_BYTECODE) {
+      return getContract({
+        address: contractAddress,
+        abi: PINNED_CONTRACT_ABI,
+        client: {
+          public: publicClient,
+          wallet: walletClient,
+        },
+      });
     }
     nonce = nonce - 1n;
   }
   return undefined;
-}
-
-// simple heuristic to check if the contract is the pinned contract by just checking the first 10 and last 10 bytes
-function matchesPinnedContract(code?: Hex): boolean {
-  if (!code) {
-    return false;
-  }
-  return (
-    code.startsWith(PINNED_CONTRACT_BYTECODE.slice(0, 10)) &&
-    code.endsWith(PINNED_CONTRACT_BYTECODE.slice(-10))
-  );
 }
 
 // a function to check if a command is reserved
@@ -125,79 +134,37 @@ function isReservedId(id: bigint) {
 }
 
 /*
- * Check if the rout3r contract exists onchain
- * @param from - the address to check for the contract
- * @param client - the public client to use for RPC requests
- * @returns the contract address if it exists, otherwise undefined
- *
- * @example
- * const publicClient = usePublicClient();
- * const contractAddress = await contractExists('0x1234...', publicClient);
- */
-export async function contractAddress(config: OnchainConfig): Promise<Address> {
-  // Check local storage for the contract address
-  const key = `${LOCAL_STORAGE_KEY}_${config.account.address}_${config.chain.id}`;
-  const storedContractAddress = localStorage.getItem(key) as Address;
-  if (storedContractAddress && !IS_FULL_DEV) {
-    return storedContractAddress;
-  }
-  const add = await _contractAddress(config);
-  if (add) {
-    localStorage.setItem(key, add);
-  }
-  return add ?? '0x';
-}
-
-/*
  * Deploy the rout3r contract onchain
  * @param client - the wallet client to use for deployment
- * @returns the contract address if successful
+ * @returns the txn hash if successful
  * @throws an error if the client does not have an account
  *
  * @example
  * const { config } = useOnchain();
- * const contractAddress = await deployContract(walletClient);
+ * const hash = await deployContract(walletClient);
  */
 export async function deployContract(config: OnchainConfig): Promise<Address> {
-  if (!config.account) {
+  if (!config.walletClient.account) {
     throw new Error('No account found to deploy contract.');
   }
-  const deploymentAddress = await config.walletClient.deployContract({
-    abi: ROUTER_V1_0_0.abi,
-    account: config.account.address,
+  const hash = await config.walletClient.deployContract({
+    abi: PINNED_CONTRACT_ABI,
+    account: config.walletClient.account.address,
     bytecode: PINNED_CONTRACT_BYTECODE,
     maxFeePerBlobGas: 0n,
     blobs: [],
     chain: config.walletClient.chain,
   });
-  localStorage.setItem(
-    `${LOCAL_STORAGE_KEY}${config.account.address}`,
-    deploymentAddress
-  );
-  return deploymentAddress;
-}
-
-export async function getRouteContract(config: OnchainConfig) {
-  const address = await contractAddress(config);
-  if (!address) {
-    throw new Error('Contract not deployed.');
-  }
-
-  // 1. Create contract instance
-  return getContract({
-    address,
-    abi: PINNED_CONTRACT_ABI,
-    client: {
-      public: config.publicClient,
-      wallet: config.walletClient,
-    },
-  });
+  return hash;
 }
 
 export async function getRoute(
   config: OnchainConfig,
   id: bigint
 ): Promise<ContractStoredRoute> {
+  if (!config.contract) {
+    throw new Error('No contract found to update route.');
+  }
   if (id < 0n) {
     const value = RESERVED_ROUTES.find((r) => r.id === id);
     if (!value) {
@@ -205,9 +172,8 @@ export async function getRoute(
     }
     return value;
   }
-  const contract = await getRouteContract(config);
-  const route = (await contract.read.getRoute([id], {
-    account: config.account as any,
+  const route = (await config.contract.read.getRoute([id], {
+    account: config.walletClient.account as any,
   })) as any;
   return {
     id,
@@ -220,9 +186,11 @@ export async function getRoutes(
   cursor: bigint,
   limit: bigint
 ): Promise<ContractStoredRoute[]> {
-  const contract = await getRouteContract(config);
-  const data = (await contract.read.getRoutes([cursor, limit], {
-    account: config.account as any,
+  if (!config.contract) {
+    throw new Error('No contract found to update route.');
+  }
+  const data = (await config.contract.read.getRoutes([cursor, limit], {
+    account: config.walletClient.account as any,
   })) as [ContractStoredRoute[], bigint, bigint];
   const contractRoutes = data[0].filter((val) => val.route.isValue);
   return RESERVED_ROUTES.concat(contractRoutes);
@@ -233,21 +201,20 @@ export async function addRoute(
   config: OnchainConfig,
   route: ContractStoredRouteData
 ): Promise<ContractStoredRoute> {
-  if (!config.account) {
-    throw new Error('No account found to add route.');
+  if (!config.contract) {
+    throw new Error('No contract found to update route.');
   }
   if (isReservedCommand(route.command)) {
     throw new Error('Command is reserved.');
   }
-  const contract = await getRouteContract(config);
-  const { result: id } = await contract.simulate.addRoute([route], {
-    account: config.account as any,
+  const { result: id } = await config.contract.simulate.addRoute([route], {
+    account: config.walletClient.account as any,
   });
-  const hash = await contract.write.addRoute([route], {
-    account: config.account as any,
+  const hash = await config.contract.write.addRoute([route], {
+    account: config.walletClient.account as any,
   });
   await createPublicClient({
-    chain: config.chain,
+    chain: config.walletClient.chain,
     transport: http(),
   }).waitForTransactionReceipt({ hash });
   return {
@@ -261,8 +228,11 @@ export async function updateRoute(
   id: bigint,
   routeData: ContractStoredRouteData
 ) {
-  if (!config.account) {
+  if (!config.walletClient.account) {
     throw new Error('No account found to add route.');
+  }
+  if (!config.contract) {
+    throw new Error('No contract found to update route.');
   }
   if (isReservedCommand(routeData.command)) {
     throw new Error('Command is reserved.');
@@ -270,16 +240,18 @@ export async function updateRoute(
   if (isReservedId(id)) {
     throw new Error('Command is reserved.');
   }
-  const contract = await getRouteContract(config);
-  const { request } = await contract.simulate.updateRoute([id, routeData], {
-    account: config.account as any,
-  });
+  const { request } = await config.contract.simulate.updateRoute(
+    [id, routeData],
+    {
+      account: config.walletClient.account as any,
+    }
+  );
   const hash = await config.walletClient.writeContract({
     ...request,
-    account: config.account,
+    account: config.walletClient.account,
   });
   await createPublicClient({
-    chain: config.chain,
+    chain: config.walletClient.chain,
     transport: http(),
   }).waitForTransactionReceipt({ hash });
   return {
@@ -289,15 +261,17 @@ export async function updateRoute(
 }
 
 export async function deleteRoute(config: OnchainConfig, id: bigint) {
+  if (!config.contract) {
+    throw new Error('No contract found to delete route.');
+  }
   if (isReservedId(id)) {
     throw new Error('Command is reserved.');
   }
-  const contract = await getRouteContract(config);
-  const { request } = await contract.simulate.deleteRoute([id], {
-    account: config.account as any,
+  const { request } = await config.contract.simulate.deleteRoute([id], {
+    account: config.walletClient.account as any,
   });
   return config.walletClient.writeContract({
     ...request,
-    account: config.account,
+    account: config.walletClient.account,
   });
 }

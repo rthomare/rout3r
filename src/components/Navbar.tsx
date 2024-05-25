@@ -20,7 +20,8 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();
   const appState = useAppState();
   const onchain = useOnchainRaw();
-  const address = onchain?.config.account.address ?? 'unknown address';
+  const address =
+    onchain?.config.walletClient.account.address ?? 'unknown address';
   const location = useLocation();
   const copy = useCopy();
 
