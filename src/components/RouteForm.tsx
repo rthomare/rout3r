@@ -28,10 +28,14 @@ import {
 
 import { Route, RouteData } from '../lib/types';
 import { Link } from 'react-router-dom';
-import { useErrorToast } from '../hooks/useErrorToast';
 
 type RouteFormProps = {
   route: Partial<Route>;
+  cancel?: {
+    text: string;
+    onClick: () => void;
+    isLoading: boolean;
+  };
   onSubmit: (route: Route) => Promise<void>;
   disabledFields?: Array<keyof Route>;
   disabled?: boolean;
@@ -39,6 +43,7 @@ type RouteFormProps = {
 
 export function RouteForm({
   route,
+  cancel,
   onSubmit,
   disabledFields,
   disabled,
@@ -261,16 +266,28 @@ export function RouteForm({
               </VStack>
             )}
           />
-          <Button
-            mt={4}
-            isLoading={props.isSubmitting}
-            type="submit"
-            leftIcon={<BsFloppyFill />}
-            colorScheme="blue"
-            isDisabled={disabled}
-          >
-            Save
-          </Button>
+          <HStack alignItems="center" mt={4} gap={4}>
+            <Button
+              isLoading={props.isSubmitting}
+              type="submit"
+              leftIcon={<BsFloppyFill />}
+              colorScheme="blue"
+              isDisabled={disabled}
+              flexGrow={1}
+            >
+              Save
+            </Button>
+            {cancel && (
+              <Button
+                onClick={cancel.onClick}
+                colorScheme="gray"
+                flexGrow={1}
+                isLoading={cancel.isLoading}
+              >
+                {cancel.text}
+              </Button>
+            )}
+          </HStack>
           {formError && (
             <Text color="red.300" textAlign="center">
               {formError.message}
