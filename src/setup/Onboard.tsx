@@ -142,10 +142,12 @@ export function Onboard() {
         completed={conditions[3]}
         onClick={setIndex(2)}
       >
-        <SetupRoute
-          selectedRoute={selectedRoute}
-          generatedRoute={didSelectRoute}
-        />
+        {routerContract.isDeployed && (
+          <SetupRoute
+            selectedRoute={selectedRoute}
+            generatedRoute={didSelectRoute}
+          />
+        )}
       </OnboardingStep>
       <OnboardingStep
         title="Step 4: Try out your first route"

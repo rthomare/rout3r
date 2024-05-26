@@ -1,3 +1,5 @@
+import { mapSubroute, mapSubroutes } from '../utils/general';
+import { SEARCH_REPLACEMENT, SUBROUTE_SEPERATOR } from './constants';
 import { createRouteDB } from './database';
 import { Route } from './types';
 
@@ -61,15 +63,16 @@ export function traverseRoute(
   if (!subcommand || subcommand === '') {
     return { url, query };
   }
-  const subRoute = subRoutes.find((sr) => {
-    const [command, _] = sr.split('::');
-    return command === subcommand;
+
+  const parsedSubRoutes = mapSubroutes(subRoutes);
+  const subRoute = parsedSubRoutes.find((sr) => {
+    return sr.command === subcommand;
   });
   if (!subRoute) {
     return { url, query };
   }
 
-  const newUrl = subRoute.split('::')[1];
+  const newUrl = subRoute.url;
   const newQuery = query.split(' ').slice(1).join(' ');
   return traverseRoute(newUrl, [], newQuery.trim());
 }
@@ -111,7 +114,10 @@ export function traverseRoute(
 export function getRouteUrl(route: Route, routeQuery: string): string {
   const { url, query } = traverseRoute(route.url, route.subRoutes, routeQuery);
   // return url encoded routeData.url and routeQuery
-  return url.replace('%@@@', query ? encodeURIComponent(query) : '');
+  return url.replace(
+    SEARCH_REPLACEMENT,
+    query ? encodeURIComponent(query) : ''
+  );
 }
 
 /*
@@ -136,5 +142,5 @@ export async function processQuery(query: string, fallback: string) {
   if (route) {
     return getRouteUrl(route, substring);
   }
-  return fallback.replace('%@@@', query ?? '');
+  return fallback.replace(SEARCH_REPLACEMENT, query ?? '');
 }

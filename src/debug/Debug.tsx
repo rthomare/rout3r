@@ -6,7 +6,7 @@ export function Debug() {
   const { config } = useOnchain();
   const [routes, setRoutes] = useState<any>();
   useEffect(() => {
-    getRoutes(config, 0n, 10n).then((routes) => {
+    getRoutes(config, '', 10n).then((routes) => {
       console.log('Routes:', routes);
       setRoutes(routes);
     });

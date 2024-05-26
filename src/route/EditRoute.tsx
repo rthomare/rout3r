@@ -3,6 +3,7 @@ import { BsTrash } from 'react-icons/bs';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
+  Box,
   Button,
   Center,
   Heading,
@@ -22,16 +23,17 @@ import {
 
 import { RouteForm } from '../components/RouteForm';
 import { useDeleteRoute, useGetRoute, useUpdateRoute } from '../lib/endpoints';
+import { RouteType } from '../lib/types';
 
 export function EditRoute(): JSX.Element {
-  const { id } = useParams();
-  if (!id) {
-    throw new Error('No id found in route params.');
+  const { command } = useParams();
+  if (!command) {
+    throw new Error('No command found in route params.');
   }
   const navigate = useNavigate();
-  const routeQuery = useGetRoute(BigInt(id));
-  const routeUpdateMutation = useUpdateRoute(BigInt(id));
-  const routeRemoveMutation = useDeleteRoute(BigInt(id), () => {
+  const routeQuery = useGetRoute(command);
+  const routeUpdateMutation = useUpdateRoute(command);
+  const routeRemoveMutation = useDeleteRoute(command, () => {
     routeQuery.refetch();
     navigate('/routes');
   });
@@ -69,17 +71,23 @@ export function EditRoute(): JSX.Element {
   return (
     <>
       <HStack marginBottom={3} justifyContent="space-between">
-        <Heading size="lg">Edit Route: {routeQuery.data.name}</Heading>
+        <Heading size="lg">
+          Edit Route: {routeQuery.data.name}
+          <Box as="span" color="gray">
+            &nbsp;(Reserved Route)
+          </Box>
+        </Heading>
         <Button
           colorScheme="red"
           onClick={onOpen}
           isLoading={routeRemoveMutation.isPending}
           leftIcon={<BsTrash />}
-          isDisabled={routeQuery.data.type === 'reserved'}
+          isDisabled={routeQuery.data.routeType === RouteType.RESERVED}
         >
           Delete
         </Button>
       </HStack>
+
       <RouteForm
         route={routeQuery.data}
         onSubmit={async (route) => {
@@ -87,7 +95,7 @@ export function EditRoute(): JSX.Element {
           routeQuery.refetch();
         }}
         disabledFields={['command']}
-        disabled={routeQuery.data.type === 'reserved'}
+        disabled={routeQuery.data.routeType === RouteType.RESERVED}
       />
       <Modal onClose={onClose} isOpen={isOpen} isCentered>
         <ModalOverlay />
@@ -105,7 +113,7 @@ export function EditRoute(): JSX.Element {
               mr={3}
               onClick={() => routeRemoveMutation.mutate()}
               isLoading={routeRemoveMutation.isPending}
-              disabled={routeQuery.data.type === 'reserved'}
+              disabled={routeQuery.data.routeType === RouteType.RESERVED}
             >
               Delete
             </Button>

@@ -2,14 +2,18 @@
 pragma solidity ^0.8.23;
 
 import {Test, console} from "forge-std/Test.sol";
-import {Route, RouteResult, Router} from "../src/Router.sol";
+import {Route, RouteAddData, RouteUpdateData, Router} from "../src/Router.sol";
 
+/// @title RouterTest - a contract to test the Router contract
+/// @dev The RouterTest contract is used to test the Router contract
+/// Note: There are reserved routes created as part of construction and contract deployment
 contract RouterTest is Test {
     Router public router;
 
-    function newRoute() pure internal returns (Route memory) {
+    function newRoute(uint256 id) pure internal returns (RouteAddData memory) {
         string[] memory subRoutes = new string[](0);
-        return Route("command", "name", "url", subRoutes, true);
+        string memory idString = vm.toString(id);
+        return RouteAddData(idString, idString, idString, idString, subRoutes);
     }
     
     function setUp() public {
@@ -17,117 +21,116 @@ contract RouterTest is Test {
     }
 
     function test_CreateAndGetRoute() public {
-        uint256 id = router.addRoute(newRoute());
-        Route memory createdRoute = router.getRoute(id);
-        assertEq(id, 0);
-        assertEq(createdRoute.name, "name");
-        assertEq(createdRoute.url, "url");
-        assertTrue(createdRoute.isValue);
+        RouteAddData memory createdRoute = newRoute(0);
+        router.addRoute(createdRoute);
+        Route memory gotRoute = router.getRoute("0");
+        assertEq(gotRoute.command, "0");
+        assertEq(gotRoute.name, "0");
+        assertEq(gotRoute.url, "0");
+        assertTrue(gotRoute.isValue);
     }
 
     function test_CreateAndGetRoutes() public {
         string[] memory subRoutes = new string[](0);
         router.addRoute(
-            Route("command1", "name1", "url1", subRoutes, true)
+            RouteAddData("command1", "name1", "url1", "description2", subRoutes)
         );
         router.addRoute(
-            Route("command2", "name2", "url2", subRoutes, true)
+            RouteAddData("command2", "name2", "url2", "description2", subRoutes)
         );
-        (RouteResult[] memory routes, uint256 length, uint256 cursor) = router.getRoutes(0, 10);
-        assertEq(length, 2);
-        assertEq(routes[0].route.name, "name1");
-        assertEq(routes[1].route.name, "name2");
-        assertEq(cursor, 0);
+        (Route[] memory routes, uint256 length, string memory cursor) = router.getRoutes("", 10);
+        // account for reserved routes
+        assertEq(length, 3);
+        assertEq(routes[0].command, "r3");
+        assertEq(routes[1].name, "name1");
+        assertEq(routes[2].description, "description2");
+        assertEq(cursor, "");
 
-        Route memory route = router.getRoute(routes[0].id);
-        assertEq(routes[0].id, 0);
+        Route memory route = router.getRoute(routes[1].command);
         assertEq(route.name, "name1");
         assertEq(route.url, "url1");
         assertTrue(route.isValue);
     }
 
     function test_RoutePagination() public {
-        for (uint i = 0; i < 15; i++) {
-            router.addRoute(newRoute());
+        for (uint256 i = 0; i < 15; i++) {
+            router.addRoute(newRoute(i));
         }
-        (RouteResult[] memory routes, uint256 length, uint256 cursor) = router.getRoutes(0, 10);
+        // account for reserved routes
+        (Route[] memory routes, uint256 length, string memory cursor) = router.getRoutes("", 10);
         assertEq(length, 10);
-        assertEq(cursor, 10);
-        assertEq(routes[0].id, 0);
-        assertEq(routes[0].route.command, "command");
-        assertEq(routes[0].route.url, "url");
-        assertEq(routes[9].id, 9);
-        assertEq(routes[9].route.command, "command");
-        assertEq(routes[9].route.url, "url");
+        assertEq(cursor, "9");
+        assertEq(routes[0].command, "r3");
+        assertEq(routes[9].command, "8");
         (routes, length, cursor) = router.getRoutes(cursor, 10);
-        assertEq(length, 5);
-        assertEq(cursor, 0);
-        assertEq(routes[0].id, 10);
-        assertEq(routes[0].route.command, "command");
-        assertEq(routes[0].route.url, "url");
-        assertEq(routes[4].id, 14);
-        assertEq(routes[4].route.command, "command");
-        assertEq(routes[4].route.url, "url");
+        assertEq(length, 6);
+        assertEq(cursor, "");
+        assertEq(routes[0].command, "9");
+        assertEq(routes[5].command, "14");
     }
 
     function test_DeleteRoute() public {
+        // account for reserved routes 16 total
         for (uint i = 0; i < 15; i++) {
-            router.addRoute(newRoute());
+            router.addRoute(newRoute(i));
         }
-        (RouteResult[] memory routes, uint256 length, uint256 cursor) = router.getRoutes(0, 10);
+        (Route[] memory routes, uint256 length, string memory cursor) = router.getRoutes("", 10);
         assertEq(length, 10);
-        assertEq(cursor, 10);
+        // account for reserved routes
+        assertEq(cursor, "9");
+        (routes, length, cursor) = router.getRoutes(cursor, 10);
+        assertEq(length, 6);
+        assertEq(cursor, "");
+        // deleting route at id 10
+        router.deleteRoute("10");
+        (routes, length, cursor) = router.getRoutes("", 10);
+        assertEq(length, 10);
         (routes, length, cursor) = router.getRoutes(cursor, 10);
         assertEq(length, 5);
-        assertEq(cursor, 0);
-        // deleting route at id 10
-        router.deleteRoute(routes[0].id);
-        (routes, length, cursor) = router.getRoutes(0, 10);
-        assertEq(length, 10);
-        (routes, length, cursor) = router.getRoutes(cursor, 10);
-        assertEq(length, 4);
-        assertEq(routes[0].id, 11);
     }
 
     function test_UpdateRoute() public {
-        uint256 id = router.addRoute(newRoute());
-        Route memory createdRoute = router.getRoute(id);
-        assertEq(createdRoute.name, "name");
-        assertEq(createdRoute.url, "url");
+        router.addRoute(newRoute(0));
+        string memory command = "0";
+        Route memory createdRoute = router.getRoute(command);
+        assertEq(createdRoute.name, "0");
+        assertEq(createdRoute.url, "0");
         assertTrue(createdRoute.isValue);
         string[] memory subRoutes = new string[](0);
-        router.updateRoute(id, Route("command", "new name", "new url", subRoutes, true));
-        Route memory updatedRoute = router.getRoute(id);
+        router.updateRoute(command, RouteUpdateData("new name", "new url", "new descriptoin", subRoutes));
+        Route memory updatedRoute = router.getRoute(command);
         assertEq(updatedRoute.name, "new name");
         assertEq(updatedRoute.url, "new url");
         assertTrue(updatedRoute.isValue);
     }
 
     function test_InvalidRoute() public {
-        uint256 id = router.addRoute(newRoute());
-        Route memory createdRoute = router.getRoute(id);
-        assertEq(createdRoute.name, "name");
-        assertEq(createdRoute.url, "url");
+        router.addRoute(newRoute(0));
+        string memory command = "0";
+        Route memory createdRoute = router.getRoute(command);
+        assertEq(createdRoute.name, command);
+        assertEq(createdRoute.url, command);
         assertTrue(createdRoute.isValue);
-        router.deleteRoute(id);
+        router.deleteRoute(command);
         vm.expectRevert();
-        router.getRoute(id);
+        router.getRoute(command);
     }
 
     function test_RoutePaginationAfterDelete() public {
         for (uint i = 0; i < 5; i++) {
-            router.addRoute(newRoute());
+            router.addRoute(newRoute(i));
         }
-        router.deleteRoute(0);
-        (RouteResult[] memory routes, uint256 length, uint256 cursor) = router.getRoutes(0, 10);
+        router.deleteRoute("0");
+        (Route[] memory routes, uint256 length, string memory cursor) = router.getRoutes("", 10);
+        // account for reserved routes
+        assertEq(length, 5);
+        assertEq(cursor, "");
+        assertEq(routes[1].command, "1");
+        router.deleteRoute("1");
+        (routes, length, cursor) = router.getRoutes("", 10);
         assertEq(length, 4);
-        assertEq(cursor, 0);
-        assertEq(routes[0].id, 1);
-        router.deleteRoute(1);
-        (routes, length, cursor) = router.getRoutes(0, 10);
-        assertEq(length, 3);
-        assertEq(cursor, 0);
-        assertEq(routes[0].id, 2);
-        assertEq(routes[2].id, 4);
+        assertEq(cursor, "");
+        assertEq(routes[1].command, "2");
+        assertEq(routes[3].command, "4");
     }
 }

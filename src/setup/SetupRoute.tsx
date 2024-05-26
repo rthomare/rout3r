@@ -31,13 +31,17 @@ export function SetupRoute({
           const route = await createRouteMutation.mutateAsync(routeData);
           generatedRoute(route);
         }}
-        cancel={{
-          text: `Skip and use ${routeQuery.data?.routes[0].command}`,
-          onClick: () => {
-            generatedRoute(routeQuery.data?.routes[0]!);
-          },
-          isLoading: routeQuery.isLoading,
-        }}
+        cancel={
+          routeQuery.data?.routes.length ?? 0 > 0
+            ? {
+                text: `Skip and use ${routeQuery.data?.routes[0].command}`,
+                onClick: () => {
+                  generatedRoute(routeQuery.data?.routes[0]!);
+                },
+                isLoading: routeQuery.isLoading,
+              }
+            : undefined
+        }
       />
     </VStack>
   );

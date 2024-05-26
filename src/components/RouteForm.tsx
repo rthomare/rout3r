@@ -5,8 +5,6 @@ import {
   Form,
   Formik,
   FormikErrors,
-  // TODO URGENT: fix subroute validation, and rendering
-  FormikTouched,
 } from 'formik';
 import { useState } from 'react';
 import { BsFloppyFill } from 'react-icons/bs';
@@ -27,8 +25,17 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import { Route } from '../lib/types';
+import { Route, RouteType } from '../lib/types';
 import { Link } from 'react-router-dom';
+import { mapSubroutes, unmapSubroutes } from '../utils/general';
+import { SEARCH_REPLACEMENT } from '../lib/constants';
+
+type RouteFromType = Omit<Route, 'isValue' | 'routeType' | 'subRoutes'> & {
+  subRoutes: {
+    command: string;
+    url: string;
+  }[];
+};
 
 type RouteFormProps = {
   route: Partial<Route>;
@@ -81,13 +88,18 @@ export function RouteForm({
         command: route.command || '',
         url: route.url || '',
         description: route.description || '',
-        subRoutes: route.subRoutes || [],
-        type: 'manual',
+        subRoutes: mapSubroutes(route.subRoutes ?? []),
       }}
-      onSubmit={(values, actions) => {
+      onSubmit={(values: RouteFromType, actions) => {
         actions.setSubmitting(true);
         setFormError(undefined);
-        onSubmit(values as Route).finally(() => {
+        const route = {
+          ...values,
+          subRoutes: unmapSubroutes(values.subRoutes),
+          routeType: RouteType.MANUAL,
+          isValue: true,
+        };
+        onSubmit(route).finally(() => {
           actions.setSubmitting(false);
         });
       }}
@@ -98,6 +110,7 @@ export function RouteForm({
             gap: 20,
             display: 'flex',
             flexDirection: 'column',
+            width: '100%',
           }}
         >
           <Field name="command" validate={validation.command}>
@@ -145,12 +158,12 @@ export function RouteForm({
               >
                 <FormLabel>URL</FormLabel>
                 <FormHelperText marginBottom="5px">
-                  Optionally add %@@@ to allow for the text after the command to
-                  populate the url&apos;s search query.
+                  Optionally add {SEARCH_REPLACEMENT} to allow for the text
+                  after the command to populate the url&apos;s search query.
                 </FormHelperText>
                 <Input
                   {...field}
-                  placeholder="https://www.google.com/search?q=anime+%@@@"
+                  placeholder={`https://www.google.com/search?q=anime+${SEARCH_REPLACEMENT}`}
                 />
                 <FormErrorMessage>
                   {form.errors.url?.toString()}
@@ -188,7 +201,7 @@ export function RouteForm({
             render={(arrayHelpers) => (
               <VStack alignItems="flex-start" gap={3}>
                 {props.values.subRoutes?.map((_, index) => {
-                  const touched = props.touched.subRoutes;
+                  const touched = (props.touched.subRoutes || [])[index];
                   const ne =
                     props.errors.subRoutes?.[index] ??
                     ({} as FormikErrors<Route>);
@@ -196,7 +209,7 @@ export function RouteForm({
                     typeof ne === 'string' ? { command: ne, url: ne } : ne;
                   const currentError: string | undefined =
                     error.command || error.url;
-                  const wasTouched = touched; // touched.command && touched.url;
+                  const wasTouched = touched?.command && touched?.url;
                   return (
                     <Box as="span" key={index} width="100%">
                       <HStack gap={2}>
@@ -235,7 +248,7 @@ export function RouteForm({
                               )}
                               <Input
                                 {...field}
-                                placeholder="https://www.g.com/search?q=anime+db+%@@@"
+                                placeholder={`https://www.g.com/search?q=anime+db+${SEARCH_REPLACEMENT}`}
                               />
                             </FormControl>
                           )}

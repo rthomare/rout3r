@@ -135,7 +135,7 @@ export function useAppDestinations(): AppDestinationsResponse {
           },
           {
             content: <EditRoute />,
-            path: '/route/:id',
+            path: '/route/:command',
             name: 'Edit Route',
             shouldHideNav: true,
           },

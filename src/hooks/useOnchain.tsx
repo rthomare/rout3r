@@ -35,10 +35,11 @@ function useContractQuery(
   return useQuery({
     queryKey: [
       'router_address',
-      walletClient?.chain.id ?? 0,
-      walletClient?.account.address ?? '0x0',
+      walletClient.chain.id,
+      walletClient.account.address,
     ],
-    queryFn: async () => getRouterContract(publicClient, walletClient),
+    queryFn: async () =>
+      getRouterContract(publicClient, walletClient).then((v) => v ?? null),
     staleTime: Infinity,
   });
 }
@@ -132,7 +133,7 @@ const ConfigProvider = ({ children }: PropsWithChildren<{}>) => {
         config: {
           walletClient: clients.walletClient,
           publicClient: clients.publicClient,
-          contract: contractQuery.data,
+          contract: contractQuery.data ?? null,
         },
       }}
     >
