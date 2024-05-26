@@ -2,7 +2,6 @@ import {
   Account,
   Address,
   Chain,
-  GetContractReturnType,
   Hex,
   PublicClient,
   Transport,
@@ -12,7 +11,8 @@ import {
   getContractAddress,
   http,
 } from 'viem';
-import ROUTER_V1_0_0 from '../../contracts/versions/Router-1.0.0.json';
+import { OnchainConfig, PINNED_CONTRACT_ABI, Route } from './types';
+import { PINNED_CONTRACT_BYTECODE, RESERVED_ROUTES } from './constants';
 
 let origin;
 try {
@@ -20,67 +20,6 @@ try {
 } catch {
   origin = '';
 }
-
-// Replace with the actual pinned bytecode
-// Warning: Changing this value changes the contract addresses moving forward.
-// If there is an existing user never change this value. First deploy this bytecode,
-// then update the contract onchain.
-const PINNED_CONTRACT_BYTECODE: Hex = ROUTER_V1_0_0.deployedBytecode
-  .object as Hex;
-const PINNED_CONTRACT_ABI = ROUTER_V1_0_0.abi;
-
-/*
- * The type depicting the stored route data
- * command: string - the command for the route
- * name: string - the name of the route
- * url: string - the url of the route
- * subRoutes: string[] - the subroutes of the route each being a command::url pair (split on '::')
- * isValue: boolean - whether the route is a value route
- */
-export type ContractStoredRouteData = {
-  command: string;
-  name: string;
-  url: string;
-  subRoutes: string[];
-  isValue: boolean;
-};
-
-/*
- * The type depicting the stored route
- * id: bigint - the id of the route
- * data: ContractStoredRouteData - the data of the route
- */
-export type ContractStoredRoute = {
-  id: bigint;
-  route: ContractStoredRouteData;
-};
-
-export type OnchainConfig = {
-  publicClient: PublicClient;
-  walletClient: WalletClient<Transport, Chain, Account>;
-  contract?: GetContractReturnType<
-    typeof PINNED_CONTRACT_ABI,
-    WalletClient & PublicClient
-  >;
-};
-
-export const RESERVED_ROUTES: ContractStoredRoute[] = [
-  {
-    id: -1n,
-    route: {
-      command: 'r3',
-      name: 'rout3r Menu',
-      url: `${origin}/rout3r/`,
-      subRoutes: [
-        `setup::${origin}/rout3r/#setup`,
-        `about::${origin}/rout3r/#about`,
-        `new::${origin}/rout3r/#routes/new`,
-        `search::${origin}/rout3r/#route/%@@@`,
-      ],
-      isValue: true,
-    },
-  },
-];
 
 /*
  * A function to get the the rout3r contract if it exists onchain
@@ -123,16 +62,6 @@ export async function getRouterContract(
   return undefined;
 }
 
-// a function to check if a command is reserved
-function isReservedCommand(command: string) {
-  return RESERVED_ROUTES.some((r) => r.route.command === command);
-}
-
-// a function to check if a command is reserved
-function isReservedId(id: bigint) {
-  return RESERVED_ROUTES.some((r) => r.id === id);
-}
-
 /*
  * Deploy the rout3r contract onchain
  * @param client - the wallet client to use for deployment
@@ -158,10 +87,20 @@ export async function deployContract(config: OnchainConfig): Promise<Address> {
   return hash;
 }
 
+/*
+ * Get a route by id
+ * @param config - the onchain config to use that contains the account, chain and client info
+ * @param id - the id of the route to get
+ * @returns the route if it exists
+ *
+ * @example
+ * const { config } = useOnchain();
+ * const route = await getRoute(config, 1n);
+ */
 export async function getRoute(
   config: OnchainConfig,
   id: bigint
-): Promise<ContractStoredRoute> {
+): Promise<Route> {
   if (!config.contract) {
     throw new Error('No contract found to update route.');
   }
@@ -175,37 +114,71 @@ export async function getRoute(
   const route = (await config.contract.read.getRoute([id], {
     account: config.walletClient.account as any,
   })) as any;
-  return {
-    id,
-    route,
-  };
+  return route;
 }
 
+/*
+ * Get a list of routes
+ * @param config - the onchain config to use that contains the account, chain and client info
+ * @param cursor - the cursor to start at, 0n for the first route
+ * @param limit - the limit of routes to get
+ * @returns the list of routes, the new cursor and the length of the routes.
+ *   If the cursor is 0n or length is 0n then there are no more routes to get.
+ *
+ * @example
+ * const { config } = useOnchain();
+ * const { routes, cursor, length } = await getRoutes(config, 0n, 10n);
+ */
 export async function getRoutes(
   config: OnchainConfig,
   cursor: bigint,
   limit: bigint
-): Promise<ContractStoredRoute[]> {
+): Promise<{
+  routes: Route[];
+  cursor: bigint;
+  length: bigint;
+}> {
   if (!config.contract) {
     throw new Error('No contract found to update route.');
   }
-  const data = (await config.contract.read.getRoutes([cursor, limit], {
-    account: config.walletClient.account as any,
-  })) as [ContractStoredRoute[], bigint, bigint];
-  const contractRoutes = data[0].filter((val) => val.route.isValue);
-  return RESERVED_ROUTES.concat(contractRoutes);
+  const [routes, newCursor, length] = (await config.contract.read.getRoutes(
+    [cursor, limit],
+    {
+      account: config.walletClient.account as any,
+    }
+  )) as [Route[], bigint, bigint];
+  const validatedRoutes = routes.filter((val) => val.isValue);
+  return {
+    routes: validatedRoutes,
+    cursor: newCursor,
+    length,
+  };
 }
 
-//here
+/*
+ * Add a route onchain
+ * @param config - the onchain config to use that contains the account, chain and client info
+ * @param route - the route to add
+ * @returns the route with the id
+ *
+ * @example
+ * const { config } = useOnchain();
+ * const route = await addRoute(config, {
+ *   command: 'g',
+ *   name: 'Google',
+ *   url: 'https://www.google.com/search?q=%@@@',
+ *   description: 'Searches Google',
+ *   subRoutes: [],
+ *   isValue: true,
+ *   type: 'manual',
+ * });
+ */
 export async function addRoute(
   config: OnchainConfig,
-  route: ContractStoredRouteData
-): Promise<ContractStoredRoute> {
+  route: Omit<Route, 'id'>
+): Promise<Route> {
   if (!config.contract) {
     throw new Error('No contract found to update route.');
-  }
-  if (isReservedCommand(route.command)) {
-    throw new Error('Command is reserved.');
   }
   const { result: id } = await config.contract.simulate.addRoute([route], {
     account: config.walletClient.account as any,
@@ -218,34 +191,43 @@ export async function addRoute(
     transport: http(),
   }).waitForTransactionReceipt({ hash });
   return {
+    ...route,
     id,
-    route,
   };
 }
 
-export async function updateRoute(
-  config: OnchainConfig,
-  id: bigint,
-  routeData: ContractStoredRouteData
-) {
+/*
+ * Update a route onchain
+ * @param config - the onchain config to use that contains the account, chain and client info
+ * @param route - the route to update
+ * @returns the route
+ * @throws an error if the client does not have an account
+ * @throws an error if the contract is not found
+ *
+ * @example
+ * const { config } = useOnchain();
+ * const route = await updateRoute(config, {
+ *   id: 1n,
+ *   command: 'g',
+ *   name: 'Google',
+ *   url: 'https://www.google.com/search?q=%@@@',
+ *   description: 'Searches Google',
+ *   subRoutes: [],
+ *   isValue: true,
+ *   type: 'manual',
+ * });
+ */
+export async function updateRoute(config: OnchainConfig, route: Route) {
   if (!config.walletClient.account) {
     throw new Error('No account found to add route.');
   }
   if (!config.contract) {
     throw new Error('No contract found to update route.');
   }
-  if (isReservedCommand(routeData.command)) {
-    throw new Error('Command is reserved.');
-  }
-  if (isReservedId(id)) {
-    throw new Error('Command is reserved.');
-  }
-  const { request } = await config.contract.simulate.updateRoute(
-    [id, routeData],
-    {
-      account: config.walletClient.account as any,
-    }
-  );
+  const { id, ...rest } = route;
+  const { request } = await config.contract.simulate.updateRoute([id, rest], {
+    account: config.walletClient.account as any,
+  });
   const hash = await config.walletClient.writeContract({
     ...request,
     account: config.walletClient.account,
@@ -254,18 +236,23 @@ export async function updateRoute(
     chain: config.walletClient.chain,
     transport: http(),
   }).waitForTransactionReceipt({ hash });
-  return {
-    id,
-    route: routeData,
-  };
+  return route;
 }
 
+/*
+ * Delete a route onchain
+ * @param config - the onchain config to use that contains the account, chain and client info
+ * @param id - the id of the route to delete
+ * @returns the route
+ * @throws an error if the contract is not found
+ *
+ * @example
+ * const { config } = useOnchain();
+ * await deleteRoute(config, 1n);
+ */
 export async function deleteRoute(config: OnchainConfig, id: bigint) {
   if (!config.contract) {
     throw new Error('No contract found to delete route.');
-  }
-  if (isReservedId(id)) {
-    throw new Error('Command is reserved.');
   }
   const { request } = await config.contract.simulate.deleteRoute([id], {
     account: config.walletClient.account as any,

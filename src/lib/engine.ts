@@ -1,5 +1,5 @@
 import { createRouteDB } from './database';
-import { Route, RouteData } from './types';
+import { Route } from './types';
 
 /*
  * @function createRouterURL
@@ -43,31 +43,35 @@ export function createRouterURL(
  *   ],
  * };
  * const query = 'i something';
- * const { routeData, query } = traverseRoute(route, query);
+ * const { route, query } = traverseRoute(route, query);
  * console.log(routeData);
  * -> { command: 'i', ..., url: 'https://google.com/search?tbm=isch&q=%@@@' }
  * console.log(query);
  * -> 'something'
  */
 export function traverseRoute(
-  { subRoutes, command, url }: RouteData & { subRoutes: RouteData[] },
-  routeQuery?: string
-): { routeData: RouteData; routeQuery?: string } {
-  const routeData = { command, url };
+  url: string,
+  subRoutes: string[],
+  query?: string
+): { url: string; query?: string } {
   if (subRoutes.length === 0) {
-    return { routeData, routeQuery };
+    return { url, query };
   }
-  const subcommand = routeQuery?.split(' ')[0];
+  const subcommand = query?.split(' ')[0];
   if (!subcommand || subcommand === '') {
-    return { routeData, routeQuery };
+    return { url, query };
   }
-  const subRoute = subRoutes.find((sr) => sr.command === subcommand);
+  const subRoute = subRoutes.find((sr) => {
+    const [command, _] = sr.split('::');
+    return command === subcommand;
+  });
   if (!subRoute) {
-    return { routeData, routeQuery };
+    return { url, query };
   }
 
-  const newQuery = routeQuery.split(' ').slice(1).join(' ');
-  return traverseRoute({ ...subRoute, subRoutes: [] }, newQuery.trim());
+  const newUrl = subRoute.split('::')[1];
+  const newQuery = query.split(' ').slice(1).join(' ');
+  return traverseRoute(newUrl, [], newQuery.trim());
 }
 
 /*
@@ -104,13 +108,10 @@ export function traverseRoute(
  * console.log(getUrl(route, query));
  * -> 'https://google.com/videohp'
  */
-export function getRouteUrl(route: Route, query: string): string {
-  const { routeData, routeQuery } = traverseRoute(route, query);
+export function getRouteUrl(route: Route, routeQuery: string): string {
+  const { url, query } = traverseRoute(route.url, route.subRoutes, routeQuery);
   // return url encoded routeData.url and routeQuery
-  return routeData.url.replace(
-    '%@@@',
-    routeQuery ? encodeURIComponent(routeQuery) : ''
-  );
+  return url.replace('%@@@', query ? encodeURIComponent(query) : '');
 }
 
 /*

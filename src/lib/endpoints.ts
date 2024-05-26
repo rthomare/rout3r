@@ -5,9 +5,8 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { Route } from './types';
+import { OnchainConfig, Route } from './types';
 import {
-  OnchainConfig,
   addRoute,
   deleteRoute,
   deployContract,
@@ -60,26 +59,10 @@ export function useGetRoute(id: bigint) {
       id.toString(),
     ],
     queryFn: async () => {
-      return getRoute(config, id)
-        .then(
-          (data) =>
-            ({
-              id: data.id,
-              command: data.route.command,
-              name: data.route.name,
-              description: '',
-              url: data.route.url,
-              subRoutes: data.route.subRoutes.map((subRoute) => {
-                const [command, url] = subRoute.split('::');
-                return { command, url };
-              }),
-              type: 'manual',
-            } as Route)
-        )
-        .catch((error) => {
-          !isMutating && errorToast(error);
-          throw error;
-        });
+      return getRoute(config, id).catch((error) => {
+        !isMutating && errorToast(error);
+        throw error;
+      });
     },
     // stale after 1 hours (unless invalidated)
     staleTime: 1000 * 60 * 60,
@@ -109,28 +92,10 @@ export function useGetRoutes() {
       config.walletClient.chain.id,
     ],
     queryFn: () =>
-      getRoutes(config, 0n, 100n)
-        .then((datas) =>
-          datas.map(
-            (data) =>
-              ({
-                id: data.id,
-                command: data.route.command,
-                url: data.route.url,
-                name: data.route.name,
-                description: '',
-                subRoutes: data.route.subRoutes.map((subRoute) => {
-                  const [command, url] = subRoute.split('::');
-                  return { command, url };
-                }),
-                type: 'manual',
-              } as Route)
-          )
-        )
-        .catch((error) => {
-          !isMutating && errorToast(error);
-          throw error;
-        }),
+      getRoutes(config, 0n, 100n).catch((error) => {
+        !isMutating && errorToast(error);
+        throw error;
+      }),
     enabled: !isMutating,
     // stale after 1 hours (unless invalidated)
     staleTime: 1000 * 60 * 60,
@@ -180,37 +145,14 @@ export function useCreateRoute(
   const errorToast = useErrorToast("Route couldn't updated");
   return useMutation({
     mutationKey: qk,
-    mutationFn: async (route: Route) =>
-      addRoute(config, {
-        command: route.command,
-        name: route.name,
-        url: route.url,
-        subRoutes: route.subRoutes.map(
-          (subRoute) => `${subRoute.command}:${subRoute.url}`
-        ),
-        isValue: true,
-      })
-        .then((v) => {
-          return {
-            id: v.id,
-            command: v.route.command,
-            name: v.route.name,
-            description: '',
-            url: v.route.url,
-            subRoutes: v.route.subRoutes.map((subRoute) => {
-              const [command, url] = subRoute.split('::');
-              return { command, url };
-            }),
-            type: 'manual',
-          } as Route;
-        })
-        .then(async (v) => {
-          // Invalidate the cache
-          await queryClient.invalidateQueries({
-            queryKey: qk,
-          });
-          return v;
-        }),
+    mutationFn: async (route: Omit<Route, 'id'>) =>
+      addRoute(config, route).then(async (v) => {
+        // Invalidate the cache
+        await queryClient.invalidateQueries({
+          queryKey: qk,
+        });
+        return v;
+      }),
     onSuccess: (route) => {
       toast({
         title: 'Route created.',
@@ -332,15 +274,7 @@ export function useUpdateRoute(
   return useMutation({
     mutationKey: qk,
     mutationFn: async (route: Route) =>
-      updateRoute(config, id, {
-        name: route.name,
-        command: route.command,
-        url: route.url,
-        subRoutes: route.subRoutes.map(
-          (subRoute) => `${subRoute.command}:${subRoute.url}`
-        ),
-        isValue: true,
-      })
+      updateRoute(config, route)
         .then(async (v) => {
           // Invalidate the cache
           await queryClient.invalidateQueries({

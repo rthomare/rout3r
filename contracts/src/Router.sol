@@ -3,6 +3,12 @@ pragma solidity ^0.8.23;
 
 // TODO: Stop duplicate commands from being added or updated for a route
 // TODO: Move reserved routes into the contract, will need special 'origin' code to handle these routes
+// if (isReservedCommand(route.command)) {
+//     throw new Error('Command is reserved.');
+//   }
+//   if (isReservedId(route.id)) {
+//     throw new Error('Command is reserved.');
+//   }
 // TODO: Consider adding events for creation, update, and deletion of routes
 // TODO: Make contract upgradable
 

@@ -5,6 +5,7 @@ import {
   Form,
   Formik,
   FormikErrors,
+  // TODO URGENT: fix subroute validation, and rendering
   FormikTouched,
 } from 'formik';
 import { useState } from 'react';
@@ -26,7 +27,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import { Route, RouteData } from '../lib/types';
+import { Route } from '../lib/types';
 import { Link } from 'react-router-dom';
 
 type RouteFormProps = {
@@ -187,16 +188,15 @@ export function RouteForm({
             render={(arrayHelpers) => (
               <VStack alignItems="flex-start" gap={3}>
                 {props.values.subRoutes?.map((_, index) => {
-                  const touched: FormikTouched<RouteData> =
-                    props.touched.subRoutes?.[index] ?? {};
+                  const touched = props.touched.subRoutes;
                   const ne =
                     props.errors.subRoutes?.[index] ??
-                    ({} as FormikErrors<RouteData>);
+                    ({} as FormikErrors<Route>);
                   const error =
                     typeof ne === 'string' ? { command: ne, url: ne } : ne;
                   const currentError: string | undefined =
                     error.command || error.url;
-                  const wasTouched = touched.command && touched.url;
+                  const wasTouched = touched; // touched.command && touched.url;
                   return (
                     <Box as="span" key={index} width="100%">
                       <HStack gap={2}>
@@ -208,7 +208,7 @@ export function RouteForm({
                             <FormControl
                               width="50%"
                               isRequired
-                              isInvalid={!!(touched.command && error.command)}
+                              isInvalid={!!(touched && error.command)}
                               isDisabled={disabledFields?.includes('subRoutes')}
                             >
                               {index === 0 && (
@@ -227,7 +227,7 @@ export function RouteForm({
                           {({ field }: FieldProps) => (
                             <FormControl
                               isRequired
-                              isInvalid={!!(touched.url && error.url)}
+                              isInvalid={!!(touched && error.url)}
                               isDisabled={disabledFields?.includes('subRoutes')}
                             >
                               {index === 0 && (

@@ -1,5 +1,5 @@
 import { PropsWithChildren, createContext, useContext } from 'react';
-import { OnchainConfig, getRouterContract } from '../lib/onchain';
+import { getRouterContract } from '../lib/onchain';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { Center, Spinner } from '@chakra-ui/react';
 import { mnemonicToAccount } from 'viem/accounts';
@@ -11,6 +11,7 @@ import {
 } from 'viem';
 import { IS_FULL_DEV } from '../utils/general';
 import { useQuery } from '@tanstack/react-query';
+import { OnchainConfig } from '../lib/types';
 
 const ConfigContext = createContext<{ config: OnchainConfig } | undefined>(
   undefined
@@ -85,6 +86,7 @@ export const devConfig = () => {
   };
 };
 
+// TODO: Add a better loading state ui component
 const Loading = () => {
   return (
     <Center w="100%" h="100%">

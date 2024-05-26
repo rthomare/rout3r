@@ -32,9 +32,9 @@ export function SetupRoute({
           generatedRoute(route);
         }}
         cancel={{
-          text: `Skip and use ${routeQuery.data?.[0].command}`,
+          text: `Skip and use ${routeQuery.data?.routes[0].command}`,
           onClick: () => {
-            generatedRoute(routeQuery.data?.[0]!);
+            generatedRoute(routeQuery.data?.routes[0]!);
           },
           isLoading: routeQuery.isLoading,
         }}
