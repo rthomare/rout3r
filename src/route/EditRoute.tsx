@@ -72,7 +72,7 @@ export function EditRoute(): JSX.Element {
     <>
       <HStack marginBottom={3} justifyContent="space-between">
         <Heading size="lg">
-          Edit Route: {routeQuery.data.name}
+          {routeQuery.data.name}
           <Box as="span" color="gray">
             &nbsp;(Reserved Route)
           </Box>

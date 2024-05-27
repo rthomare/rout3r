@@ -37,7 +37,9 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
             <Link key={dest.path} to={dest.path}>
               <Heading
                 size="md"
-                color={location.pathname === dest.path ? undefined : 'gray'}
+                color={
+                  location.pathname.includes(dest.path) ? undefined : 'gray'
+                }
                 transition="color 0.2s"
               >
                 {dest.name}

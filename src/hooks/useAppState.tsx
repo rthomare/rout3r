@@ -48,7 +48,7 @@ export function useAppState() {
     return {
       isLoading: false,
       isWalletConnected: true,
-      isContractDeployed: onchain.config.contract !== undefined,
+      isContractDeployed: !!onchain.config.contract,
       cachedBlock: 0,
       error: null,
     };
