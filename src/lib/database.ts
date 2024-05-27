@@ -1,6 +1,5 @@
 import { DBSchema, openDB } from 'idb';
-
-import { Route } from './types';
+import { Route, RouteType } from './types';
 
 interface routerDB extends DBSchema {
   routes: {
@@ -77,7 +76,7 @@ export function createRouteDB() {
       if (existingItem) {
         throw new Error('An item with the same key already exists!');
       }
-      await db.add('routes', { ...route, type: 'manual' });
+      await db.add('routes', { ...route, routeType: RouteType.MANUAL });
       return route;
     },
 

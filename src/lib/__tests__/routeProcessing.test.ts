@@ -4,16 +4,16 @@ import 'fake-indexeddb/auto';
 
 import { createRouteDB } from '../database';
 import { getRouteUrl, processQuery } from '../engine';
+import { RouteType } from '../types';
 
 const googleRoute = {
-  id: 1n,
   command: 'g',
   name: 'Google',
   description: 'Searches Google add `i` for images',
   url: 'https://www.google.com/search?q=%@@@',
   subRoutes: ['i::https://www.google.com/search?tbm=isch&q=%@@@'],
   isValue: true,
-  type: 'manual' as const,
+  routeType: RouteType.MANUAL,
 };
 
 const FALLBACK = 'https://duckduckgo.com/?&q=%@@@';
