@@ -23,11 +23,12 @@ import {
 import { isChrome, isSafari, isFirefox } from 'react-device-detect';
 import { createRouterURL } from '../lib/engine';
 import { useCopy } from '../hooks/useCopy';
+import { SEARCH_REPLACEMENT } from '../lib/constants';
 
 export function SetupBrowser(): JSX.Element {
   const copy = useCopy();
   const [searchFallback, setSearchFallback] = useState(
-    'https://www.google.com/search?q=%@@@'
+    `https://www.google.com/search?q=${SEARCH_REPLACEMENT}`
   );
   const routerUrl = createRouterURL(window.location.origin, searchFallback);
   const defaultIndex = isChrome ? [0] : isFirefox ? [1] : isSafari ? [2] : [];

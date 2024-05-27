@@ -5,7 +5,7 @@ import { Navbar } from './components/Navbar';
 import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 import { useAppDestinations } from './hooks/useAppDestinations';
-import { ConfigProvider } from './hooks/useOnchain';
+import { OnchainProvider } from './hooks/useOnchain';
 import { useAccountEffect } from 'wagmi';
 
 function Content() {
@@ -46,7 +46,7 @@ function App(): JSX.Element {
 
   return (
     <HashRouter>
-      <ConfigProvider>
+      <OnchainProvider>
         <RainbowKitProvider
           theme={
             colorMode === 'dark'
@@ -62,7 +62,7 @@ function App(): JSX.Element {
         >
           <Content />
         </RainbowKitProvider>
-      </ConfigProvider>
+      </OnchainProvider>
     </HashRouter>
   );
 }

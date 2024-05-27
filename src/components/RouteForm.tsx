@@ -5,7 +5,6 @@ import {
   Form,
   Formik,
   FormikErrors,
-  FormikTouched,
 } from 'formik';
 import { useState } from 'react';
 import { BsFloppyFill } from 'react-icons/bs';
@@ -26,12 +25,25 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import { Route, RouteData } from '../lib/types';
+import { Route, RouteType } from '../lib/types';
 import { Link } from 'react-router-dom';
-import { useErrorToast } from '../hooks/useErrorToast';
+import { mapSubroutes, unmapSubroutes } from '../utils/general';
+import { SEARCH_REPLACEMENT } from '../lib/constants';
+
+type RouteFromType = Omit<Route, 'isValue' | 'routeType' | 'subRoutes'> & {
+  subRoutes: {
+    command: string;
+    url: string;
+  }[];
+};
 
 type RouteFormProps = {
   route: Partial<Route>;
+  cancel?: {
+    text: string;
+    onClick: () => void;
+    isLoading: boolean;
+  };
   onSubmit: (route: Route) => Promise<void>;
   disabledFields?: Array<keyof Route>;
   disabled?: boolean;
@@ -39,6 +51,7 @@ type RouteFormProps = {
 
 export function RouteForm({
   route,
+  cancel,
   onSubmit,
   disabledFields,
   disabled,
@@ -75,13 +88,18 @@ export function RouteForm({
         command: route.command || '',
         url: route.url || '',
         description: route.description || '',
-        subRoutes: route.subRoutes || [],
-        type: 'manual',
+        subRoutes: mapSubroutes(route.subRoutes ?? []),
       }}
-      onSubmit={(values, actions) => {
+      onSubmit={(values: RouteFromType, actions) => {
         actions.setSubmitting(true);
         setFormError(undefined);
-        onSubmit(values as Route).finally(() => {
+        const route = {
+          ...values,
+          subRoutes: unmapSubroutes(values.subRoutes),
+          routeType: RouteType.MANUAL,
+          isValue: true,
+        };
+        onSubmit(route).finally(() => {
           actions.setSubmitting(false);
         });
       }}
@@ -92,6 +110,7 @@ export function RouteForm({
             gap: 20,
             display: 'flex',
             flexDirection: 'column',
+            width: '100%',
           }}
         >
           <Field name="command" validate={validation.command}>
@@ -139,12 +158,12 @@ export function RouteForm({
               >
                 <FormLabel>URL</FormLabel>
                 <FormHelperText marginBottom="5px">
-                  Optionally add %@@@ to allow for the text after the command to
-                  populate the url&apos;s search query.
+                  Optionally add {SEARCH_REPLACEMENT} to allow for the text
+                  after the command to populate the url&apos;s search query.
                 </FormHelperText>
                 <Input
                   {...field}
-                  placeholder="https://www.google.com/search?q=anime+%@@@"
+                  placeholder={`https://www.google.com/search?q=anime+${SEARCH_REPLACEMENT}`}
                 />
                 <FormErrorMessage>
                   {form.errors.url?.toString()}
@@ -182,16 +201,15 @@ export function RouteForm({
             render={(arrayHelpers) => (
               <VStack alignItems="flex-start" gap={3}>
                 {props.values.subRoutes?.map((_, index) => {
-                  const touched: FormikTouched<RouteData> =
-                    props.touched.subRoutes?.[index] ?? {};
+                  const touched = (props.touched.subRoutes || [])[index];
                   const ne =
                     props.errors.subRoutes?.[index] ??
-                    ({} as FormikErrors<RouteData>);
+                    ({} as FormikErrors<Route>);
                   const error =
                     typeof ne === 'string' ? { command: ne, url: ne } : ne;
                   const currentError: string | undefined =
                     error.command || error.url;
-                  const wasTouched = touched.command && touched.url;
+                  const wasTouched = touched?.command && touched?.url;
                   return (
                     <Box as="span" key={index} width="100%">
                       <HStack gap={2}>
@@ -203,7 +221,7 @@ export function RouteForm({
                             <FormControl
                               width="50%"
                               isRequired
-                              isInvalid={!!(touched.command && error.command)}
+                              isInvalid={!!(touched && error.command)}
                               isDisabled={disabledFields?.includes('subRoutes')}
                             >
                               {index === 0 && (
@@ -222,7 +240,7 @@ export function RouteForm({
                           {({ field }: FieldProps) => (
                             <FormControl
                               isRequired
-                              isInvalid={!!(touched.url && error.url)}
+                              isInvalid={!!(touched && error.url)}
                               isDisabled={disabledFields?.includes('subRoutes')}
                             >
                               {index === 0 && (
@@ -230,7 +248,7 @@ export function RouteForm({
                               )}
                               <Input
                                 {...field}
-                                placeholder="https://www.g.com/search?q=anime+db+%@@@"
+                                placeholder={`https://www.g.com/search?q=anime+db+${SEARCH_REPLACEMENT}`}
                               />
                             </FormControl>
                           )}
@@ -261,16 +279,28 @@ export function RouteForm({
               </VStack>
             )}
           />
-          <Button
-            mt={4}
-            isLoading={props.isSubmitting}
-            type="submit"
-            leftIcon={<BsFloppyFill />}
-            colorScheme="blue"
-            isDisabled={disabled}
-          >
-            Save
-          </Button>
+          <HStack alignItems="center" mt={4} gap={4}>
+            <Button
+              isLoading={props.isSubmitting}
+              type="submit"
+              leftIcon={<BsFloppyFill />}
+              colorScheme="blue"
+              isDisabled={disabled}
+              flexGrow={1}
+            >
+              Save
+            </Button>
+            {cancel && (
+              <Button
+                onClick={cancel.onClick}
+                colorScheme="gray"
+                flexGrow={1}
+                isLoading={cancel.isLoading}
+              >
+                {cancel.text}
+              </Button>
+            )}
+          </HStack>
           {formError && (
             <Text color="red.300" textAlign="center">
               {formError.message}

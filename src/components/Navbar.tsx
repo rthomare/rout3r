@@ -20,7 +20,8 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();
   const appState = useAppState();
   const onchain = useOnchainRaw();
-  const address = onchain?.config.account.address ?? 'unknown address';
+  const address =
+    onchain?.config.walletClient.account.address ?? 'unknown address';
   const location = useLocation();
   const copy = useCopy();
 
@@ -36,7 +37,9 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
             <Link key={dest.path} to={dest.path}>
               <Heading
                 size="md"
-                color={location.pathname === dest.path ? undefined : 'gray'}
+                color={
+                  location.pathname.includes(dest.path) ? undefined : 'gray'
+                }
                 transition="color 0.2s"
               >
                 {dest.name}

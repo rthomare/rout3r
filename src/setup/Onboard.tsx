@@ -5,11 +5,9 @@ import {
   AccordionPanel,
   Box,
   Button,
-  Code,
   Flex,
   Heading,
-  ListItem,
-  OrderedList,
+  Spinner,
   Text,
   VStack,
 } from '@chakra-ui/react';
@@ -17,10 +15,10 @@ import { useRouterContract } from '../hooks/useRouterContract';
 import { SetupBrowser } from './SetupBrowser';
 import { BsCheckCircle, BsCheckCircleFill } from 'react-icons/bs';
 import { DeployContract } from './DeployContract';
-import { useCopy } from '../hooks/useCopy';
 import { useCallback, useState } from 'react';
-import { RouteForm } from '../components/RouteForm';
-import { useCreateRoute, useGetRoutes } from '../lib/endpoints';
+import { UseRoute } from './UseRoute';
+import { Route } from '../lib/types';
+import { SetupRoute } from './SetupRoute';
 
 function OnboardingStep({
   title,
@@ -81,14 +79,13 @@ function OnboardingStep({
 
 export function Onboard() {
   const routerContract = useRouterContract();
-  const createRouteMutation = useCreateRoute();
   const [setupBrowser, setSetupBrowser] = useState(false);
-  const [createdRoute, setCreatedRoute] = useState<any>(undefined);
+  const [selectedRoute, setSelectedRoute] = useState<Route | undefined>();
   const conditions = [
     true,
     routerContract.isDeployed,
     !!setupBrowser,
-    !!createdRoute,
+    !!selectedRoute,
   ];
   const [index, setManualIndex] = useState(conditions.findIndex((v) => !v) - 1);
   const setIndex = useCallback(
@@ -97,7 +94,16 @@ export function Onboard() {
     },
     [conditions, setManualIndex]
   );
-  const copy = useCopy();
+
+  const didSelectRoute = useCallback((route?: Route) => {
+    if (route) {
+      setSelectedRoute(route);
+      setIndex(3, true)();
+    } else {
+      setSelectedRoute(undefined);
+      setIndex(2)();
+    }
+  }, []);
   return (
     <Accordion index={index}>
       <Heading size="md" fontWeight="400" marginBottom={5}>
@@ -136,18 +142,10 @@ export function Onboard() {
         completed={conditions[3]}
         onClick={setIndex(2)}
       >
-        {!!createdRoute ? (
-          <Heading size="md" marginBottom={3}>
-            Your route has been created!
-          </Heading>
-        ) : (
-          <RouteForm
-            route={{}}
-            onSubmit={async (routeData) => {
-              const route = await createRouteMutation.mutateAsync(routeData);
-              setCreatedRoute(route);
-              setIndex(3, true)();
-            }}
+        {routerContract.isDeployed && (
+          <SetupRoute
+            selectedRoute={selectedRoute}
+            generatedRoute={didSelectRoute}
           />
         )}
       </OnboardingStep>
@@ -157,73 +155,7 @@ export function Onboard() {
         completed={false}
         onClick={setIndex(3)}
       >
-        {createdRoute && (
-          <>
-            <Heading marginBottom={1} fontWeight={600} size="sm">
-              If you made rout3r your default (in step 2):
-            </Heading>
-            <OrderedList>
-              <ListItem>
-                <Text>
-                  Try it out by{' '}
-                  <Box
-                    as="span"
-                    cursor="pointer"
-                    textDecor="underline"
-                    onClick={() => window.open('')}
-                  >
-                    creating a new tab.
-                  </Box>
-                </Text>
-              </ListItem>
-              <ListItem>
-                <Text>
-                  Then type in
-                  <Code cursor="pointer" onClick={copy(createdRoute.command)}>
-                    {createdRoute.command}
-                  </Code>{' '}
-                  into your browser address bar! And go!
-                </Text>
-              </ListItem>
-            </OrderedList>
-            <Heading marginTop={6} marginBottom={1} fontWeight={600} size="sm">
-              If you made rout3r is NOT your default search engine (in step 2):
-            </Heading>
-            <OrderedList>
-              <ListItem>
-                <Text>
-                  Try it out by{' '}
-                  <Box
-                    as="span"
-                    cursor="pointer"
-                    textDecor="underline"
-                    onClick={() => window.open('')}
-                  >
-                    creating a new tab.
-                  </Box>
-                </Text>
-              </ListItem>
-              <ListItem>
-                <Text>
-                  Select rout3r as the search by typing in
-                  <Code cursor="pointer" onClick={copy('r')}>
-                    r
-                  </Code>{' '}
-                  into your browser address bar and hitting tab!
-                </Text>
-              </ListItem>
-              <ListItem>
-                <Text>
-                  Then type in
-                  <Code cursor="pointer" onClick={copy(createdRoute.command)}>
-                    {createdRoute.command}
-                  </Code>{' '}
-                  into your browser address bar! And go!
-                </Text>
-              </ListItem>
-            </OrderedList>
-          </>
-        )}
+        {selectedRoute ? <UseRoute route={selectedRoute} /> : <Spinner />}
       </OnboardingStep>
     </Accordion>
   );

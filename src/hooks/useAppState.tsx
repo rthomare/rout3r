@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useOnchainRaw } from './useOnchain';
-import { useGetRouterAddress } from '../lib/endpoints';
+import { useAccount } from 'wagmi';
 
 /*
  * The type depicting Application State
@@ -23,9 +23,9 @@ export type AppState = {
  */
 export function useAppState() {
   const onchain = useOnchainRaw();
-  const routerAddress = useGetRouterAddress();
+  const { isConnected } = useAccount();
   return useMemo(() => {
-    if (!onchain?.config.account.address) {
+    if (!isConnected) {
       // just make sure we're not connected with a wallet
       return {
         isLoading: false,
@@ -35,10 +35,11 @@ export function useAppState() {
         error: null,
       };
     }
-    if (routerAddress.isLoading) {
+    if (!onchain) {
+      // make sure we have the onchain data
       return {
         isLoading: true,
-        isWalletConnected: false,
+        isWalletConnected: true,
         isContractDeployed: false,
         cachedBlock: 0,
         error: null,
@@ -47,14 +48,9 @@ export function useAppState() {
     return {
       isLoading: false,
       isWalletConnected: true,
-      isContractDeployed: routerAddress.data !== '0x',
+      isContractDeployed: !!onchain.config.contract,
       cachedBlock: 0,
       error: null,
     };
-  }, [
-    onchain?.config.account.address,
-    routerAddress.data,
-    routerAddress.isLoading,
-    routerAddress.error,
-  ]);
+  }, [onchain, isConnected]);
 }

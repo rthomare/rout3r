@@ -20,6 +20,7 @@ import {
 } from '@chakra-ui/react';
 
 import { useGetRoutes } from '../lib/endpoints';
+import { RouteType } from '../lib/types';
 
 export function Routes(): JSX.Element {
   const routesQuery = useGetRoutes();
@@ -56,11 +57,13 @@ export function Routes(): JSX.Element {
     <VStack h="100%">
       <HStack w="100%" justifyContent="space-between">
         <Heading size="lg">Routes</Heading>
-        <Link to="/routes/new">
-          <Button>+ Add a Route</Button>
-        </Link>
+        {routesQuery.data.routes.length > 0 && (
+          <Link to="/routes/new">
+            <Button>+ Add a Route</Button>
+          </Link>
+        )}
       </HStack>
-      {routesQuery.data.length > 0 ? (
+      {routesQuery.data.routes.length > 0 ? (
         <TableContainer w="100%">
           <Table variant="simple">
             <Thead>
@@ -73,11 +76,11 @@ export function Routes(): JSX.Element {
               </Tr>
             </Thead>
             <Tbody>
-              {routesQuery.data.map((route) => (
+              {routesQuery.data.routes.map((route) => (
                 <Tr
                   cursor="pointer"
                   onClick={() => {
-                    navigate(`/route/${route.id}`);
+                    navigate(`/routes/edit/${route.command}`);
                   }}
                   transition="background-color 0.2s"
                   _hover={{
@@ -91,7 +94,7 @@ export function Routes(): JSX.Element {
                   <Td isTruncated>{route.url}</Td>
                   <Td isNumeric>{route.subRoutes.length}</Td>
                   <Td>
-                    {route.type === 'reserved' ? (
+                    {route.routeType === RouteType.RESERVED ? (
                       <BsCheckSquare />
                     ) : (
                       <BsSquare />

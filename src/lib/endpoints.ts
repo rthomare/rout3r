@@ -5,11 +5,9 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { Route } from './types';
+import { OnchainConfig, Route } from './types';
 import {
-  OnchainConfig,
   addRoute,
-  contractAddress,
   deleteRoute,
   deployContract,
   getRoute,
@@ -17,15 +15,25 @@ import {
   updateRoute,
 } from './onchain';
 import { useErrorToast } from '../hooks/useErrorToast';
-import { useOnchain, useOnchainRaw } from '../hooks/useOnchain';
+import { useOnchain } from '../hooks/useOnchain';
 import { Address } from 'viem';
+import { useEffect } from 'react';
 
-function queryKeyForRoute(id: bigint, config: OnchainConfig) {
-  return ['routes', config.account.address, config.chain.id, id.toString()];
+function queryKeyForRoute(command: string, config: OnchainConfig) {
+  return [
+    'routes',
+    config.walletClient.account.address,
+    config.walletClient.chain.id,
+    command,
+  ];
 }
 
 function queryKeyForRoutes(config: OnchainConfig) {
-  return ['routes', config.account.address, config.chain.id];
+  return [
+    'routes',
+    config.walletClient.account.address,
+    config.walletClient.chain.id,
+  ];
 }
 
 /*
@@ -38,45 +46,32 @@ function queryKeyForRoutes(config: OnchainConfig) {
  * const routeQuery = useGetRoute('g');
  * console.log(routeQuery.data);
  */
-export function useGetRoute(id: bigint) {
+export function useGetRoute(command: string) {
   const { config } = useOnchain();
   const queryClient = useQueryClient();
-  const qk = queryKeyForRoute(id, config);
+  const qk = queryKeyForRoute(command, config);
   const isMutating = useIsMutating({ mutationKey: qk }, queryClient);
-  const errorToast = useErrorToast("Route couldn't updated");
-  return useQuery({
+  const errorToast = useErrorToast("Route couldn't be found");
+  const query = useQuery({
     queryKey: [
       'routes',
-      config.account.address,
-      config.chain.id,
-      id.toString(),
+      config.walletClient.account.address,
+      config.walletClient.chain.id,
+      command,
     ],
     queryFn: async () => {
-      return getRoute(config, id)
-        .then(
-          (data) =>
-            ({
-              id: data.id,
-              command: data.route.command,
-              name: data.route.name,
-              description: '',
-              url: data.route.url,
-              subRoutes: data.route.subRoutes.map((subRoute) => {
-                const [command, url] = subRoute.split('::');
-                return { command, url };
-              }),
-              type: 'manual',
-            } as Route)
-        )
-        .catch((error) => {
-          !isMutating && errorToast(error);
-          throw error;
-        });
+      return getRoute(config, command);
     },
     // stale after 1 hours (unless invalidated)
     staleTime: 1000 * 60 * 60,
     enabled: !isMutating,
   });
+  useEffect(() => {
+    if (query.fetchStatus !== 'fetching' && query.isError) {
+      !isMutating && errorToast(query.error);
+    }
+  }, [query.fetchStatus, query.isError, isMutating, errorToast]);
+  return query;
 }
 
 /*
@@ -93,36 +88,24 @@ export function useGetRoutes() {
   const queryClient = useQueryClient();
   const qk = queryKeyForRoutes(config);
   const isMutating = useIsMutating({ mutationKey: qk }, queryClient);
-  const errorToast = useErrorToast("Route couldn't updated");
-  return useQuery({
-    queryKey: ['routes', config.account.address, config.chain.id],
-    queryFn: () =>
-      getRoutes(config, 0n, 100n)
-        .then((datas) =>
-          datas.map(
-            (data) =>
-              ({
-                id: data.id,
-                command: data.route.command,
-                url: data.route.url,
-                name: data.route.name,
-                description: '',
-                subRoutes: data.route.subRoutes.map((subRoute) => {
-                  const [command, url] = subRoute.split('::');
-                  return { command, url };
-                }),
-                type: 'manual',
-              } as Route)
-          )
-        )
-        .catch((error) => {
-          !isMutating && errorToast(error);
-          throw error;
-        }),
+  const errorToast = useErrorToast("Routes couldn't be found");
+  const query = useQuery({
+    queryKey: [
+      'routes',
+      config.walletClient.account.address,
+      config.walletClient.chain.id,
+    ],
+    queryFn: () => getRoutes(config, '', 100n),
     enabled: !isMutating,
     // stale after 1 hours (unless invalidated)
     staleTime: 1000 * 60 * 60,
   });
+  useEffect(() => {
+    if (query.fetchStatus !== 'fetching' && query.isError) {
+      !isMutating && errorToast(query.error);
+    }
+  }, [query.fetchStatus, query.isError, isMutating, errorToast]);
+  return query;
 }
 
 /*
@@ -165,40 +148,17 @@ export function useCreateRoute(
   const { config } = useOnchain();
   const toast = useToast();
   const qk = queryKeyForRoutes(config);
-  const errorToast = useErrorToast("Route couldn't updated");
+  const errorToast = useErrorToast("Route couldn't created");
   return useMutation({
     mutationKey: qk,
-    mutationFn: async (route: Route) =>
-      addRoute(config, {
-        command: route.command,
-        name: route.name,
-        url: route.url,
-        subRoutes: route.subRoutes.map(
-          (subRoute) => `${subRoute.command}:${subRoute.url}`
-        ),
-        isValue: true,
-      })
-        .then((v) => {
-          return {
-            id: v.id,
-            command: v.route.command,
-            name: v.route.name,
-            description: '',
-            url: v.route.url,
-            subRoutes: v.route.subRoutes.map((subRoute) => {
-              const [command, url] = subRoute.split('::');
-              return { command, url };
-            }),
-            type: 'manual',
-          } as Route;
-        })
-        .then(async (v) => {
-          // Invalidate the cache
-          await queryClient.invalidateQueries({
-            queryKey: qk,
-          });
-          return v;
-        }),
+    mutationFn: async (route: Omit<Route, 'id'>) =>
+      addRoute(config, route).then(async (v) => {
+        // Invalidate the cache
+        await queryClient.invalidateQueries({
+          queryKey: qk,
+        });
+        return v;
+      }),
     onSuccess: (route) => {
       toast({
         title: 'Route created.',
@@ -210,10 +170,12 @@ export function useCreateRoute(
       });
       onSuccess?.(route);
     },
-    onError: (error) => {
-      errorToast(error);
-      onError?.(error);
+    onSettled: (_, error) => {
+      if (error) {
+        errorToast(error);
+      }
     },
+    onError: onError,
   });
 }
 
@@ -235,20 +197,20 @@ export function useCreateRoute(
  * await mutateAsync('b');
  */
 export function useDeleteRoute(
-  id: bigint,
+  command: string,
   onSuccess?: () => void,
   onError?: (error: Error) => void
 ) {
   const queryClient = useQueryClient();
   const { config } = useOnchain();
-  const qk = queryKeyForRoute(id, config);
+  const qk = queryKeyForRoute(command, config);
   const qrk = queryKeyForRoutes(config);
   const toast = useToast();
-  const errorToast = useErrorToast("Route couldn't updated");
+  const errorToast = useErrorToast("Route couldn't deleted");
   return useMutation({
     mutationKey: qk,
     mutationFn: async () =>
-      deleteRoute(config, id).then(async (v) => {
+      deleteRoute(config, command).then(async (v) => {
         // Invalidate the cache
         await queryClient.invalidateQueries({
           queryKey: qk,
@@ -260,7 +222,7 @@ export function useDeleteRoute(
     onSuccess: () => {
       toast({
         title: 'Route Deleted.',
-        description: `Route (id: ${id}) has been deleted.`,
+        description: `Route (command: ${command}) has been deleted.`,
         status: 'info',
         duration: 3000,
         isClosable: true,
@@ -268,10 +230,12 @@ export function useDeleteRoute(
       });
       onSuccess?.();
     },
-    onError: (error) => {
-      errorToast(error);
-      onError?.(error);
+    onSettled: (_, error) => {
+      if (error) {
+        errorToast(error);
+      }
     },
+    onError: onError,
   });
 }
 
@@ -308,38 +272,31 @@ export function useDeleteRoute(
  * });
  */
 export function useUpdateRoute(
-  id: bigint,
+  command: string,
   onSuccess?: (route: Route) => void,
   onError?: (error: Error) => void
 ) {
   const queryClient = useQueryClient();
   const { config } = useOnchain();
-  const qk = queryKeyForRoute(id, config);
+  const qk = queryKeyForRoute(command, config);
   const toast = useToast();
   const errorToast = useErrorToast("Route couldn't updated");
   return useMutation({
     mutationKey: qk,
-    mutationFn: async (route: Route) =>
-      updateRoute(config, id, {
-        name: route.name,
-        command: route.command,
-        url: route.url,
-        subRoutes: route.subRoutes.map(
-          (subRoute) => `${subRoute.command}:${subRoute.url}`
-        ),
-        isValue: true,
-      })
-        .then(async (v) => {
-          // Invalidate the cache
-          await queryClient.invalidateQueries({
-            queryKey: qk,
-          });
-        })
-        .then(() => route),
+    mutationFn: async (
+      updateData: Omit<Route, 'command' | 'routeType' | 'isValue'>
+    ) =>
+      updateRoute(config, command, updateData).then(async (v) => {
+        // Invalidate the cache
+        await queryClient.invalidateQueries({
+          queryKey: qk,
+        });
+        return v;
+      }),
     onSuccess: (route) => {
       toast({
         title: 'Route Updated.',
-        description: `Route ${route.command} has been updated.`,
+        description: `Route ${command} has been updated.`,
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -347,10 +304,12 @@ export function useUpdateRoute(
       });
       onSuccess?.(route);
     },
-    onError: (error) => {
-      errorToast(error);
-      onError?.(error);
+    onSettled: (_, error) => {
+      if (error) {
+        errorToast(error);
+      }
     },
+    onError: onError,
   });
 }
 
@@ -372,60 +331,51 @@ export function useUpdateRoute(
  * await mutateAsync();
  */
 export function useDeployRouter(
-  onSuccess?: (address: Address) => void,
+  onSuccess?: (contract: OnchainConfig['contract']) => void,
   onError?: (error: Error) => void
 ) {
   const { config } = useOnchain();
   const queryClient = useQueryClient();
   const toast = useToast();
-  const errorToast = useErrorToast("Route couldn't updated");
+  const errorToast = useErrorToast("Couldn't deploy router contract");
   return useMutation({
     mutationFn: async () => {
-      return deployContract(config).then(async (address) => {
+      return deployContract(config).then(async (contract) => {
         // Invalidate the cache
         await queryClient.invalidateQueries({
-          queryKey: ['router_address', config.chain.id, config.account.address],
+          queryKey: [
+            'router_address',
+            config.walletClient.chain.id,
+            config.walletClient.account.address,
+          ],
         });
-        return address;
+        return contract;
       });
     },
-    onSuccess: (address) => {
+    onSuccess: (contract) => {
       toast({
         title: 'Router Deployed!',
-        description: `Route deployed at ${address}.`,
+        description: `Route deployed at ${contract?.address}.`,
         status: 'success',
         duration: 3000,
         isClosable: true,
         position: 'top',
       });
-      onSuccess?.(address);
+      queryClient.setQueryData(
+        [
+          'router_address',
+          config.walletClient.chain.id,
+          config.walletClient.account.address,
+        ],
+        contract
+      );
+      onSuccess?.(contract);
     },
-    onError: (error) => {
-      errorToast(error);
-      onError?.(error);
-    },
-  });
-}
-
-export function useGetRouterAddress() {
-  const onchain = useOnchainRaw();
-  const errorToast = useErrorToast("Couldn't get router address");
-  return useQuery({
-    queryKey: [
-      'router_address',
-      onchain?.config.chain.id ?? 'unknown chain',
-      onchain?.config.account.address ?? 'unknown account',
-    ],
-    queryFn: async () => {
-      if (!onchain?.config) {
-        return '0x';
-      }
-      return contractAddress(onchain.config).catch((error) => {
+    onSettled: (_, error) => {
+      if (error) {
         errorToast(error);
-        throw error;
-      });
+      }
     },
-    // stale after 24 hours
-    staleTime: 1000 * 60 * 60 * 24,
+    onError: onError,
   });
 }

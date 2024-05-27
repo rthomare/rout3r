@@ -11,12 +11,8 @@ const googleRoute = {
   name: 'Google',
   description: 'Searches Google add `i` for images',
   url: 'https://www.google.com/search?q=%@@@',
-  subRoutes: [
-    {
-      command: 'i',
-      url: 'https://www.google.com/search?tbm=isch&q=%@@@',
-    },
-  ],
+  subRoutes: ['i::https://www.google.com/search?tbm=isch&q=%@@@'],
+  isValue: true,
   type: 'manual' as const,
 };
 

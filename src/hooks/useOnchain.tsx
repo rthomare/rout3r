@@ -1,5 +1,5 @@
 import { PropsWithChildren, createContext, useContext } from 'react';
-import { OnchainConfig } from '../lib/onchain';
+import { getRouterContract } from '../lib/onchain';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { Center, Spinner } from '@chakra-ui/react';
 import { mnemonicToAccount } from 'viem/accounts';
@@ -10,10 +10,39 @@ import {
   http,
 } from 'viem';
 import { IS_FULL_DEV } from '../utils/general';
+import { useQuery } from '@tanstack/react-query';
+import { OnchainConfig } from '../lib/types';
 
 const ConfigContext = createContext<{ config: OnchainConfig } | undefined>(
   undefined
 );
+
+const ClientContext = createContext<
+  | {
+      walletClient: OnchainConfig['walletClient'];
+      publicClient: OnchainConfig['publicClient'];
+    }
+  | undefined
+>(undefined);
+
+function useContractQuery(
+  publicClient?: OnchainConfig['publicClient'],
+  walletClient?: OnchainConfig['walletClient']
+) {
+  if (!publicClient || !walletClient) {
+    return undefined;
+  }
+  return useQuery({
+    queryKey: [
+      'router_address',
+      walletClient.chain.id,
+      walletClient.account.address,
+    ],
+    queryFn: async () =>
+      getRouterContract(publicClient, walletClient).then((v) => v ?? null),
+    staleTime: Infinity,
+  });
+}
 
 export const devConfig = () => {
   const account = mnemonicToAccount(
@@ -53,47 +82,58 @@ export const devConfig = () => {
     transport,
   });
   return {
-    account,
-    chain,
     walletClient,
     publicClient,
   };
 };
 
-export const ConfigProvider = ({ children }: PropsWithChildren<{}>) => {
-  const publicClient = usePublicClient();
-  const walletClientQuery = useWalletClient();
-  if (IS_FULL_DEV) {
-    const config = devConfig();
-    return (
-      <ConfigContext.Provider value={{ config }}>
-        {children}
-      </ConfigContext.Provider>
-    );
-  }
+// TODO: Add a better loading state ui component
+const Loading = () => {
+  return (
+    <Center w="100%" h="100%">
+      <Spinner />
+    </Center>
+  );
+};
 
+export const OnchainProvider = ({ children }: PropsWithChildren<{}>) => {
+  const dc = devConfig();
+  const walletClientQuery = useWalletClient();
+  const walletClient = IS_FULL_DEV ? dc.walletClient : walletClientQuery.data;
+  const publicClient = IS_FULL_DEV ? dc.publicClient : usePublicClient();
   const { isDisconnected } = useAccount();
-  if (isDisconnected) {
+  if (isDisconnected && !IS_FULL_DEV) {
     return <>{children}</>;
   }
-
-  const walletClient = walletClientQuery.data;
-  if (walletClientQuery.isLoading || !walletClient) {
-    return (
-      <Center w="100%" h="100%">
-        <Spinner />
-      </Center>
-    );
+  if (!walletClient || walletClientQuery.isLoading) {
+    return <Loading />;
   }
+  return (
+    <ClientContext.Provider value={{ walletClient, publicClient }}>
+      <ConfigProvider>{children}</ConfigProvider>
+    </ClientContext.Provider>
+  );
+};
 
+const ConfigProvider = ({ children }: PropsWithChildren<{}>) => {
+  const clients = useContext(ClientContext);
+  const contractQuery = useContractQuery(
+    clients?.publicClient,
+    clients?.walletClient
+  );
+  if (!clients || !contractQuery) {
+    return <>{children}</>;
+  }
+  if (contractQuery.isLoading) {
+    return <Loading />;
+  }
   return (
     <ConfigContext.Provider
       value={{
         config: {
-          account: walletClient.account,
-          walletClient,
-          publicClient,
-          chain: walletClient.chain,
+          walletClient: clients.walletClient,
+          publicClient: clients.publicClient,
+          contract: contractQuery.data ?? null,
         },
       }}
     >
