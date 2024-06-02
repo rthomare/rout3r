@@ -1,7 +1,7 @@
-import { mapSubroute, mapSubroutes } from '../utils/general';
-import { SEARCH_REPLACEMENT, SUBROUTE_SEPERATOR } from './constants';
-import { createRouteDB } from './database';
-import { Route } from './types';
+import { mapSubroutes } from '../utils/general';
+import { SEARCH_REPLACEMENT } from './constants';
+import { RequestProperties, Route } from './types';
+import { SingleReadDatabase } from '../database/database';
 
 /*
  * @function createRouterURL
@@ -14,14 +14,16 @@ import { Route } from './types';
  *    https://google.com/search?q=%@@@
  * );
  */
-export function createRouterURL(
-  origin: string,
-  searchFallback: string
-): string {
+export function createRouterURL(params: RequestProperties): string {
   // url encode rpcUrl and searchFallback
-  return `${origin}/rout3r/#go?searchFallback=${encodeURIComponent(
-    searchFallback
-  )}&q=%s`;
+  return (
+    `${params.origin}/rout3r/#go` +
+    `?searchFallback=${encodeURIComponent(params.searchFallback)}` +
+    `&rpc=${encodeURIComponent(params.rpc)}` +
+    `&address=${encodeURIComponent(params.address)}` +
+    `&contract=${encodeURIComponent(params.contract)}` +
+    '&q=%s'
+  );
 }
 
 /*
@@ -123,6 +125,7 @@ export function getRouteUrl(route: Route, routeQuery: string): string {
 /*
  * @function processQuery
  * Processes the query and returns the url.
+ * @param database - The database used for the query
  * @param query - The query to process.
  * @param fallback - The fallback url.
  * @returns The url.
@@ -132,8 +135,11 @@ export function getRouteUrl(route: Route, routeQuery: string): string {
  * console.log(processQuery(query, 'https://google.com/search?q=%@@@'));
  * -> 'https://google.com/search?q=something'
  */
-export async function processQuery(query: string, fallback: string) {
-  const db = createRouteDB();
+export async function processQuery(
+  db: SingleReadDatabase,
+  query: string,
+  fallback: string
+) {
   const [command, substring] = [
     query.split(' ')[0],
     query.split(' ').slice(1).join(' ') ?? '',

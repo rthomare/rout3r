@@ -57,26 +57,37 @@ struct RouteUpdateData {
 
 bool constant PREV = false;
 bool constant NEXT = true;
+string constant HEAD = "r3";
 
 /// @title The Router Contract - backed by simple circular linked list implementation
 /// @dev The Router contract is a simple contract that allows the owner to 
 /// create, update and delete routes.
 contract Router {
     address owner;
-    string head;
     mapping (string => mapping (bool => string)) cll;
     mapping (string => Route) routes;
 
     constructor() {
         owner = msg.sender;
+        cll[HEAD][NEXT] = HEAD;
+        cll[HEAD][PREV] = HEAD;
+    }
+
+    /// @notice Modifier to check if the caller is the owner
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
+
+    function reservedHead() internal pure returns (Route memory) {
         // Reserved route
         string[] memory subroutes = new string[](4);
         subroutes[0] = "setup::%0000/rout3r/#setup";
         subroutes[1] = "about::%0000/rout3r/#about";
         subroutes[2] = "new::%0000/rout3r/#routes/new";
-        subroutes[3] = "search::%0000/rout3r/#route/%@@@";
-        Route memory newRoute = Route(
-            "r3", 
+        subroutes[3] = "search::%0000/rout3r/#routes/edit/%@@@";
+        Route memory r3 = Route(
+            HEAD, 
             "rout3r Menu", 
             "%0000/rout3r/", 
             "The rout3r menu",
@@ -84,16 +95,7 @@ contract Router {
             true, 
             RouteType.RESERVED
         );
-        head = "r3";
-        routes[head] = newRoute;
-        cll[head][NEXT] = head;
-        cll[head][PREV] = head;
-    }
-
-    /// @notice Modifier to check if the caller is the owner
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function");
-        _;
+        return r3;
     }
 
     /// @notice Checks if two strings are equal
@@ -103,12 +105,12 @@ contract Router {
 
     /// @notice Checks if the route is valid
     function isValidRoute(string memory command) internal view returns (bool) {
-        return routes[command].isValue;
+        return areEqual(command, HEAD) || routes[command].isValue;
     }
 
     /// @notice Checks if the route is reserved
     function isReservedRoute(string memory command) internal view returns (bool) {
-        return routes[command].routeType == RouteType.RESERVED;
+        return getRoute(command).routeType == RouteType.RESERVED;
     }
 
     /// @notice Adds a node to the linked list at end of the list
@@ -124,19 +126,12 @@ contract Router {
             true, 
             RouteType.MANUAL
         );
-        if (areEqual(head, "")) {
-            head = route.command;
-            cll[head][NEXT] = head;
-            cll[head][PREV] = head;
-            routes[head] = newRoute;
-        } else {
-            string memory pointer = route.command;
-            cll[pointer][PREV] = cll[head][PREV];
-            cll[cll[head][PREV]][NEXT] = pointer;
-            cll[pointer][NEXT] = head;
-            cll[head][PREV] = pointer;
-            routes[pointer] = newRoute;
-        }
+        string memory pointer = route.command;
+        cll[pointer][PREV] = cll[HEAD][PREV];
+        cll[cll[HEAD][PREV]][NEXT] = pointer;
+        cll[pointer][NEXT] = HEAD;
+        cll[HEAD][PREV] = pointer;
+        routes[pointer] = newRoute;
         return newRoute;
     }
 
@@ -156,11 +151,6 @@ contract Router {
         string memory next = cll[command][NEXT];
         cll[prev][NEXT] = next;
         cll[next][PREV] = prev;
-
-        if (areEqual(head, command)) {
-            head = next;
-        }
-
         delete cll[command][PREV];
         delete cll[command][NEXT];
         delete routes[command];
@@ -168,8 +158,9 @@ contract Router {
 
     /// @notice Returns the value of the node at the given index
     function getRoute(string memory command) public view returns (Route memory) {
-        require(isValidRoute(command));
-        return routes[command];
+        Route memory route = areEqual(command, HEAD) ? reservedHead() : routes[command];
+        require(route.isValue);
+        return route;
     }
 
     /// @notice Returns the values of the linked list of paginated size n
@@ -177,13 +168,13 @@ contract Router {
     function getRoutes(string memory cursor, uint256 n) public view returns (Route[] memory, uint256, string memory) {
         Route[] memory results = new Route[](n);
         uint256 length = 0;
-        string memory pointer = areEqual(cursor, "") ? head : cursor;
+        string memory pointer = areEqual(cursor, "") ? HEAD : cursor;
         do {
-            results[length] = routes[pointer];
+            results[length] = getRoute(pointer);
             pointer = cll[pointer][NEXT];
             length++;
-        } while (!areEqual(pointer, head) && length < n);
-        string memory nextCursor = areEqual(pointer, head) ? "" : pointer;
+        } while (!areEqual(pointer, HEAD) && length < n);
+        string memory nextCursor = areEqual(pointer, HEAD) ? "" : pointer;
         return (results, length, nextCursor);
     }
 }

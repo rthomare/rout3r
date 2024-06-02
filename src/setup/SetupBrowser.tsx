@@ -1,6 +1,5 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import {
-  BsArrowDown,
   BsBrowserChrome,
   BsBrowserFirefox,
   BsBrowserSafari,
@@ -12,10 +11,12 @@ import {
   AccordionButton,
   AccordionItem,
   AccordionPanel,
+  Button,
   Code,
   Divider,
   Heading,
   Input,
+  InputGroup,
   ListItem,
   OrderedList,
   VStack,
@@ -24,13 +25,21 @@ import { isChrome, isSafari, isFirefox } from 'react-device-detect';
 import { createRouterURL } from '../lib/engine';
 import { useCopy } from '../hooks/useCopy';
 import { SEARCH_REPLACEMENT } from '../lib/constants';
+import { useOnchain } from '../hooks/useOnchain';
 
 export function SetupBrowser(): JSX.Element {
   const copy = useCopy();
   const [searchFallback, setSearchFallback] = useState(
     `https://www.google.com/search?q=${SEARCH_REPLACEMENT}`
   );
-  const routerUrl = createRouterURL(window.location.origin, searchFallback);
+  const { config } = useOnchain();
+  const routerUrl = createRouterURL({
+    origin: window.location.origin,
+    searchFallback,
+    rpc: config.walletClient.chain.rpcUrls.default.http[0],
+    address: config.walletClient.account.address,
+    contract: config.contract?.address ?? '0x',
+  });
   const defaultIndex = isChrome ? [0] : isFirefox ? [1] : isSafari ? [2] : [];
 
   return (
@@ -81,9 +90,10 @@ export function SetupBrowser(): JSX.Element {
                   </ListItem>
                   <ListItem>
                     <b>URL:</b>
-                    <Code cursor="pointer" onClick={copy(routerUrl)}>
-                      Click here to copy the URL
-                    </Code>
+                    <InputGroup gap={1}>
+                      <Input value={routerUrl} isReadOnly cursor="pointer" />
+                      <Button onClick={copy(routerUrl)}>Copy</Button>
+                    </InputGroup>
                   </ListItem>
                 </ul>
               </ListItem>

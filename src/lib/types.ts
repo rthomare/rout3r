@@ -1,6 +1,7 @@
 import ROUTER_V1_0_0 from '../../contracts/versions/Router-1.0.0.json';
 import {
   Account,
+  Address,
   Chain,
   GetContractReturnType,
   PublicClient,
@@ -28,22 +29,6 @@ export enum RouteType {
  * @param isValue: boolean - whether the route is a value route
  * @param type: 'manual' | 'reserved' - the type of the route if manual can be edited if reserved cannot be edited
  *
- *
- * @example
- * {
- *   command: 'g',
- *   name: 'Google',
- *   description: 'Searches Google',
- *   url: 'https://www.google.com/search?q=%@@@',
- *   subRoutes: [
- *     {
- *       command: 'i',
- *       name: 'Images',
- *       url: 'https://www.google.com/search?tbm=isch&q=%@@@',
- *     },
- *   ],
- * }
- *
  * @example
  * {
  *  command: 'g',
@@ -68,6 +53,50 @@ export type Route = {
   routeType: RouteType;
 };
 
+/*
+ * @type RequestProperties
+ * The properties that are specified as part of a route lookup request.
+ * @param origin - The origin of the router.
+ * @param searchFallback - The search fallback url if route is not found.
+ * @param rpc - The rpc endpoint.
+ * @param address - The address of the user for the given chainId in the rpc.
+ * @param contract - The contract address of the deployed router.
+ *
+ * @example
+ * {
+ *  origin: 'https://rout3r.com',
+ *  searchFallback: 'https://duckduckgo.com/?&q=%@@@',
+ *  rpc: 'https://rpc.maticvigil.com',
+ *  address: '0x1234',
+ *  contract: '0x5678',
+ * }
+ */
+export type RequestProperties = {
+  origin: string;
+  searchFallback: string;
+  rpc: string;
+  address: Address;
+  contract: Address;
+};
+
+/*
+ * @type OnchainConfig
+ * The configuration for the onchain actions within the application
+ * @param publicClient - The public client to use for onchain actions.
+ * @param walletClient - The wallet client to use for onchain actions.
+ * @param contract - The deployed contract to use for the router.
+ *   Note: This is optional as the contract may not be deployed yet.
+ *
+ * @example
+ * const walletClient = new WalletClient<Transport, Chain, Account>(transport, chain, account);
+ * const publicClient = new PublicClient(transport, chain);
+ * const contract = new Contract<Router>(transport, chain, account, Router.abi, Router.address);
+ * const config: OnchainConfig = {
+ *  publicClient: publicClient,
+ *  walletClient: walletClient,
+ *  contract: contract,
+ * }
+ */
 export type OnchainConfig = {
   publicClient: PublicClient;
   walletClient: WalletClient<Transport, Chain, Account>;

@@ -1,14 +1,25 @@
 import { DBSchema, openDB } from 'idb';
-import { Route, RouteType } from './types';
+import { Route, RouteType } from '../lib/types';
+import { ReadDatabase, WriteDatabase } from './database';
+import { Address, Chain } from 'viem';
 
 interface routerDB extends DBSchema {
   routes: {
     value: Route;
     key: string; // command
   };
+  router: {
+    key: Chain['id'];
+    value: {
+      chain: Chain;
+      chainId: Chain['id'];
+      account: Address;
+      contract: Address;
+    };
+  };
 }
 
-async function openRouterDB() {
+async function openRoutesDB() {
   return openDB<routerDB>('routes', 1, {
     upgrade(db) {
       db.createObjectStore('routes', {
@@ -27,7 +38,10 @@ async function openRouterDB() {
  * const routeManager = createRouteManager();
  * routeManager.getRoutes().then((routes) => console.log(routes));
  */
-export function createRouteDB() {
+export function createRouteDB(): ReadDatabase &
+  WriteDatabase & {
+    clearRoutes: () => Promise<void>;
+  } {
   return {
     /*
      * @function getRoute
@@ -38,7 +52,7 @@ export function createRouteDB() {
      * routeManager.getRoute().then((route) => console.log(route));
      */
     getRoute: async (command: string) => {
-      const db = await openRouterDB();
+      const db = await openRoutesDB();
       return db.get('routes', command);
     },
 
@@ -50,9 +64,22 @@ export function createRouteDB() {
      * @example
      * routeManager.getAllRoutes().then((routes) => console.log(routes));
      */
-    getAllRoutes: async () => {
-      const db = await openRouterDB();
-      return db.getAll('routes').then((routes) => [...routes]);
+    getRoutes: async ({
+      cursor,
+      limit,
+    }: {
+      cursor?: string;
+      limit?: bigint;
+    }) => {
+      const db = await openRoutesDB();
+      return db.getAll('routes', null, Number(limit)).then((routes) => ({
+        cursor:
+          routes.length === Number(limit)
+            ? routes[routes.length - 1].command
+            : '',
+        length: BigInt(routes.length),
+        routes,
+      }));
     },
 
     /*
@@ -71,7 +98,7 @@ export function createRouteDB() {
      * });
      */
     addRoute: async (route: Route) => {
-      const db = await openRouterDB();
+      const db = await openRoutesDB();
       const existingItem = await db.get('routes', route.command);
       if (existingItem) {
         throw new Error('An item with the same key already exists!');
@@ -90,7 +117,7 @@ export function createRouteDB() {
      * routeManager.deleteRoute('g').then((route) => console.log(route));
      */
     deleteRoute: async (command: string) => {
-      const db = await openRouterDB();
+      const db = await openRoutesDB();
       return db.delete('routes', command);
     },
 
@@ -102,7 +129,7 @@ export function createRouteDB() {
      * routeManager.clearRoutes();
      */
     clearRoutes: async () => {
-      const db = await openRouterDB();
+      const db = await openRoutesDB();
       return db.clear('routes');
     },
 
@@ -121,10 +148,21 @@ export function createRouteDB() {
      *   subRoutes: [],
      * });
      */
-    updateRoute: async (command: string, route: Omit<Route, 'command'>) => {
-      const db = await openRouterDB();
-      await db.put('routes', { command, ...route });
-      return { command, ...route };
+    updateRoute: async (
+      command: string,
+      route: Omit<Route, 'command' | 'routeType' | 'isValue'>
+    ) => {
+      const db = await openRoutesDB();
+      const existingItem = await db.get('routes', command);
+      if (!existingItem) {
+        throw new Error('An item with the same key does not exist!');
+      }
+      const updatedRoute = {
+        ...existingItem,
+        ...route,
+      };
+      await db.put('routes', updatedRoute);
+      return updatedRoute;
     },
   };
 }

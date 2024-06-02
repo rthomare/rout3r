@@ -5,10 +5,19 @@ import {
   PublicClient,
   Transport,
   WalletClient,
+  createPublicClient,
+  decodeFunctionResult,
+  encodeFunctionData,
   getContract,
   getContractAddress,
+  http,
 } from 'viem';
-import { OnchainConfig, PINNED_CONTRACT_ABI, Route } from './types';
+import {
+  OnchainConfig,
+  PINNED_CONTRACT_ABI,
+  RequestProperties,
+  Route,
+} from './types';
 import {
   ORIGIN_REPLACEMENT,
   PINNED_CONTRACT_BYTECODE,
@@ -118,6 +127,55 @@ export async function deployContract(
 }
 
 /*
+ * Get a route by command
+ * @param command - the command of the route to get
+ * @param requestProps - the request properties to use for the route lookup
+ * @returns the route if it exists or undefined if it does not
+ *
+ * @example
+ * const requestProps = {
+ *  account: '0x1234',
+ *  contract: '0x5678',
+ *  rpc: 'https://rpc.maticvigil.com',
+ *  origin: 'https://rout3r.com',
+ * };
+ * const route = await searchRoute('g', requestProps);
+ */
+export async function searchRoute(
+  command: string,
+  requestProps: Omit<RequestProperties, 'searchFallback'>
+): Promise<Route | undefined> {
+  const publicClient = createPublicClient({
+    transport: http(requestProps.rpc),
+  });
+  const data = encodeFunctionData({
+    abi: PINNED_CONTRACT_ABI,
+    functionName: 'getRoute',
+    args: [command],
+  });
+  const result = await publicClient.call({
+    to: requestProps.contract,
+    data,
+    account: requestProps.address,
+  });
+  if (!result.data) {
+    return undefined;
+  }
+  const route = decodeFunctionResult({
+    abi: PINNED_CONTRACT_ABI,
+    functionName: 'getRoute',
+    data: result.data,
+  }) as Route;
+  return {
+    ...route,
+    url: route.url.replace(ORIGIN_REPLACEMENT, origin),
+    subRoutes: route.subRoutes.map((sr: string) =>
+      sr.replace(ORIGIN_REPLACEMENT, origin)
+    ),
+  };
+}
+
+/*
  * Get a route by id
  * @param config - the onchain config to use that contains the account, chain and client info
  * @param id - the id of the route to get
@@ -134,16 +192,17 @@ export async function getRoute(
   if (!config.contract) {
     throw new Error('No contract found to update route.');
   }
-  const route = (await config.contract.read.getRoute([command], {
-    account: config.walletClient.account as any,
-  })) as Route;
-  return {
-    ...route,
-    url: route.url.replace(ORIGIN_REPLACEMENT, origin),
-    subRoutes: route.subRoutes.map((sr: string) =>
-      sr.replace(ORIGIN_REPLACEMENT, origin)
-    ),
-  };
+  return searchRoute(command, {
+    address: config.walletClient.account.address,
+    contract: config.contract.address,
+    rpc: config.walletClient.chain.rpcUrls.default.http[0],
+    origin,
+  }).then((route) => {
+    if (!route) {
+      throw new Error('Route not found');
+    }
+    return route;
+  });
 }
 
 /*

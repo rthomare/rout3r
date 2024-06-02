@@ -1,15 +1,29 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-
 import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
 import { processQuery } from './lib/engine';
-
 import App from './App';
 import theme from './theme';
 import { WagmiProvider } from 'wagmi';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
-import { config } from './web3/config';
+import { createConfig, http } from 'wagmi';
+import { sepolia } from 'wagmi/chains';
+import { Address } from 'viem';
+import { createOcrDb } from './database/ocrDatabase';
+
+declare module 'wagmi' {
+  interface Register {
+    config: typeof config;
+  }
+}
+
+export const config = createConfig({
+  chains: [sepolia],
+  transports: {
+    [sepolia.id]: http(),
+  },
+});
 
 var condition = window.location.href.match('/rout3r/#go') !== null;
 
@@ -23,12 +37,27 @@ if (condition) {
   }
   const params = new URLSearchParams(queryString);
   const searchFallback = params.get('searchFallback');
+  const rpc = params.get('rpc');
+  const address = params.get('address') as Address;
+  const contract = params.get('contract') as Address;
   const query = params.get('q');
-  if (!searchFallback) {
-    console.error('No search fallback');
+
+  if (!searchFallback || !rpc || !address || !contract) {
+    console.error(
+      'The URL was not setup correctly please check to see that ' +
+        'searchFallback, rpc, address, & contract were all setup correctly'
+    );
     process.exit(1);
   }
-  processQuery(query ?? '', searchFallback)
+
+  const db = createOcrDb({
+    origin: window.location.origin,
+    searchFallback,
+    rpc,
+    address,
+    contract,
+  });
+  processQuery(db, query ?? '', searchFallback)
     .then((url) => {
       // redirect to the processed url
       window.location.href = url;

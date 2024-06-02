@@ -2,7 +2,7 @@ import { describe } from '@jest/globals';
 
 import 'fake-indexeddb/auto';
 
-import { createRouteDB } from '../database';
+import { createRouteDB } from '../../database/cacheDatabase';
 import { getRouteUrl, processQuery } from '../engine';
 import { RouteType } from '../types';
 
@@ -40,31 +40,36 @@ describe('rout3r engine processing', () => {
 });
 
 describe('rout3r engine processing with database', () => {
-  beforeAll(async () => {
-    // setup database
+  it('processes main routes correctly', async () => {
     const db = createRouteDB();
     await db.addRoute(googleRoute);
-  });
-  it('processes main routes correctly', async () => {
-    const url = await processQuery('g something', FALLBACK);
+    const url = await processQuery(db, 'g something', FALLBACK);
     expect(url).toBe('https://www.google.com/search?q=something');
   });
   it('processes subroutes correctly', async () => {
-    const url = await processQuery('g i something', FALLBACK);
+    const db = createRouteDB();
+    await db.addRoute(googleRoute);
+    const url = await processQuery(db, 'g i something', FALLBACK);
     expect(url).toBe('https://www.google.com/search?tbm=isch&q=something');
   });
   it('processes subroute advanced query params', async () => {
-    const url = await processQuery('g i something else', FALLBACK);
+    const db = createRouteDB();
+    await db.addRoute(googleRoute);
+    const url = await processQuery(db, 'g i something else', FALLBACK);
     expect(url).toBe(
       'https://www.google.com/search?tbm=isch&q=something%20else'
     );
   });
   it('processes subroutes with no query correctly', async () => {
-    const url = await processQuery('g i', FALLBACK);
+    const db = createRouteDB();
+    await db.addRoute(googleRoute);
+    const url = await processQuery(db, 'g i', FALLBACK);
     expect(url).toBe('https://www.google.com/search?tbm=isch&q=');
   });
   it('processes fallback correctly', async () => {
-    const url = await processQuery('something', FALLBACK);
+    const db = createRouteDB();
+    await db.addRoute(googleRoute);
+    const url = await processQuery(db, 'something', FALLBACK);
     expect(url).toBe('https://duckduckgo.com/?&q=something');
   });
 });
