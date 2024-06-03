@@ -45,3 +45,10 @@ export function unmapSubroute(subroute: {
 export function unmapSubroutes(subroutes: { command: string; url: string }[]) {
   return subroutes.map(unmapSubroute);
 }
+
+export let origin: string;
+try {
+  origin = window.location.origin;
+} catch {
+  origin = '';
+}

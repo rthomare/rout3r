@@ -15,7 +15,6 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Spinner,
   Text,
   useDisclosure,
   VStack,
@@ -24,6 +23,7 @@ import {
 import { RouteForm } from '../components/RouteForm';
 import { useDeleteRoute, useGetRoute, useUpdateRoute } from '../lib/endpoints';
 import { RouteType } from '../lib/types';
+import { LoadingScreen } from '../components/LoadingScreen';
 
 export function EditRoute(): JSX.Element {
   const { command } = useParams();
@@ -44,11 +44,7 @@ export function EditRoute(): JSX.Element {
   }, [routeRemoveMutation, onDisclosureClose]);
 
   if (routeQuery.isLoading) {
-    return (
-      <Center h="100%">
-        <Spinner />
-      </Center>
-    );
+    return <LoadingScreen summary="Loading Route" />;
   }
   if (routeQuery.isError) {
     return (
@@ -73,9 +69,11 @@ export function EditRoute(): JSX.Element {
       <HStack marginBottom={3} justifyContent="space-between">
         <Heading size="lg">
           {routeQuery.data.name}
-          <Box as="span" color="gray">
-            &nbsp;(Reserved Route)
-          </Box>
+          {routeQuery.data.routeType === RouteType.RESERVED && (
+            <Box as="span" color="gray">
+              &nbsp;(Reserved Route)
+            </Box>
+          )}
         </Heading>
         <Button
           colorScheme="red"

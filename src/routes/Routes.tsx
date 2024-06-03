@@ -1,12 +1,10 @@
-import { BsCheckSquare, BsInfoCircle, BsSquare } from 'react-icons/bs';
+import { BsCheckSquare, BsSquare } from 'react-icons/bs';
 import { Link, useNavigate } from 'react-router-dom';
-
 import {
   Button,
   Center,
   Heading,
   HStack,
-  Spinner,
   Table,
   TableContainer,
   Tbody,
@@ -21,17 +19,14 @@ import {
 
 import { useGetRoutes } from '../lib/endpoints';
 import { RouteType } from '../lib/types';
+import { LoadingScreen } from '../components/LoadingScreen';
 
 export function Routes(): JSX.Element {
   const routesQuery = useGetRoutes();
   const navigate = useNavigate();
   const colorMode = useColorMode();
   if (routesQuery.isLoading) {
-    return (
-      <Center h="100%">
-        <Spinner />
-      </Center>
-    );
+    return <LoadingScreen summary="Loading Routes" />;
   }
 
   if (routesQuery.isError) {

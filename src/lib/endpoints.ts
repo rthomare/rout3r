@@ -5,35 +5,92 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { OnchainConfig, Route } from './types';
+import { OnchainConfig, RequestProperties, Route } from './types';
 import {
   addRoute,
   deleteRoute,
   deployContract,
   getRoute,
   getRoutes,
+  searchRoute,
   updateRoute,
 } from './onchain';
 import { useErrorToast } from '../hooks/useErrorToast';
 import { useOnchain } from '../hooks/useOnchain';
-import { Address } from 'viem';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
-function queryKeyForRoute(command: string, config: OnchainConfig) {
+const STALE_TIME = 1000 * 60 * 60; // 1 hour
+
+export function requestPropsFromConfig(
+  config: OnchainConfig
+): Omit<RequestProperties, 'searchFallback'> {
+  return {
+    rpc: config.walletClient.chain.rpcUrls.default.http[0],
+    address: config.walletClient.account.address,
+    chainId: config.walletClient.chain.id,
+    contract: config.contract?.address ?? '0x',
+  };
+}
+
+function queryKeyForRoute(
+  command: string,
+  requestProps: Omit<RequestProperties, 'searchFallback' | 'rpc'>
+) {
   return [
-    'routes',
-    config.walletClient.account.address,
-    config.walletClient.chain.id,
+    'route',
+    requestProps.address,
+    requestProps.chainId,
+    requestProps.contract,
     command,
   ];
 }
 
-function queryKeyForRoutes(config: OnchainConfig) {
+function queryKeyForRoutes(
+  requestProps: Omit<RequestProperties, 'searchFallback' | 'rpc'>
+) {
   return [
     'routes',
-    config.walletClient.account.address,
-    config.walletClient.chain.id,
+    requestProps.address,
+    requestProps.chainId,
+    requestProps.contract,
   ];
+}
+
+export function queryKeyForRouterAddress(
+  requestProps: Omit<RequestProperties, 'searchFallback' | 'rpc' | 'contract'>
+) {
+  return ['router_address', requestProps.chainId, requestProps.address];
+}
+
+/*
+ * @function useSearchRoute
+ * Query hook to search for a route by command.
+ * @param command - The route command.
+ * @returns The route or null if not found.
+ *
+ * @example
+ * const routeQuerier = useSearchRoute(config);
+ * routeQuerier('g').then((route) => console.log(route));
+ */
+export function useSearchRoute(
+  requestProps: Omit<RequestProperties, 'searchFallback'>
+) {
+  const queryClient = useQueryClient();
+  return useCallback(
+    async (command: string) => {
+      const cacheKey = queryKeyForRoute(command, requestProps);
+      const cachedRoute = queryClient.getQueryData(cacheKey) as
+        | Route
+        | undefined;
+      if (cachedRoute) {
+        return cachedRoute;
+      }
+      const fetchedRoute = searchRoute(command, requestProps);
+      queryClient.setQueryData(cacheKey, fetchedRoute);
+      return fetchedRoute;
+    },
+    [requestProps, queryClient]
+  );
 }
 
 /*
@@ -49,21 +106,17 @@ function queryKeyForRoutes(config: OnchainConfig) {
 export function useGetRoute(command: string) {
   const { config } = useOnchain();
   const queryClient = useQueryClient();
-  const qk = queryKeyForRoute(command, config);
+  const props = requestPropsFromConfig(config);
+  const qk = queryKeyForRoute(command, props);
   const isMutating = useIsMutating({ mutationKey: qk }, queryClient);
   const errorToast = useErrorToast("Route couldn't be found");
   const query = useQuery({
-    queryKey: [
-      'routes',
-      config.walletClient.account.address,
-      config.walletClient.chain.id,
-      command,
-    ],
+    queryKey: qk,
     queryFn: async () => {
       return getRoute(config, command);
     },
     // stale after 1 hours (unless invalidated)
-    staleTime: 1000 * 60 * 60,
+    staleTime: STALE_TIME,
     enabled: !isMutating,
   });
   useEffect(() => {
@@ -86,16 +139,19 @@ export function useGetRoute(command: string) {
 export function useGetRoutes() {
   const { config } = useOnchain();
   const queryClient = useQueryClient();
-  const qk = queryKeyForRoutes(config);
+  const props = requestPropsFromConfig(config);
+  const qk = queryKeyForRoutes(props);
   const isMutating = useIsMutating({ mutationKey: qk }, queryClient);
   const errorToast = useErrorToast("Routes couldn't be found");
   const query = useQuery({
-    queryKey: [
-      'routes',
-      config.walletClient.account.address,
-      config.walletClient.chain.id,
-    ],
-    queryFn: () => getRoutes(config, '', 100n),
+    queryKey: qk,
+    queryFn: async () => {
+      const routes = await getRoutes(config, '', 100n);
+      routes.routes.forEach((route) => {
+        queryClient.setQueryData(queryKeyForRoute(route.command, props), route);
+      });
+      return routes;
+    },
     enabled: !isMutating,
     // stale after 1 hours (unless invalidated)
     staleTime: 1000 * 60 * 60,
@@ -147,15 +203,18 @@ export function useCreateRoute(
   const queryClient = useQueryClient();
   const { config } = useOnchain();
   const toast = useToast();
-  const qk = queryKeyForRoutes(config);
+  const props = requestPropsFromConfig(config);
+  const qrk = queryKeyForRoutes(props);
   const errorToast = useErrorToast("Route couldn't created");
   return useMutation({
-    mutationKey: qk,
+    mutationKey: qrk,
     mutationFn: async (route: Omit<Route, 'id'>) =>
       addRoute(config, route).then(async (v) => {
-        // Invalidate the cache
+        // Update the cache
+        const qk = queryKeyForRoute(route.command, props);
+        await queryClient.setQueryData(qk, v);
         await queryClient.invalidateQueries({
-          queryKey: qk,
+          queryKey: qrk,
         });
         return v;
       }),
@@ -203,8 +262,9 @@ export function useDeleteRoute(
 ) {
   const queryClient = useQueryClient();
   const { config } = useOnchain();
-  const qk = queryKeyForRoute(command, config);
-  const qrk = queryKeyForRoutes(config);
+  const props = requestPropsFromConfig(config);
+  const qrk = queryKeyForRoutes(props);
+  const qk = queryKeyForRoute(command, props);
   const toast = useToast();
   const errorToast = useErrorToast("Route couldn't deleted");
   return useMutation({
@@ -278,7 +338,8 @@ export function useUpdateRoute(
 ) {
   const queryClient = useQueryClient();
   const { config } = useOnchain();
-  const qk = queryKeyForRoute(command, config);
+  const props = requestPropsFromConfig(config);
+  const qk = queryKeyForRoute(command, props);
   const toast = useToast();
   const errorToast = useErrorToast("Route couldn't updated");
   return useMutation({
@@ -287,10 +348,8 @@ export function useUpdateRoute(
       updateData: Omit<Route, 'command' | 'routeType' | 'isValue'>
     ) =>
       updateRoute(config, command, updateData).then(async (v) => {
-        // Invalidate the cache
-        await queryClient.invalidateQueries({
-          queryKey: qk,
-        });
+        // Update the cache
+        await queryClient.setQueryData(qk, v);
         return v;
       }),
     onSuccess: (route) => {
@@ -338,16 +397,14 @@ export function useDeployRouter(
   const queryClient = useQueryClient();
   const toast = useToast();
   const errorToast = useErrorToast("Couldn't deploy router contract");
+  const qk = queryKeyForRouterAddress(requestPropsFromConfig(config));
   return useMutation({
+    mutationKey: qk,
     mutationFn: async () => {
       return deployContract(config).then(async (contract) => {
         // Invalidate the cache
         await queryClient.invalidateQueries({
-          queryKey: [
-            'router_address',
-            config.walletClient.chain.id,
-            config.walletClient.account.address,
-          ],
+          queryKey: qk,
         });
         return contract;
       });

@@ -1,17 +1,19 @@
 import { PropsWithChildren, createContext, useContext } from 'react';
 import { getRouterContract } from '../lib/onchain';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
-import { Center, Spinner } from '@chakra-ui/react';
 import { mnemonicToAccount } from 'viem/accounts';
 import {
   createPublicClient,
   createWalletClient,
   defineChain,
+  getContract,
   http,
 } from 'viem';
 import { IS_FULL_DEV } from '../utils/general';
 import { useQuery } from '@tanstack/react-query';
-import { OnchainConfig } from '../lib/types';
+import { OnchainConfig, PINNED_CONTRACT_ABI } from '../lib/types';
+import { LoadingScreen } from '../components/LoadingScreen';
+import { queryKeyForRouterAddress } from '../lib/endpoints';
 
 const ConfigContext = createContext<{ config: OnchainConfig } | undefined>(
   undefined
@@ -33,14 +35,12 @@ function useContractQuery(
     return undefined;
   }
   return useQuery({
-    queryKey: [
-      'router_address',
-      walletClient.chain.id,
-      walletClient.account.address,
-    ],
+    queryKey: queryKeyForRouterAddress({
+      address: walletClient.account.address,
+      chainId: walletClient.chain.id,
+    }),
     queryFn: async () =>
       getRouterContract(publicClient, walletClient).then((v) => v ?? null),
-    staleTime: Infinity,
   });
 }
 
@@ -87,15 +87,6 @@ export const devConfig = () => {
   };
 };
 
-// TODO: Add a better loading state ui component
-const Loading = () => {
-  return (
-    <Center w="100%" h="100%">
-      <Spinner />
-    </Center>
-  );
-};
-
 export const OnchainProvider = ({ children }: PropsWithChildren<{}>) => {
   const dc = devConfig();
   const walletClientQuery = useWalletClient();
@@ -106,7 +97,7 @@ export const OnchainProvider = ({ children }: PropsWithChildren<{}>) => {
     return <>{children}</>;
   }
   if (!walletClient || walletClientQuery.isLoading) {
-    return <Loading />;
+    return <LoadingScreen summary="Loading wallet client" />;
   }
   return (
     <ClientContext.Provider value={{ walletClient, publicClient }}>
@@ -125,15 +116,25 @@ const ConfigProvider = ({ children }: PropsWithChildren<{}>) => {
     return <>{children}</>;
   }
   if (contractQuery.isLoading) {
-    return <Loading />;
+    return <LoadingScreen summary="Loading deployed contracts" />;
   }
+  const contract = contractQuery.data
+    ? getContract({
+        address: contractQuery.data,
+        abi: PINNED_CONTRACT_ABI,
+        client: {
+          public: clients?.publicClient,
+          wallet: clients?.walletClient,
+        },
+      })
+    : null;
+
   return (
     <ConfigContext.Provider
       value={{
         config: {
-          walletClient: clients.walletClient,
-          publicClient: clients.publicClient,
-          contract: contractQuery.data ?? null,
+          ...clients,
+          contract,
         },
       }}
     >

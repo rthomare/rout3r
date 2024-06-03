@@ -34,8 +34,8 @@ export function SetupBrowser(): JSX.Element {
   );
   const { config } = useOnchain();
   const routerUrl = createRouterURL({
-    origin: window.location.origin,
     searchFallback,
+    chainId: config.walletClient.chain.id,
     rpc: config.walletClient.chain.rpcUrls.default.http[0],
     address: config.walletClient.account.address,
     contract: config.contract?.address ?? '0x',

@@ -1,5 +1,6 @@
 import {
   Account,
+  Address,
   Chain,
   Hex,
   PublicClient,
@@ -23,13 +24,7 @@ import {
   PINNED_CONTRACT_BYTECODE,
   PINNED_CONTRACT_DEPLOYED_BYTECODE,
 } from './constants';
-
-let origin: string;
-try {
-  origin = window.location.origin;
-} catch {
-  origin = '';
-}
+import { origin } from '../utils/general';
 
 async function checkTransactionSuccess(
   onchainConfig: OnchainConfig,
@@ -57,7 +52,7 @@ async function checkTransactionSuccess(
 export async function getRouterContract(
   publicClient: PublicClient,
   walletClient: WalletClient<Transport, Chain, Account>
-): Promise<OnchainConfig['contract']> {
+): Promise<Address | null> {
   const count = await publicClient.getTransactionCount({
     address: walletClient.account.address,
   });
@@ -72,14 +67,7 @@ export async function getRouterContract(
     });
     // simple heuristic to check if the contract is the pinned contract by just checking the first 10 and last 10 bytes
     if (code && code === PINNED_CONTRACT_DEPLOYED_BYTECODE) {
-      return getContract({
-        address: contractAddress,
-        abi: PINNED_CONTRACT_ABI,
-        client: {
-          public: publicClient,
-          wallet: walletClient,
-        },
-      });
+      return contractAddress;
     }
     nonce = nonce - 1n;
   }
@@ -153,11 +141,15 @@ export async function searchRoute(
     functionName: 'getRoute',
     args: [command],
   });
-  const result = await publicClient.call({
-    to: requestProps.contract,
-    data,
-    account: requestProps.address,
-  });
+  const result = await publicClient
+    .call({
+      to: requestProps.contract,
+      data,
+      account: requestProps.address,
+    })
+    .catch(() => {
+      return { data: undefined };
+    });
   if (!result.data) {
     return undefined;
   }
@@ -195,8 +187,8 @@ export async function getRoute(
   return searchRoute(command, {
     address: config.walletClient.account.address,
     contract: config.contract.address,
+    chainId: config.walletClient.chain.id,
     rpc: config.walletClient.chain.rpcUrls.default.http[0],
-    origin,
   }).then((route) => {
     if (!route) {
       throw new Error('Route not found');
@@ -329,7 +321,7 @@ export async function updateRoute(
     account: config.walletClient.account,
   });
   await checkTransactionSuccess(config, hash);
-  return route;
+  return route as Route;
 }
 
 /*

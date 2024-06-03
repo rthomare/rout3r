@@ -1,7 +1,6 @@
 import { mapSubroutes } from '../utils/general';
 import { SEARCH_REPLACEMENT } from './constants';
 import { RequestProperties, Route } from './types';
-import { SingleReadDatabase } from '../database/database';
 
 /*
  * @function createRouterURL
@@ -17,8 +16,9 @@ import { SingleReadDatabase } from '../database/database';
 export function createRouterURL(params: RequestProperties): string {
   // url encode rpcUrl and searchFallback
   return (
-    `${params.origin}/rout3r/#go` +
+    `${origin}/rout3r/#go` +
     `?searchFallback=${encodeURIComponent(params.searchFallback)}` +
+    `&chainId=${encodeURIComponent(params.chainId)}` +
     `&rpc=${encodeURIComponent(params.rpc)}` +
     `&address=${encodeURIComponent(params.address)}` +
     `&contract=${encodeURIComponent(params.contract)}` +
@@ -136,7 +136,7 @@ export function getRouteUrl(route: Route, routeQuery: string): string {
  * -> 'https://google.com/search?q=something'
  */
 export async function processQuery(
-  db: SingleReadDatabase,
+  db: (command: string) => Promise<Route | undefined>,
   query: string,
   fallback: string
 ) {
@@ -144,7 +144,7 @@ export async function processQuery(
     query.split(' ')[0],
     query.split(' ').slice(1).join(' ') ?? '',
   ];
-  const route = await db.getRoute(command);
+  const route = await db(command);
   if (route) {
     return getRouteUrl(route, substring);
   }

@@ -64,7 +64,6 @@ export type Route = {
  *
  * @example
  * {
- *  origin: 'https://rout3r.com',
  *  searchFallback: 'https://duckduckgo.com/?&q=%@@@',
  *  rpc: 'https://rpc.maticvigil.com',
  *  address: '0x1234',
@@ -72,9 +71,9 @@ export type Route = {
  * }
  */
 export type RequestProperties = {
-  origin: string;
   searchFallback: string;
   rpc: string;
+  chainId: number;
   address: Address;
   contract: Address;
 };
