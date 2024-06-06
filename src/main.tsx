@@ -23,7 +23,7 @@ export const config = createConfig({
   },
 });
 
-var condition = window.location.href.match('/rout3r/#go') !== null;
+var condition = window.location.href.match('/#go') !== null;
 const container = document.getElementById('root');
 if (!container) {
   console.error("Couldn't find root element");

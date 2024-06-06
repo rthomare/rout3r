@@ -16,7 +16,7 @@ import { RequestProperties, Route } from './types';
 export function createRouterURL(params: RequestProperties): string {
   // url encode rpcUrl and searchFallback
   return (
-    `${origin}/rout3r/#go` +
+    `${origin}/#go` +
     `?searchFallback=${encodeURIComponent(params.searchFallback)}` +
     `&chainId=${encodeURIComponent(params.chainId)}` +
     `&rpc=${encodeURIComponent(params.rpc)}` +
