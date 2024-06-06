@@ -10,9 +10,10 @@
   "license": "MIT",
   "scripts": {
     "dev": "./fulldev.sh",
+    "add-domain": "echo \"rthree.xyz\" > dist/CNAME",
     "build": "tsc && vite build",
     "serve": "vite preview",
-    "predeploy": "npm run build",
+    "predeploy": "yarn build && yarn add-domain",
     "deploy": "gh-pages -d dist",
     "lint": "eslint src --ext .tsx --ext .ts",
     "lint:fix": "yarn lint --fix",

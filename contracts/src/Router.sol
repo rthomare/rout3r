@@ -82,14 +82,14 @@ contract Router {
     function reservedHead() internal pure returns (Route memory) {
         // Reserved route
         string[] memory subroutes = new string[](4);
-        subroutes[0] = "setup::%0000/rout3r/#setup";
-        subroutes[1] = "about::%0000/rout3r/#about";
-        subroutes[2] = "new::%0000/rout3r/#routes/new";
-        subroutes[3] = "search::%0000/rout3r/#routes/edit/%@@@";
+        subroutes[0] = "setup::%0000/#setup";
+        subroutes[1] = "about::%0000/#about";
+        subroutes[2] = "new::%0000/#routes/new";
+        subroutes[3] = "search::%0000/#routes/edit/%@@@";
         Route memory r3 = Route(
             HEAD, 
             "rout3r Menu", 
-            "%0000/rout3r/", 
+            "%0000/", 
             "The rout3r menu",
             subroutes,
             true, 

@@ -40,7 +40,7 @@ export function Routing() {
     processQuery(searchRoute, query ?? '', searchFallback)
       .then((url) => {
         // redirect to the processed url
-        window.location.href = url;
+        window.location.replace(url);
       })
       .catch((err) => {
         console.error(err);
