@@ -2,13 +2,15 @@
 pragma solidity ^0.8.23;
 
 import {Test, console} from "forge-std/Test.sol";
-import {Route, RouteAddData, RouteUpdateData, Router} from "../src/Router.sol";
+import {Route} from "../src/Route.sol";
+import {Router_V1} from "../src/Router_V1.sol";
+import {RouteAddData, RouteUpdateData} from "../src/IRouteMutator.sol";
 
 /// @title RouterTest - a contract to test the Router contract
 /// @dev The RouterTest contract is used to test the Router contract
 /// Note: There are reserved routes created as part of construction and contract deployment
 contract RouterTest is Test {
-    Router public router;
+    Router_V1 public router;
 
     function newRoute(uint256 id) pure internal returns (RouteAddData memory) {
         string[] memory subRoutes = new string[](0);
@@ -17,7 +19,7 @@ contract RouterTest is Test {
     }
     
     function setUp() public {
-        router = new Router();
+        router = new Router_V1();
     }
 
     function test_CreateAndGetRoute() public {

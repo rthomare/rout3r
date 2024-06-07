@@ -1,59 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0 
 pragma solidity ^0.8.23;
 
-// TODO: Consider adding events for creation, update, and deletion of routes
-// TODO: Make contract upgradable
-
-enum RouteType{ MANUAL, RESERVED }
-
-/// @title The Route Struct - represents a route in the Router contract
-/// @dev The route format is specific as follows:
-/// command: the command to be executed (string)
-/// name: the name of the route (string)
-/// url: the url of the route (string)
-/// description: the description of the route (string)
-/// subRoutes: the sub routes of the route (string[]) in the format of command::url (double colon)
-/// isValue: a boolean flag to check if the route is valid
-/// routeType: the type of the route, can be either 'manual' or 'reserved'
-struct Route {
-    string command;
-    string name;
-    string url;
-    string description;
-    string[] subRoutes;
-    bool isValue;
-    RouteType routeType;
-}
-
-/// @title The RouteAddData Struct - represents the data needed to add in the Router contract
-/// @dev The RouteAddData format is specific as follows:
-/// command: the command to be executed (string)
-/// name: the name of the route (string)
-/// url: the url of the route (string)
-/// description: the description of the route (string)
-/// subRoutes: the sub routes of the route (string[]) in the format of command::url (double colon)
-/// isValue: a boolean flag to check if the route is valid
-struct RouteAddData {
-    string command;
-    string name;
-    string url;
-    string description;
-    string[] subRoutes;
-}
-
-/// @title The RouteUpdateData Struct - represents the data needed to update a route in the Router contract
-/// @dev The RouteUpdateData format is specific as follows:
-/// name: the name of the route (string)
-/// url: the url of the route (string)
-/// description: the description of the route (string)
-/// subRoutes: the sub routes of the route (string[]) in the format of command::url (double colon)
-/// isValue: a boolean flag to check if the route is valid
-struct RouteUpdateData {
-    string name;
-    string url;
-    string description;
-    string[] subRoutes;
-}
+import {Route, RouteType} from "./Route.sol";
+import {IRouteReader} from "./IRouteReader.sol";
+import {IRouteMutator, RouteAddData, RouteUpdateData} from "./IRouteMutator.sol";
 
 bool constant PREV = false;
 bool constant NEXT = true;
@@ -62,7 +12,7 @@ string constant HEAD = "r3";
 /// @title The Router Contract - backed by simple circular linked list implementation
 /// @dev The Router contract is a simple contract that allows the owner to 
 /// create, update and delete routes.
-contract Router {
+contract Router_V1 is IRouteReader, IRouteMutator {
     address owner;
     mapping (string => mapping (bool => string)) cll;
     mapping (string => Route) routes;
@@ -156,15 +106,12 @@ contract Router {
         delete routes[command];
     }
 
-    /// @notice Returns the value of the node at the given index
     function getRoute(string memory command) public view returns (Route memory) {
         Route memory route = areEqual(command, HEAD) ? reservedHead() : routes[command];
         require(route.isValue);
         return route;
     }
 
-    /// @notice Returns the values of the linked list of paginated size n
-    /// @param cursor The cursor to start from, if empty string then starts from head
     function getRoutes(string memory cursor, uint256 n) public view returns (Route[] memory, uint256, string memory) {
         Route[] memory results = new Route[](n);
         uint256 length = 0;
