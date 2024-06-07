@@ -16,7 +16,7 @@ import {
 import {
   OnchainConfig,
   PINNED_CONTRACT_ABI,
-  RequestProperties,
+  AppSettings,
   Route,
 } from './types';
 import {
@@ -117,24 +117,24 @@ export async function deployContract(
 /*
  * Get a route by command
  * @param command - the command of the route to get
- * @param requestProps - the request properties to use for the route lookup
+ * @param appSettings - the request properties to use for the route lookup
  * @returns the route if it exists or undefined if it does not
  *
  * @example
- * const requestProps = {
+ * const appSettings = {
  *  account: '0x1234',
  *  contract: '0x5678',
  *  rpc: 'https://rpc.maticvigil.com',
  *  origin: 'https://rout3r.com',
  * };
- * const route = await searchRoute('g', requestProps);
+ * const route = await searchRoute('g', appSettings);
  */
 export async function searchRoute(
   command: string,
-  requestProps: Omit<RequestProperties, 'searchFallback'>
+  appSettings: Omit<AppSettings, 'searchFallback'>
 ): Promise<Route | undefined> {
   const publicClient = createPublicClient({
-    transport: http(requestProps.rpc),
+    transport: http(appSettings.rpc),
   });
   const data = encodeFunctionData({
     abi: PINNED_CONTRACT_ABI,
@@ -143,9 +143,9 @@ export async function searchRoute(
   });
   const result = await publicClient
     .call({
-      to: requestProps.contract,
+      to: appSettings.contract,
       data,
-      account: requestProps.address,
+      account: appSettings.address,
     })
     .catch(() => {
       return { data: undefined };

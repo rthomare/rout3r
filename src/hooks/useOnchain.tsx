@@ -1,4 +1,4 @@
-import { PropsWithChildren, createContext, useContext } from 'react';
+import { PropsWithChildren, createContext, useContext, useEffect } from 'react';
 import { getRouterContract } from '../lib/onchain';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { mnemonicToAccount } from 'viem/accounts';
@@ -10,7 +10,7 @@ import {
   http,
 } from 'viem';
 import { IS_FULL_DEV } from '../utils/general';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { OnchainConfig, PINNED_CONTRACT_ABI } from '../lib/types';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { queryKeyForRouterAddress } from '../lib/endpoints';
@@ -34,14 +34,23 @@ function useContractQuery(
   if (!publicClient || !walletClient) {
     return undefined;
   }
-  return useQuery({
-    queryKey: queryKeyForRouterAddress({
-      address: walletClient.account.address,
-      chainId: walletClient.chain.id,
-    }),
+  const queryClient = useQueryClient();
+  const queryKey = queryKeyForRouterAddress({
+    address: walletClient.account.address,
+    chainId: walletClient.chain.id,
+  });
+  const query = useQuery({
+    queryKey,
     queryFn: async () =>
       getRouterContract(publicClient, walletClient).then((v) => v ?? null),
   });
+  const isNull = query.isFetched && query.data === null;
+  useEffect(() => {
+    if (isNull) {
+      queryClient.invalidateQueries({ queryKey });
+    }
+  }, [isNull, queryKey]);
+  return query;
 }
 
 export const devConfig = () => {

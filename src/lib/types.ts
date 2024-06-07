@@ -54,7 +54,7 @@ export type Route = {
 };
 
 /*
- * @type RequestProperties
+ * @type AppSettings
  * The properties that are specified as part of a route lookup request.
  * @param origin - The origin of the router.
  * @param searchFallback - The search fallback url if route is not found.
@@ -70,7 +70,7 @@ export type Route = {
  *  contract: '0x5678',
  * }
  */
-export type RequestProperties = {
+export type AppSettings = {
   searchFallback: string;
   rpc: string;
   chainId: number;

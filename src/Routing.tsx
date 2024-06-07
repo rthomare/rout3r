@@ -1,51 +1,52 @@
-import { Address } from 'viem';
-import { processQuery } from './lib/engine';
+import { processQuery, retrieveAppSettings } from './lib/engine';
 import { useEffect } from 'react';
-import { RequestProperties } from './lib/types';
 import { useSearchRoute } from './lib/endpoints';
 import { LoadingScreen } from './components/LoadingScreen';
+import { Button, Center, Heading, Link, VStack } from '@chakra-ui/react';
+
+export function NoSettings() {
+  return (
+    <Center w="100vw" h="100vh">
+      <VStack>
+        <Heading>No settings were found for your Router</Heading>
+        <Heading size="md">Try going through the setup process again</Heading>
+        <Link href="/#setup">
+          <Button>Go to Setup</Button>
+        </Link>
+      </VStack>
+    </Center>
+  );
+}
 
 export function Routing() {
   // get the query parameters after /#go
   const queryString = window.location.href.split('/#go?')[1];
-  if (!queryString) {
-    console.error('No query string');
-    process.exit(1);
-  }
-  const params = new URLSearchParams(queryString);
-  const searchFallback = params.get('searchFallback');
-  const chainId = params.get('chainId');
-  const rpc = params.get('rpc');
-  const address = params.get('address') as Address;
-  const contract = params.get('contract') as Address;
-  const query = params.get('q');
-  if (!searchFallback || !rpc || !address || !contract || !chainId) {
-    console.error(
-      'The URL was not setup correctly please check to see that ' +
-        'searchFallback, rpc, address, chainId, & contract were all setup correctly'
-    );
-    process.exit(1);
+  const params = queryString ? new URLSearchParams(queryString) : null;
+  const query = params ? params.get('q') ?? '' : '';
+  const debug = params ? !!params.get('debug') : false;
+  const appSettings = retrieveAppSettings();
+  if (!appSettings) {
+    return <NoSettings />;
   }
 
-  const requestProperties: RequestProperties = {
-    searchFallback,
-    chainId: parseInt(chainId),
-    rpc,
-    address,
-    contract,
-  };
-  const searchRoute = useSearchRoute(requestProperties);
-
+  const searchRoute = useSearchRoute(appSettings);
   useEffect(() => {
-    processQuery(searchRoute, query ?? '', searchFallback)
+    if (!appSettings) {
+      return;
+    }
+    processQuery(searchRoute, query, appSettings.searchFallback)
       .then((url) => {
         // redirect to the processed url
-        window.location.replace(url);
+        !debug && window.location.replace(url);
       })
       .catch((err) => {
         console.error(err);
       });
-  }, []);
+  }, [appSettings]);
 
-  return <LoadingScreen summary="Processing Query" />;
+  return (
+    <LoadingScreen
+      summary={debug ? 'Debug Processesing Query' : 'Processing Query'}
+    />
+  );
 }

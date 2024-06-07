@@ -123,18 +123,14 @@ export function Onboard() {
         completed={conditions[2]}
         onClick={setIndex(1)}
       >
-        <SetupBrowser />
-        <Button
-          onClick={() => {
+        <SetupBrowser
+          onSetup={() => {
             setSetupBrowser(() => {
               setIndex(2, true)();
               return true;
             });
           }}
-          mt={2}
-        >
-          Next
-        </Button>
+        />
       </OnboardingStep>
       <OnboardingStep
         title="Step 3: Create your first route"

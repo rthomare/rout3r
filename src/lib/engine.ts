@@ -1,6 +1,15 @@
 import { mapSubroutes } from '../utils/general';
 import { SEARCH_REPLACEMENT } from './constants';
-import { RequestProperties, Route } from './types';
+import { AppSettings, Route } from './types';
+
+export function storeAppSettings(params: AppSettings) {
+  localStorage.setItem('appSettings', JSON.stringify(params));
+}
+
+export function retrieveAppSettings(): AppSettings | undefined {
+  const json = localStorage.getItem('appSettings');
+  return json ? JSON.parse(json) : undefined;
+}
 
 /*
  * @function createRouterURL
@@ -13,17 +22,9 @@ import { RequestProperties, Route } from './types';
  *    https://google.com/search?q=%@@@
  * );
  */
-export function createRouterURL(params: RequestProperties): string {
+export function createRouterURL(): string {
   // url encode rpcUrl and searchFallback
-  return (
-    `${origin}/#go` +
-    `?searchFallback=${encodeURIComponent(params.searchFallback)}` +
-    `&chainId=${encodeURIComponent(params.chainId)}` +
-    `&rpc=${encodeURIComponent(params.rpc)}` +
-    `&address=${encodeURIComponent(params.address)}` +
-    `&contract=${encodeURIComponent(params.contract)}` +
-    '&q=%s'
-  );
+  return `${origin}/#go?q=%s`;
 }
 
 /*
