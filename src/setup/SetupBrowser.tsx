@@ -22,10 +22,11 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { isChrome, isSafari, isFirefox } from 'react-device-detect';
-import { createRouterURL, storeAppSettings } from '../lib/engine';
+import { createRouterURL } from '../lib/engine';
 import { useCopy } from '../hooks/useCopy';
 import { SEARCH_REPLACEMENT } from '../lib/constants';
 import { useOnchain } from '../hooks/useOnchain';
+import { useAppSettings } from '../hooks/useAppSettings';
 
 export function SetupBrowser({
   onSetup,
@@ -39,8 +40,9 @@ export function SetupBrowser({
   const routerUrl = createRouterURL();
   const defaultIndex = isChrome ? [0] : isFirefox ? [1] : isSafari ? [2] : [];
   const { config } = useOnchain();
+  const { updateSettings } = useAppSettings();
   const setup = useCallback(() => {
-    storeAppSettings({
+    updateSettings({
       searchFallback,
       chainId: config.walletClient.chain.id,
       rpc: config.walletClient.chain.rpcUrls.default.http[0],

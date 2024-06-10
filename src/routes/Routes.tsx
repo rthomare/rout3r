@@ -5,6 +5,7 @@ import {
   Center,
   Heading,
   HStack,
+  Spinner,
   Table,
   TableContainer,
   Tbody,
@@ -19,16 +20,22 @@ import {
 
 import { useGetRoutes } from '../lib/endpoints';
 import { RouteType } from '../lib/types';
-import { LoadingScreen } from '../components/LoadingScreen';
+import { PageHeader } from '../components/PageHeader';
+import { useGlobalLoader } from '../hooks/useGlobalLoader';
 
 export function Routes(): JSX.Element {
   const routesQuery = useGetRoutes();
   const navigate = useNavigate();
   const colorMode = useColorMode();
-  if (routesQuery.isLoading) {
-    return <LoadingScreen summary="Loading Routes" />;
-  }
+  useGlobalLoader({
+    id: 'get-routes',
+    showLoader: routesQuery.isLoading,
+    helperText: 'Getting your Routes',
+  });
 
+  if (routesQuery.isLoading) {
+    return <Spinner size="xl" />;
+  }
   if (routesQuery.isError) {
     return (
       <Center h="100%">
@@ -51,7 +58,7 @@ export function Routes(): JSX.Element {
   return (
     <VStack h="100%">
       <HStack w="100%" justifyContent="space-between">
-        <Heading size="lg">Routes</Heading>
+        <PageHeader>Routes</PageHeader>
         {routesQuery.data.routes.length > 0 && (
           <Link to="/routes/new">
             <Button>+ Add a Route</Button>

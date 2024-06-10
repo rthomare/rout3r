@@ -4,7 +4,6 @@ import {
   AccordionItem,
   AccordionPanel,
   Box,
-  Button,
   Flex,
   Heading,
   Spinner,
@@ -19,6 +18,7 @@ import { useCallback, useState } from 'react';
 import { UseRoute } from './UseRoute';
 import { Route } from '../lib/types';
 import { SetupRoute } from './SetupRoute';
+import { PageHeader } from '../components/PageHeader';
 
 function OnboardingStep({
   title,
@@ -105,54 +105,57 @@ export function Onboard() {
     }
   }, []);
   return (
-    <Accordion index={index}>
-      <Heading size="md" fontWeight="400" marginBottom={5}>
-        To get started, let's follow the steps below:
-      </Heading>
-      <OnboardingStep
-        title="Step 1: Deploy the Router"
-        subtitle="Deploy your router to create and manage your routes"
-        completed={conditions[1]}
-        onClick={setIndex(0)}
-      >
-        <DeployContract onComplete={setIndex(1, true)} />
-      </OnboardingStep>
-      <OnboardingStep
-        title="Step 2: Setup your Browser"
-        subtitle="Setup a search fallback and your browser"
-        completed={conditions[2]}
-        onClick={setIndex(1)}
-      >
-        <SetupBrowser
-          onSetup={() => {
-            setSetupBrowser(() => {
-              setIndex(2, true)();
-              return true;
-            });
-          }}
-        />
-      </OnboardingStep>
-      <OnboardingStep
-        title="Step 3: Create your first route"
-        subtitle="Create a route and test it out!"
-        completed={conditions[3]}
-        onClick={setIndex(2)}
-      >
-        {routerContract.isDeployed && (
-          <SetupRoute
-            selectedRoute={selectedRoute}
-            generatedRoute={didSelectRoute}
+    <>
+      <PageHeader>Setup</PageHeader>
+      <Accordion index={index}>
+        <Heading size="md" fontWeight="400" marginBottom={5}>
+          To get started, let's follow the steps below:
+        </Heading>
+        <OnboardingStep
+          title="Step 1: Deploy the Router"
+          subtitle="Deploy your router to create and manage your routes"
+          completed={conditions[1]}
+          onClick={setIndex(0)}
+        >
+          <DeployContract onComplete={setIndex(1, true)} />
+        </OnboardingStep>
+        <OnboardingStep
+          title="Step 2: Setup your Browser"
+          subtitle="Setup a search fallback and your browser"
+          completed={conditions[2]}
+          onClick={setIndex(1)}
+        >
+          <SetupBrowser
+            onSetup={() => {
+              setSetupBrowser(() => {
+                setIndex(2, true)();
+                return true;
+              });
+            }}
           />
-        )}
-      </OnboardingStep>
-      <OnboardingStep
-        title="Step 4: Try out your first route"
-        subtitle="Test out your new route in the browser!"
-        completed={false}
-        onClick={setIndex(3)}
-      >
-        {selectedRoute ? <UseRoute route={selectedRoute} /> : <Spinner />}
-      </OnboardingStep>
-    </Accordion>
+        </OnboardingStep>
+        <OnboardingStep
+          title="Step 3: Create your first route"
+          subtitle="Create a route and test it out!"
+          completed={conditions[3]}
+          onClick={setIndex(2)}
+        >
+          {routerContract.isDeployed && (
+            <SetupRoute
+              selectedRoute={selectedRoute}
+              generatedRoute={didSelectRoute}
+            />
+          )}
+        </OnboardingStep>
+        <OnboardingStep
+          title="Step 4: Try out your first route"
+          subtitle="Test out your new route in the browser!"
+          completed={false}
+          onClick={setIndex(3)}
+        >
+          {selectedRoute ? <UseRoute route={selectedRoute} /> : <Spinner />}
+        </OnboardingStep>
+      </Accordion>
+    </>
   );
 }

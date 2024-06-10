@@ -15,6 +15,7 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Spinner,
   Text,
   useDisclosure,
   VStack,
@@ -24,6 +25,8 @@ import { RouteForm } from '../components/RouteForm';
 import { useDeleteRoute, useGetRoute, useUpdateRoute } from '../lib/endpoints';
 import { RouteType } from '../lib/types';
 import { LoadingScreen } from '../components/LoadingScreen';
+import { PageHeader } from '../components/PageHeader';
+import { useGlobalLoader } from '../hooks/useGlobalLoader';
 
 export function EditRoute(): JSX.Element {
   const { command } = useParams();
@@ -42,9 +45,14 @@ export function EditRoute(): JSX.Element {
     routeRemoveMutation.reset();
     onDisclosureClose();
   }, [routeRemoveMutation, onDisclosureClose]);
+  useGlobalLoader({
+    id: 'edit-route',
+    showLoader: routeQuery.isLoading,
+    helperText: `Getting route ${command}`,
+  });
 
   if (routeQuery.isLoading) {
-    return <LoadingScreen summary="Loading Route" />;
+    return <Spinner size="xl" />;
   }
   if (routeQuery.isError) {
     return (
@@ -67,14 +75,14 @@ export function EditRoute(): JSX.Element {
   return (
     <>
       <HStack marginBottom={3} justifyContent="space-between">
-        <Heading size="lg">
+        <PageHeader>
           {routeQuery.data.name}
           {routeQuery.data.routeType === RouteType.RESERVED && (
             <Box as="span" color="gray">
               &nbsp;(Reserved Route)
             </Box>
           )}
-        </Heading>
+        </PageHeader>
         <Button
           colorScheme="red"
           onClick={onOpen}

@@ -1,18 +1,14 @@
 import { useNavigate } from 'react-router-dom';
-
-import { Heading } from '@chakra-ui/react';
-
 import { RouteForm } from '../components/RouteForm';
 import { useCreateRoute } from '../lib/endpoints';
+import { PageHeader } from '../components/PageHeader';
 
 export function AddRoute(): JSX.Element {
   const navigate = useNavigate();
   const createRouteMutation = useCreateRoute();
   return (
     <>
-      <Heading size="lg" marginBottom={3}>
-        Add Route
-      </Heading>
+      <PageHeader>Add Route</PageHeader>
       <RouteForm
         route={{}}
         onSubmit={async (routeData) => {

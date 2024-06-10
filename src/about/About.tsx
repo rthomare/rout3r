@@ -2,11 +2,12 @@ import { StarIcon } from '@chakra-ui/icons';
 import { Box, Button, Flex, Heading, Text, VStack } from '@chakra-ui/react';
 import { BsGithub } from 'react-icons/bs';
 import { Link } from 'react-router-dom';
+import { PageHeader } from '../components/PageHeader';
 
 export function About(): JSX.Element {
   return (
     <VStack alignItems="start" gap={5}>
-      <Heading>About rout3r</Heading>
+      <PageHeader>About rout3r</PageHeader>
       <Flex
         style={{
           marginTop: 0,

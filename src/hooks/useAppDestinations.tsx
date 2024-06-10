@@ -9,6 +9,7 @@ import { EditRoute } from '../route/EditRoute';
 import { Routes as Rout3s } from '../routes/Routes';
 import { useMemo } from 'react';
 import { Debug } from '../debug/Debug';
+import { Settings } from '../settings/Settings';
 
 type AppDestinations = {
   content: React.ReactElement;
@@ -116,6 +117,11 @@ export function useAppDestinations(): AppDestinationsResponse {
             path: '/',
             name: 'Root',
             shouldHideNav: true,
+          },
+          {
+            content: <Settings />,
+            path: '/settings',
+            name: 'Settings',
           },
           {
             content: <Onboard />,

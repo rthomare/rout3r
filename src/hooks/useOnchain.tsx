@@ -14,6 +14,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { OnchainConfig, PINNED_CONTRACT_ABI } from '../lib/types';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { queryKeyForRouterAddress } from '../lib/endpoints';
+import { useGlobalLoader } from './useGlobalLoader';
+import { Spinner } from '@chakra-ui/react';
 
 const ConfigContext = createContext<{ config: OnchainConfig } | undefined>(
   undefined
@@ -102,11 +104,20 @@ export const OnchainProvider = ({ children }: PropsWithChildren<{}>) => {
   const walletClient = IS_FULL_DEV ? dc.walletClient : walletClientQuery.data;
   const publicClient = IS_FULL_DEV ? dc.publicClient : usePublicClient();
   const { isDisconnected } = useAccount();
+  const showLoader =
+    !(isDisconnected && !IS_FULL_DEV) &&
+    (!walletClient || walletClientQuery.isLoading);
+  useGlobalLoader({
+    id: 'onchain',
+    showLoader,
+    helperText: 'Initializing your Wallet Client',
+  });
+
   if (isDisconnected && !IS_FULL_DEV) {
     return <>{children}</>;
   }
   if (!walletClient || walletClientQuery.isLoading) {
-    return <LoadingScreen summary="Loading wallet client" />;
+    return <Spinner />;
   }
   return (
     <ClientContext.Provider value={{ walletClient, publicClient }}>
@@ -121,11 +132,16 @@ const ConfigProvider = ({ children }: PropsWithChildren<{}>) => {
     clients?.publicClient,
     clients?.walletClient
   );
+  useGlobalLoader({
+    id: 'deployed-contracts',
+    showLoader: !!contractQuery && contractQuery.isLoading,
+    helperText: 'Finding your account',
+  });
   if (!clients || !contractQuery) {
     return <>{children}</>;
   }
   if (contractQuery.isLoading) {
-    return <LoadingScreen summary="Loading deployed contracts" />;
+    return null;
   }
   const contract = contractQuery.data
     ? getContract({

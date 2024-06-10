@@ -1,12 +1,10 @@
-import { Center, Heading, Spinner, VStack } from '@chakra-ui/react';
+import { Center } from '@chakra-ui/react';
+import { Loader } from './Loader';
 
-export function LoadingScreen({ summary }: { summary: string }) {
+export function LoadingScreen({ summary }: { summary?: string }) {
   return (
     <Center h="100vh" w="100vw">
-      <VStack>
-        <Spinner size="xl" />
-        <Heading size="sm">{summary}</Heading>
-      </VStack>
+      <Loader helperText={summary} />
     </Center>
   );
 }

@@ -1,8 +1,10 @@
-import { processQuery, retrieveAppSettings } from './lib/engine';
-import { useEffect } from 'react';
+import { processQuery } from './lib/engine';
+import { useEffect, useState } from 'react';
 import { useSearchRoute } from './lib/endpoints';
-import { LoadingScreen } from './components/LoadingScreen';
 import { Button, Center, Heading, Link, VStack } from '@chakra-ui/react';
+import { useAppSettings } from './hooks/useAppSettings';
+import { Loader } from './components/Loader';
+import { LoadingScreen } from './components/LoadingScreen';
 
 export function NoSettings() {
   return (
@@ -24,17 +26,18 @@ export function Routing() {
   const params = queryString ? new URLSearchParams(queryString) : null;
   const query = params ? params.get('q') ?? '' : '';
   const debug = params ? !!params.get('debug') : false;
-  const appSettings = retrieveAppSettings();
-  if (!appSettings) {
+  const { settings } = useAppSettings();
+  if (!settings) {
     return <NoSettings />;
   }
 
-  const searchRoute = useSearchRoute(appSettings);
+  const searchRoute = useSearchRoute(settings);
+
   useEffect(() => {
-    if (!appSettings) {
+    if (!settings) {
       return;
     }
-    processQuery(searchRoute, query, appSettings.searchFallback)
+    processQuery(searchRoute, query, settings.searchFallback)
       .then((url) => {
         // redirect to the processed url
         !debug && window.location.replace(url);
@@ -42,11 +45,7 @@ export function Routing() {
       .catch((err) => {
         console.error(err);
       });
-  }, [appSettings]);
+  }, [settings]);
 
-  return (
-    <LoadingScreen
-      summary={debug ? 'Debug Processesing Query' : 'Processing Query'}
-    />
-  );
+  return <LoadingScreen summary="Processing your Route" />;
 }

@@ -9,6 +9,7 @@ import { createConfig, http } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
 import { Routing } from './Routing';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { GlobalLoaderProvider } from './hooks/useGlobalLoader';
 
 declare module 'wagmi' {
   interface Register {
@@ -35,19 +36,21 @@ const root = createRoot(container);
 root.render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
-      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-      <PersistQueryClientProvider
-        client={queryClient}
-        persistOptions={{ persister }}
-      >
-        {condition ? (
-          <Routing />
-        ) : (
-          <WagmiProvider config={config}>
-            <App />
-          </WagmiProvider>
-        )}
-      </PersistQueryClientProvider>
+      <GlobalLoaderProvider>
+        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister }}
+        >
+          {condition ? (
+            <Routing />
+          ) : (
+            <WagmiProvider config={config}>
+              <App />
+            </WagmiProvider>
+          )}
+        </PersistQueryClientProvider>
+      </GlobalLoaderProvider>
     </ChakraProvider>
   </React.StrictMode>
 );
