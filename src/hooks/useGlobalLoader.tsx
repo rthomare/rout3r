@@ -6,7 +6,7 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { Heading } from '@chakra-ui/react';
+import { Fade, Heading } from '@chakra-ui/react';
 import { LoadingScreen } from '../components/LoadingScreen';
 
 interface LoaderConfig {
@@ -68,7 +68,20 @@ export function GlobalLoaderProvider(props: React.PropsWithChildren<{}>) {
 
   return (
     <LoaderContext.Provider value={value}>
-      {loaderItem && <LoadingScreen summary={loaderItem.helperText} />}
+      <Fade
+        transition={{
+          enter: {
+            duration: 0.5,
+          },
+          exit: {
+            duration: 0.2,
+          },
+        }}
+        in={!!loaderItem}
+        unmountOnExit
+      >
+        <LoadingScreen summary={loaderItem?.helperText} />
+      </Fade>
       {props.children}
     </LoaderContext.Provider>
   );

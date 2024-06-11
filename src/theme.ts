@@ -23,7 +23,7 @@ const styles = {
       background: props.colorMode === 'dark' ? 'black' : 'white',
     },
     Button: {
-      background: props.colorMode === 'dark' ? '#1A1B1F' : 'white',
+      // background: props.colorMode === 'dark' ? '#1A1B1F' : 'white',
     },
   }),
 };

@@ -43,7 +43,11 @@ function OnboardingStep({
         const highlighted = isExpanded || completed;
         return (
           <>
-            <AccordionButton onClick={onClick}>
+            <AccordionButton
+              onClick={onClick}
+              borderBottomRadius={isExpanded ? 0 : 10}
+              borderTopRadius={10}
+            >
               <VStack
                 w="100%"
                 alignItems="flex-start"

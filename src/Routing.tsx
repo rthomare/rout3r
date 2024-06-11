@@ -1,7 +1,7 @@
 import { processQuery } from './lib/engine';
 import { useEffect, useState } from 'react';
 import { useSearchRoute } from './lib/endpoints';
-import { Button, Center, Heading, Link, VStack } from '@chakra-ui/react';
+import { Button, Center, Fade, Heading, Link, VStack } from '@chakra-ui/react';
 import { useAppSettings } from './hooks/useAppSettings';
 import { Loader } from './components/Loader';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -47,5 +47,20 @@ export function Routing() {
       });
   }, [settings]);
 
-  return <LoadingScreen summary="Processing your Route" />;
+  return (
+    <Fade
+      transition={{
+        enter: {
+          duration: 0.5,
+        },
+        exit: {
+          duration: 0.2,
+        },
+      }}
+      in={true}
+      unmountOnExit
+    >
+      <LoadingScreen summary="Processing your Route" />
+    </Fade>
+  );
 }

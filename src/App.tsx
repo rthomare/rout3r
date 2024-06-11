@@ -1,5 +1,5 @@
 import { HashRouter, Route, Routes, useNavigate } from 'react-router-dom';
-import { Box, VStack, useColorMode } from '@chakra-ui/react';
+import { Box, Fade, VStack, useColorMode } from '@chakra-ui/react';
 import { Footer } from './components/Footer';
 import { Navbar } from './components/Navbar';
 import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
@@ -7,7 +7,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 import { useAppDestinations } from './hooks/useAppDestinations';
 import { OnchainProvider } from './hooks/useOnchain';
 import { useAccountEffect } from 'wagmi';
-import { LoadingScreen } from './components/LoadingScreen';
+import { useGlobalLoader } from './hooks/useGlobalLoader';
 
 function Content() {
   const appDestinations = useAppDestinations();
@@ -17,13 +17,20 @@ function Content() {
       navigate('/');
     },
   });
+  useGlobalLoader({
+    id: 'app-destinations',
+    showLoader: appDestinations.isLoading,
+    helperText: 'Booting up Application',
+  });
   return (
-    <VStack h="100vh" w="100vw" padding={8}>
-      <Navbar {...appDestinations} />
-      <Box flexGrow={1} w="100%" padding="1rem 0">
-        {appDestinations.isLoading ? (
-          <LoadingScreen summary="Loading destinations" />
-        ) : (
+    <Fade
+      transition={{ enter: { duration: 0.5 } }}
+      in={!appDestinations.isLoading}
+      unmountOnExit
+    >
+      <VStack h="100vh" w="100vw" padding={8}>
+        <Navbar {...appDestinations} />
+        <Box flexGrow={1} w="100%" padding="1rem 0">
           <Routes>
             {appDestinations.destinations.map((destination) => (
               <Route
@@ -33,10 +40,10 @@ function Content() {
               />
             ))}
           </Routes>
-        )}
-      </Box>
-      <Footer />
-    </VStack>
+        </Box>
+        <Footer />
+      </VStack>
+    </Fade>
   );
 }
 

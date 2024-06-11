@@ -8,6 +8,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <style>
+      /* Default styles (can be for light mode) */
+      body {
+        background-color: white;
+      }
+
+      /* Dark mode styles */
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: black;
+        }
+      }
+
+      /* Light mode styles (optional override) */
+      @media (prefers-color-scheme: light) {
+        body {
+          background-color: white;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
