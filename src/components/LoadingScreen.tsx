@@ -16,7 +16,7 @@ export function LoadingScreen({
     }, appearDelayMs ?? 0);
   }, [appearDelayMs, on]);
   return (
-    <Center h="100vh" w="100vw">
+    <Center h="100%" w="100vw">
       <Loader helperText={summary} />
     </Center>
   );

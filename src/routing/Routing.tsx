@@ -1,10 +1,9 @@
-import { processQuery } from './lib/engine';
-import { useEffect, useState } from 'react';
-import { useSearchRoute } from './lib/endpoints';
+import { processQuery } from '../lib/engine';
+import { useEffect } from 'react';
+import { useSearchRoute } from '../lib/endpoints';
 import { Button, Center, Fade, Heading, Link, VStack } from '@chakra-ui/react';
-import { useAppSettings } from './hooks/useAppSettings';
-import { Loader } from './components/Loader';
-import { LoadingScreen } from './components/LoadingScreen';
+import { useAppSettings } from '../hooks/useAppSettings';
+import { LoadingScreen } from '../components/LoadingScreen';
 
 export function NoSettings() {
   return (
@@ -49,6 +48,7 @@ export function Routing() {
 
   return (
     <Fade
+      style={{ height: '100%' }}
       transition={{
         enter: {
           duration: 0.5,

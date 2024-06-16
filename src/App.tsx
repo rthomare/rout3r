@@ -24,7 +24,7 @@ function Content() {
   });
   return (
     <Fade
-      transition={{ enter: { duration: 0.5 } }}
+      transition={{ enter: { duration: 0.5, delay: 0 } }}
       in={!appDestinations.isLoading}
       unmountOnExit
     >

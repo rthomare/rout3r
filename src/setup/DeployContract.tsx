@@ -16,7 +16,9 @@ export function DeployContract({
       {isDeployed && (
         <VStack alignItems="flex-start">
           <Link
-            to={`${chain?.blockExplorers.default.url}/search?q=${contract?.address}`}
+            to={`${chain?.blockExplorers!.default.url}/search?q=${
+              contract?.address
+            }`}
             target="_blank"
           >
             <Text textDecoration="underline">

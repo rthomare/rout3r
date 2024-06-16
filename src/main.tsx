@@ -1,30 +1,16 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
+import { Box, ChakraProvider, ColorModeScript } from '@chakra-ui/react';
 import App from './App';
 import theme from './theme';
 import { WagmiProvider } from 'wagmi';
 import { persister, queryClient } from './lib/queryClient';
-import { createConfig, http } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
-import { Routing } from './Routing';
+import { Routing } from './routing/Routing';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { GlobalLoaderProvider } from './hooks/useGlobalLoader';
+import { config } from './lib/config';
 
-declare module 'wagmi' {
-  interface Register {
-    config: typeof config;
-  }
-}
-
-export const config = createConfig({
-  chains: [sepolia],
-  transports: {
-    [sepolia.id]: http(),
-  },
-});
-
-var condition = window.location.href.match('/#go') !== null;
+const isGoRoute = window.location.href.match('/#go') !== null;
 const container = document.getElementById('root');
 if (!container) {
   console.error("Couldn't find root element");
@@ -33,6 +19,7 @@ if (!container) {
 
 // Dynamically load the appropriate module based on the condition
 const root = createRoot(container);
+const appConfig = config();
 root.render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
@@ -42,10 +29,12 @@ root.render(
           client={queryClient}
           persistOptions={{ persister }}
         >
-          {condition ? (
-            <Routing />
+          {isGoRoute ? (
+            <Box h="100vh" w="100vw">
+              <Routing />
+            </Box>
           ) : (
-            <WagmiProvider config={config}>
+            <WagmiProvider config={appConfig}>
               <App />
             </WagmiProvider>
           )}

@@ -1,21 +1,12 @@
 import { PropsWithChildren, createContext, useContext, useEffect } from 'react';
 import { getRouterContract } from '../lib/onchain';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
-import { mnemonicToAccount } from 'viem/accounts';
-import {
-  createPublicClient,
-  createWalletClient,
-  defineChain,
-  getContract,
-  http,
-} from 'viem';
-import { IS_FULL_DEV } from '../utils/general';
+import { getContract } from 'viem';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { OnchainConfig, PINNED_CONTRACT_ABI } from '../lib/types';
-import { LoadingScreen } from '../components/LoadingScreen';
 import { queryKeyForRouterAddress } from '../lib/endpoints';
 import { useGlobalLoader } from './useGlobalLoader';
-import { Spinner } from '@chakra-ui/react';
+import { LoadingScreen } from '../components/LoadingScreen';
 
 const ConfigContext = createContext<{ config: OnchainConfig } | undefined>(
   undefined
@@ -55,69 +46,26 @@ function useContractQuery(
   return query;
 }
 
-export const devConfig = () => {
-  const account = mnemonicToAccount(
-    'test test test test test test test test test test test junk'
-  );
-  const chain = defineChain({
-    /** Collection of block explorers */
-    blockExplorers: {
-      default: {
-        name: 'Etherscan',
-        url: 'https://etherscan.io',
-      },
-    },
-    id: 31337,
-    name: 'Anvil',
-    /** Currency used by chain */
-    nativeCurrency: {
-      name: 'Hammer',
-      symbol: 'HAM',
-      decimals: 18,
-    },
-    /** Collection of RPC endpoints */
-    rpcUrls: {
-      default: { http: ['http://localhost:8545'] },
-    },
-    /** Flag for test networks */
-    testnet: true,
-  });
-  const transport = http('http://localhost:8545');
-  const walletClient = createWalletClient({
-    account,
-    chain,
-    transport,
-  });
-  const publicClient = createPublicClient({
-    chain,
-    transport,
-  });
-  return {
-    walletClient,
-    publicClient,
-  };
-};
-
 export const OnchainProvider = ({ children }: PropsWithChildren<{}>) => {
-  const dc = devConfig();
   const walletClientQuery = useWalletClient();
-  const walletClient = IS_FULL_DEV ? dc.walletClient : walletClientQuery.data;
-  const publicClient = IS_FULL_DEV ? dc.publicClient : usePublicClient();
+  const walletClient = walletClientQuery.data;
+  const publicClient = usePublicClient();
   const { isDisconnected } = useAccount();
-  const showLoader =
-    !(isDisconnected && !IS_FULL_DEV) &&
-    (!walletClient || walletClientQuery.isLoading);
+  const showLoader = !walletClient || walletClientQuery.isLoading;
   useGlobalLoader({
     id: 'onchain',
     showLoader,
     helperText: 'Initializing your Wallet Client',
   });
 
-  if (isDisconnected && !IS_FULL_DEV) {
+  if (isDisconnected) {
     return <>{children}</>;
   }
   if (!walletClient || walletClientQuery.isLoading) {
-    return <Spinner />;
+    return <LoadingScreen summary="Initializing Onchain Data" />;
+  }
+  if (!publicClient) {
+    throw new Error('No public client found');
   }
   return (
     <ClientContext.Provider value={{ walletClient, publicClient }}>

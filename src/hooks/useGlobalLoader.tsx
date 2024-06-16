@@ -71,6 +71,26 @@ export function GlobalLoaderProvider(props: React.PropsWithChildren<{}>) {
       <Fade
         transition={{
           enter: {
+            duration: 0.1,
+          },
+          exit: {
+            duration: 0.1,
+          },
+        }}
+        in={!loaderItem}
+      >
+        {props.children}
+      </Fade>
+      <Fade
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          height: '100vh',
+          width: '100vw',
+        }}
+        transition={{
+          enter: {
             duration: 0.5,
           },
           exit: {
@@ -82,7 +102,6 @@ export function GlobalLoaderProvider(props: React.PropsWithChildren<{}>) {
       >
         <LoadingScreen summary={loaderItem?.helperText} />
       </Fade>
-      {props.children}
     </LoaderContext.Provider>
   );
 }

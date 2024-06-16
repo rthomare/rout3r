@@ -10,6 +10,7 @@ import { Routes as Rout3s } from '../routes/Routes';
 import { useMemo } from 'react';
 import { Debug } from '../debug/Debug';
 import { Settings } from '../settings/Settings';
+import { Routing } from '../routing/Routing';
 
 type AppDestinations = {
   content: React.ReactElement;
@@ -149,6 +150,12 @@ export function useAppDestinations(): AppDestinationsResponse {
             content: <Debug />,
             path: '/debug',
             name: 'Debug',
+            shouldHideNav: true,
+          },
+          {
+            content: <Routing />,
+            path: '/go',
+            name: 'Go',
             shouldHideNav: true,
           },
         ],
