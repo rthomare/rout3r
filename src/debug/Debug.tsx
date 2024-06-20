@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
-import { getRoutes } from '../lib/onchain';
+
 import { useOnchain } from '../hooks/useOnchain';
+import { getRoutes } from '../lib/onchain';
+import { Route } from '../lib/types';
 
 export function Debug() {
   const { config } = useOnchain();
-  const [routes, setRoutes] = useState<any>();
+  const [routes, setRoutes] = useState<{
+    routes: Route[];
+    cursor: string;
+    length: bigint;
+  }>();
   useEffect(() => {
-    getRoutes(config, '', 10n).then((routes) => {
-      console.log('Routes:', routes);
-      setRoutes(routes);
+    getRoutes(config, '', 10n).then((retreived) => {
+      setRoutes(retreived);
     });
   }, [config]);
 

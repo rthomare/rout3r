@@ -1,20 +1,22 @@
+import { BsGithub } from 'react-icons/bs';
+import { Link, useLocation } from 'react-router-dom';
+
 import { MoonIcon, SunIcon } from '@chakra-ui/icons';
 import {
   Box,
-  HStack,
   Heading,
+  HStack,
   Icon,
   Switch,
   useColorMode,
 } from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { BsGithub } from 'react-icons/bs';
-import { Link, useLocation } from 'react-router-dom';
-import { useAppState } from '../hooks/useAppState';
+
 import { AppDestinationsResponse } from '../hooks/useAppDestinations';
-import { IS_FULL_DEV, shortenAddress } from '../utils/general';
-import { useOnchainRaw } from '../hooks/useOnchain';
+import { useAppState } from '../hooks/useAppState';
 import { useCopy } from '../hooks/useCopy';
+import { useOnchainRaw } from '../hooks/useOnchain';
+import { IS_FULL_DEV, shortenAddress } from '../utils/general';
 
 export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -37,8 +39,8 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
             <Link key={dest.path} to={dest.path}>
               <Heading
                 size="md"
-                textTransform={'uppercase'}
-                letterSpacing={'0.1em'}
+                textTransform="uppercase"
+                letterSpacing="0.1em"
                 color={
                   location.pathname.includes(dest.path) ? undefined : 'gray'
                 }
@@ -68,7 +70,7 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
         <Link
           aria-label="Go to rout3r github"
           to="https://github.com/rthomare/rout3r"
-          target={'_blank'}
+          target="_blank"
         >
           <Icon
             as={BsGithub}
@@ -92,7 +94,7 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
             top="8px"
             left="5px"
             color="white"
-            pointerEvents={'none'}
+            pointerEvents="none"
           />
           <SunIcon
             fontSize="md"
@@ -100,7 +102,7 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
             top="8px"
             right="5px"
             color="white"
-            pointerEvents={'none'}
+            pointerEvents="none"
           />
         </Box>
       </HStack>

@@ -1,4 +1,5 @@
 import { mapSubroutes } from '../utils/general';
+
 import { SEARCH_REPLACEMENT } from './constants';
 import { AppSettings, Route } from './types';
 
@@ -68,9 +69,7 @@ export function traverseRoute(
   }
 
   const parsedSubRoutes = mapSubroutes(subRoutes);
-  const subRoute = parsedSubRoutes.find((sr) => {
-    return sr.command === subcommand;
-  });
+  const subRoute = parsedSubRoutes.find((sr) => sr.command === subcommand);
   if (!subRoute) {
     return { url, query };
   }

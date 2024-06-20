@@ -1,16 +1,19 @@
+import { useMemo } from 'react';
+
 import { Heading, VStack } from '@chakra-ui/react';
-import { useAppState } from './useAppState';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+
 import { About } from '../about/About';
-import { Onboard } from '../setup/Onboard';
-import { Redirect } from '../components/Redirect';
 import { AddRoute } from '../add/AddRoute';
+import { Redirect } from '../components/Redirect';
+import { Debug } from '../debug/Debug';
 import { EditRoute } from '../route/EditRoute';
 import { Routes as Rout3s } from '../routes/Routes';
-import { useMemo } from 'react';
-import { Debug } from '../debug/Debug';
-import { Settings } from '../settings/Settings';
 import { Routing } from '../routing/Routing';
+import { Settings } from '../settings/Settings';
+import { Onboard } from '../setup/Onboard';
+
+import { useAppState } from './useAppState';
 
 type AppDestinations = {
   content: React.ReactElement;

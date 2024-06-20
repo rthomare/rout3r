@@ -1,8 +1,10 @@
+import { useCallback } from 'react';
+
 import { Button, Code, Heading, VStack } from '@chakra-ui/react';
-import { Route } from '../lib/types';
+
 import { RouteForm } from '../components/RouteForm';
 import { useCreateRoute, useGetRoutes } from '../lib/endpoints';
-import { useCallback } from 'react';
+import { Route } from '../lib/types';
 
 export function SetupRoute({
   selectedRoute,
@@ -32,11 +34,11 @@ export function SetupRoute({
           generatedRoute(route);
         }}
         cancel={
-          routeQuery.data?.routes.length ?? 0 > 0
+          routeQuery.data?.routes[0]
             ? {
-                text: `Skip and use ${routeQuery.data?.routes[0].command}`,
+                text: `Skip and use ${routeQuery.data.routes[0].command}`,
                 onClick: () => {
-                  generatedRoute(routeQuery.data?.routes[0]!);
+                  generatedRoute(routeQuery.data.routes[0]);
                 },
                 isLoading: routeQuery.isLoading,
               }

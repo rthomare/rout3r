@@ -1,3 +1,5 @@
+import { useCallback, useEffect } from 'react';
+
 import { useToast } from '@chakra-ui/react';
 import {
   useIsMutating,
@@ -5,7 +7,10 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { OnchainConfig, AppSettings, Route } from './types';
+
+import { useErrorToast } from '../hooks/useErrorToast';
+import { useOnchain } from '../hooks/useOnchain';
+
 import {
   addRoute,
   deleteRoute,
@@ -15,9 +20,7 @@ import {
   searchRoute,
   updateRoute,
 } from './onchain';
-import { useErrorToast } from '../hooks/useErrorToast';
-import { useOnchain } from '../hooks/useOnchain';
-import { useCallback, useEffect } from 'react';
+import { AppSettings, OnchainConfig, Route } from './types';
 
 const STALE_TIME = 1000 * 60 * 60; // 1 hour
 
@@ -112,18 +115,18 @@ export function useGetRoute(command: string) {
   const errorToast = useErrorToast("Route couldn't be found");
   const query = useQuery({
     queryKey: qk,
-    queryFn: async () => {
-      return getRoute(config, command);
-    },
+    queryFn: async () => getRoute(config, command),
     // stale after 1 hours (unless invalidated)
     staleTime: STALE_TIME,
     enabled: !isMutating,
   });
   useEffect(() => {
     if (query.fetchStatus !== 'fetching' && query.isError) {
-      !isMutating && errorToast(query.error);
+      if (!isMutating) {
+        errorToast(query.error);
+      }
     }
-  }, [query.fetchStatus, query.isError, isMutating, errorToast]);
+  }, [query.fetchStatus, query.isError, isMutating, errorToast, query.error]);
   return query;
 }
 
@@ -157,10 +160,10 @@ export function useGetRoutes() {
     staleTime: 1000 * 60 * 60,
   });
   useEffect(() => {
-    if (query.fetchStatus !== 'fetching' && query.isError) {
-      !isMutating && errorToast(query.error);
+    if (query.fetchStatus !== 'fetching' && query.isError && !isMutating) {
+      errorToast(query.error);
     }
-  }, [query.fetchStatus, query.isError, isMutating, errorToast]);
+  }, [query.fetchStatus, query.isError, isMutating, errorToast, query.error]);
   return query;
 }
 
@@ -234,7 +237,7 @@ export function useCreateRoute(
         errorToast(error);
       }
     },
-    onError: onError,
+    onError,
   });
 }
 
@@ -270,7 +273,7 @@ export function useDeleteRoute(
   return useMutation({
     mutationKey: qk,
     mutationFn: async () =>
-      deleteRoute(config, command).then(async (v) => {
+      deleteRoute(config, command).then(async () => {
         // Invalidate the cache
         await queryClient.invalidateQueries({
           queryKey: qk,
@@ -295,7 +298,7 @@ export function useDeleteRoute(
         errorToast(error);
       }
     },
-    onError: onError,
+    onError,
   });
 }
 
@@ -368,7 +371,7 @@ export function useUpdateRoute(
         errorToast(error);
       }
     },
-    onError: onError,
+    onError,
   });
 }
 
@@ -400,15 +403,14 @@ export function useDeployRouter(
   const qk = queryKeyForRouterAddress(appSettingsFromConfig(config));
   return useMutation({
     mutationKey: qk,
-    mutationFn: async () => {
-      return deployContract(config).then(async (contract) => {
+    mutationFn: async () =>
+      deployContract(config).then(async (contract) => {
         // Invalidate the cache
         await queryClient.invalidateQueries({
           queryKey: qk,
         });
         return contract;
-      });
-    },
+      }),
     onSuccess: (contract) => {
       toast({
         title: 'Router Deployed!',
@@ -433,6 +435,6 @@ export function useDeployRouter(
         errorToast(error);
       }
     },
-    onError: onError,
+    onError,
   });
 }

@@ -7,7 +7,9 @@ import {
 import { mnemonicToAccount } from 'viem/accounts';
 import { arbitrumSepolia } from 'viem/chains';
 import { createConfig } from 'wagmi';
+
 import { IS_FULL_DEV } from '../utils/general';
+
 import { anvilConnector } from './anvilConnector';
 
 declare module 'wagmi' {
@@ -75,12 +77,11 @@ export const config = () => {
       client: () => walletClient,
       connectors: [connector],
     });
-  } else {
-    return createConfig({
-      chains: [arbitrumSepolia],
-      transports: {
-        [arbitrumSepolia.id]: http(),
-      },
-    });
   }
+  return createConfig({
+    chains: [arbitrumSepolia],
+    transports: {
+      [arbitrumSepolia.id]: http(),
+    },
+  });
 };

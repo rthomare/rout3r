@@ -1,16 +1,15 @@
 import {
-  type Address,
   type EIP1193RequestFn,
   type Hex,
-  RpcRequestError,
-  SwitchChainError,
   type Transport,
   type WalletRpcSchema,
   custom,
   fromHex,
   getAddress,
-  numberToHex,
   HDAccount,
+  numberToHex,
+  RpcRequestError,
+  SwitchChainError,
 } from 'viem';
 import { rpc } from 'viem/utils';
 import { createConnector } from 'wagmi';
@@ -39,8 +38,8 @@ export function anvilConnector(parameters: AnvilParameters) {
       });
 
       let currentChainId = await this.getChainId();
-      if (chainId && currentChainId !== chainId) {
-        const chain = await this.switchChain!({ chainId });
+      if (chainId && currentChainId !== chainId && this.switchChain) {
+        const chain = await this.switchChain({ chainId });
         currentChainId = chain.id;
       }
 
@@ -49,7 +48,10 @@ export function anvilConnector(parameters: AnvilParameters) {
         chainId: currentChainId,
       };
     },
-    async disconnect() {},
+    async disconnect() {
+      // no-op
+      throw new Error('Not implemented');
+    },
     async getAccounts() {
       const provider = await this.getProvider();
       const accounts = await provider.request({ method: 'eth_accounts' });
@@ -88,13 +90,17 @@ export function anvilConnector(parameters: AnvilParameters) {
     },
     async onDisconnect(_error) {
       config.emitter.emit('disconnect');
+      console.error(_error);
     },
     async getProvider({ chainId } = {}) {
       const chain =
         config.chains.find((x) => x.id === chainId) ?? config.chains[0];
-      const url = chain.rpcUrls.default.http[0]!;
+      if (!chain.rpcUrls.default.http[0])
+        throw new Error('Chain url not found');
+      const url = chain.rpcUrls.default.http[0];
 
       const request: EIP1193RequestFn = async ({ method, params }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyParams = params as any;
         // eth methods
         if (method === 'eth_chainId') return numberToHex(connectedChainId);
@@ -108,15 +114,15 @@ export function anvilConnector(parameters: AnvilParameters) {
           type Params = [{ chainId: Hex }];
           connectedChainId = fromHex((params as Params)[0].chainId, 'number');
           this.onChainChanged(connectedChainId.toString());
-          return;
+          return null;
         }
 
         // other methods
         if (method === 'personal_sign') {
           // Change `personal_sign` to `eth_sign` and swap params
-          method = 'eth_sign';
-          type Params = [data: Hex, address: Address];
-          params = [(params as Params)[1], (params as Params)[0]] as any;
+          // method = 'eth_sign';
+          // type Params = [data: Hex, address: Address];
+          // params = [(params as Params)[1], (params as Params)[0]] as any;
           return parameters.account.signMessage({ message: anyParams[1] });
         }
 

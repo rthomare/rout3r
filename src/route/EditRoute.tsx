@@ -21,12 +21,11 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
+import { PageHeader } from '../components/PageHeader';
 import { RouteForm } from '../components/RouteForm';
+import { useGlobalLoader } from '../hooks/useGlobalLoader';
 import { useDeleteRoute, useGetRoute, useUpdateRoute } from '../lib/endpoints';
 import { RouteType } from '../lib/types';
-import { LoadingScreen } from '../components/LoadingScreen';
-import { PageHeader } from '../components/PageHeader';
-import { useGlobalLoader } from '../hooks/useGlobalLoader';
 
 export function EditRoute(): JSX.Element {
   const { command } = useParams();

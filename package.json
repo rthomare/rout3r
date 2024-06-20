@@ -1,6 +1,6 @@
 {
   "name": "rout3r",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "homepage": "https://rthree.xyz",
   "author": {
     "name": "Rohan Thomare",
@@ -14,7 +14,7 @@
     "build": "tsc && vite build",
     "serve": "vite preview",
     "predeploy": "yarn build && yarn add-domain",
-    "deploy": "gh-pages -d dist",
+    "deploy": "./deploy.sh",
     "lint": "eslint src --ext .tsx --ext .ts",
     "lint:fix": "yarn lint --fix",
     "format": "prettier --config ./.prettierrc -w 'src/**/*.{tsx,ts}' && git update-index --again",
