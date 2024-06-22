@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import { useOnchainRaw } from './useOnchain';
 import { useAccount } from 'wagmi';
+
+import { useOnchainRaw } from './useOnchain';
 
 /*
  * The type depicting Application State

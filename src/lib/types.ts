@@ -1,4 +1,3 @@
-import ROUTER_V1_0_0 from '../../contracts/versions/Router-1.0.0.json';
 import {
   Account,
   Address,
@@ -9,8 +8,9 @@ import {
   WalletClient,
 } from 'viem';
 
-export const PINNED_CONTRACT_ABI = ROUTER_V1_0_0.abi;
+import { PINNED_CONTRACT_ABI } from './constants';
 
+// eslint-disable-next-line no-shadow
 export enum RouteType {
   MANUAL = 0,
   RESERVED = 1,
@@ -24,10 +24,12 @@ export enum RouteType {
  * @param name - The name of the route.
  * @param url - The url that the route redirects to.
  * @param description - The description of the route.
- * @param subRoutes: string[] - the subroutes of the route each being a command::url pair (split on '::')
+ * @param subRoutes: string[] - the subroutes of the route each being a
+ *    command::url pair (split on '::')
  *    Note: use SUBROUTE_SEPERATOR and the mapSubroutes util function to be safe.
  * @param isValue: boolean - whether the route is a value route
- * @param type: 'manual' | 'reserved' - the type of the route if manual can be edited if reserved cannot be edited
+ * @param type: 'manual' | 'reserved' - the type of the route if
+ *    manual can be edited if reserved cannot be edited
  *
  * @example
  * {

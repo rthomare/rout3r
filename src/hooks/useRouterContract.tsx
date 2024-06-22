@@ -1,5 +1,6 @@
-import { useOnchain } from './useOnchain';
 import { useDeployRouter } from '../lib/endpoints';
+
+import { useOnchain } from './useOnchain';
 
 /*
  * Hook to deploy and check for the router contract address

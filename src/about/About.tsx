@@ -1,7 +1,9 @@
-import { StarIcon } from '@chakra-ui/icons';
-import { Box, Button, Flex, Heading, Text, VStack } from '@chakra-ui/react';
 import { BsGithub } from 'react-icons/bs';
 import { Link } from 'react-router-dom';
+
+import { StarIcon } from '@chakra-ui/icons';
+import { Box, Button, Flex, Heading, Text, VStack } from '@chakra-ui/react';
+
 import { PageHeader } from '../components/PageHeader';
 
 export function About(): JSX.Element {
@@ -17,7 +19,7 @@ export function About(): JSX.Element {
         <Link
           to="https://github.com/rthomare"
           aria-label="Follow @rthomare on GitHub"
-          target={'_blank'}
+          target="_blank"
         >
           <Button
             size="xs"
@@ -34,7 +36,7 @@ export function About(): JSX.Element {
         <Link
           to="https://github.com/rthomare/rout3r"
           aria-label="Star rthomare/rout3r on GitHub"
-          target={'_blank'}
+          target="_blank"
         >
           <Button
             size="xs"

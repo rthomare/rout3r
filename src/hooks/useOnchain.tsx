@@ -1,12 +1,21 @@
-import { PropsWithChildren, createContext, useContext, useEffect } from 'react';
-import { getRouterContract } from '../lib/onchain';
-import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
+import {
+  createContext,
+  PropsWithChildren,
+  useContext,
+  useEffect,
+  useMemo,
+} from 'react';
 import { getContract } from 'viem';
+import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { OnchainConfig, PINNED_CONTRACT_ABI } from '../lib/types';
+
+import { PINNED_CONTRACT_ABI } from '../lib/constants';
 import { queryKeyForRouterAddress } from '../lib/endpoints';
+import { getRouterContract } from '../lib/onchain';
+import { OnchainConfig } from '../lib/types';
+
 import { useGlobalLoader } from './useGlobalLoader';
-import { LoadingScreen } from '../components/LoadingScreen';
 
 const ConfigContext = createContext<{ config: OnchainConfig } | undefined>(
   undefined
@@ -21,12 +30,9 @@ const ClientContext = createContext<
 >(undefined);
 
 function useContractQuery(
-  publicClient?: OnchainConfig['publicClient'],
-  walletClient?: OnchainConfig['walletClient']
+  publicClient: OnchainConfig['publicClient'],
+  walletClient: OnchainConfig['walletClient']
 ) {
-  if (!publicClient || !walletClient) {
-    return undefined;
-  }
   const queryClient = useQueryClient();
   const queryKey = queryKeyForRouterAddress({
     address: walletClient.account.address,
@@ -42,79 +48,110 @@ function useContractQuery(
     if (isNull) {
       queryClient.invalidateQueries({ queryKey });
     }
-  }, [isNull, queryKey]);
+  }, [isNull, queryKey, queryClient]);
   return query;
 }
 
-export const OnchainProvider = ({ children }: PropsWithChildren<{}>) => {
+export function OnchainProvider({ children }: PropsWithChildren) {
   const walletClientQuery = useWalletClient();
   const walletClient = walletClientQuery.data;
   const publicClient = usePublicClient();
   const { isDisconnected } = useAccount();
-  const showLoader = !walletClient || walletClientQuery.isLoading;
+  const showLoader =
+    !isDisconnected && (!walletClient || walletClientQuery.isLoading);
+  const value = useMemo(() => {
+    if (!walletClient || walletClientQuery.isLoading || !publicClient) {
+      return undefined;
+    }
+    return { walletClient, publicClient };
+  }, [walletClient, publicClient, walletClientQuery.isLoading]);
   useGlobalLoader({
-    id: 'onchain',
+    id: 'onchain-client',
     showLoader,
     helperText: 'Initializing your Wallet Client',
   });
+  useGlobalLoader({
+    id: 'onchain-data',
+    showLoader: !value && !isDisconnected,
+    helperText: 'Initializing Onchain Data',
+  });
 
-  if (isDisconnected) {
-    return <>{children}</>;
-  }
-  if (!walletClient || walletClientQuery.isLoading) {
-    return <LoadingScreen summary="Initializing Onchain Data" />;
-  }
-  if (!publicClient) {
-    throw new Error('No public client found');
+  if (isDisconnected || !value) {
+    return children;
   }
   return (
-    <ClientContext.Provider value={{ walletClient, publicClient }}>
+    <ClientContext.Provider value={value}>
       <ConfigProvider>{children}</ConfigProvider>
     </ClientContext.Provider>
   );
-};
+}
 
-const ConfigProvider = ({ children }: PropsWithChildren<{}>) => {
-  const clients = useContext(ClientContext);
-  const contractQuery = useContractQuery(
-    clients?.publicClient,
-    clients?.walletClient
-  );
+function ConfigInnerProvider({
+  walletClient,
+  publicClient,
+  children,
+}: PropsWithChildren<{
+  publicClient: OnchainConfig['publicClient'];
+  walletClient: OnchainConfig['walletClient'];
+}>) {
+  const contractQuery = useContractQuery(publicClient, walletClient);
   useGlobalLoader({
     id: 'deployed-contracts',
     showLoader: !!contractQuery && contractQuery.isLoading,
     helperText: 'Finding your account',
   });
-  if (!clients || !contractQuery) {
-    return <>{children}</>;
+  const contract = useMemo(
+    () =>
+      contractQuery.data
+        ? getContract({
+            address: contractQuery.data,
+            abi: PINNED_CONTRACT_ABI,
+            client: {
+              public: publicClient,
+              wallet: walletClient,
+            },
+          })
+        : null,
+    [contractQuery.data, publicClient, walletClient]
+  );
+
+  const value = useMemo(() => {
+    if (!contractQuery || contractQuery.isLoading) {
+      return undefined;
+    }
+    return {
+      config: {
+        publicClient,
+        walletClient,
+        contract,
+      },
+    };
+  }, [contract, contractQuery, publicClient, walletClient]);
+
+  if (!value) {
+    return children;
   }
-  if (contractQuery.isLoading) {
-    return null;
-  }
-  const contract = contractQuery.data
-    ? getContract({
-        address: contractQuery.data,
-        abi: PINNED_CONTRACT_ABI,
-        client: {
-          public: clients?.publicClient,
-          wallet: clients?.walletClient,
-        },
-      })
-    : null;
 
   return (
-    <ConfigContext.Provider
-      value={{
-        config: {
-          ...clients,
-          contract,
-        },
-      }}
+    <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>
+  );
+}
+
+function ConfigProvider({ children }: PropsWithChildren) {
+  const clients = useContext(ClientContext);
+  if (!clients) {
+    return children;
+  }
+
+  return (
+    <ConfigInnerProvider
+      publicClient={clients.publicClient}
+      walletClient={clients.walletClient}
     >
       {children}
-    </ConfigContext.Provider>
+    </ConfigInnerProvider>
   );
-};
+}
 
 export function useOnchain() {
   const config = useContext(ConfigContext);

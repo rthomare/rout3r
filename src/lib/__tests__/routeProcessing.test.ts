@@ -1,4 +1,4 @@
-import { describe } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import 'fake-indexeddb/auto';
 
@@ -59,7 +59,11 @@ describe('rout3r engine processing with database', () => {
     expect(url).toBe('https://www.google.com/search?tbm=isch&q=');
   });
   it('processes fallback correctly', async () => {
-    const url = await processQuery(getRoute, 'something', FALLBACK);
+    const url = await processQuery(
+      () => Promise.resolve(undefined),
+      'something',
+      FALLBACK
+    );
     expect(url).toBe('https://duckduckgo.com/?&q=something');
   });
 });

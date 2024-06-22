@@ -1,4 +1,5 @@
 import { extendTheme, StyleFunctionProps, ThemeConfig } from '@chakra-ui/react';
+
 import '@fontsource/quattrocento-sans';
 
 const config: ThemeConfig = {

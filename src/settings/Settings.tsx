@@ -1,15 +1,19 @@
-import { Button, Heading, Input, VStack } from '@chakra-ui/react';
-import { useAppSettings } from '../hooks/useAppSettings';
 import { useState } from 'react';
 import { BsFloppyFill } from 'react-icons/bs';
+
+import { Button, Heading, Input, VStack } from '@chakra-ui/react';
+
 import { PageHeader } from '../components/PageHeader';
+import { useAppSettings } from '../hooks/useAppSettings';
 
 export function Settings() {
   const { settings, updateSettings } = useAppSettings();
+  const [searchFallback, setSearchFallback] = useState(
+    settings?.searchFallback
+  );
   if (!settings) {
     return null;
   }
-  const [searchFallback, setSearchFallback] = useState(settings.searchFallback);
   return (
     <VStack alignItems="flex-start">
       <PageHeader>Settings</PageHeader>
@@ -27,7 +31,7 @@ export function Settings() {
         onClick={() =>
           updateSettings({
             ...settings,
-            searchFallback,
+            searchFallback: searchFallback ?? settings.searchFallback,
           })
         }
         w="100%"

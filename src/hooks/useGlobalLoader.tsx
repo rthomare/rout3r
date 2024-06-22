@@ -6,7 +6,9 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { Fade, Heading } from '@chakra-ui/react';
+
+import { Fade } from '@chakra-ui/react';
+
 import { LoadingScreen } from '../components/LoadingScreen';
 
 interface LoaderConfig {
@@ -25,9 +27,10 @@ const LoaderContext = createContext<
   | undefined
 >(undefined);
 
-export function GlobalLoaderProvider(props: React.PropsWithChildren<{}>) {
+export function GlobalLoaderProvider(props: React.PropsWithChildren) {
   const [values, setValues] = useState<Map<string, LoaderConfig>>(new Map());
   const [salt, setSalt] = useState(Math.random().toString(36).substring(7));
+  const { children } = props;
   const add = useCallback(
     (config: LoaderConfig) => {
       const exists = values.get(config.id);
@@ -38,7 +41,6 @@ export function GlobalLoaderProvider(props: React.PropsWithChildren<{}>) {
       }
       setValues(values);
       setSalt(Math.random().toString(36).substring(7));
-      return;
     },
     [values]
   );
@@ -49,21 +51,24 @@ export function GlobalLoaderProvider(props: React.PropsWithChildren<{}>) {
     },
     [values]
   );
-  const value = {
-    salt,
-    add,
-    remove,
-    values,
-  };
+  const value = useMemo(
+    () => ({
+      salt,
+      add,
+      remove,
+      values,
+    }),
+    [add, remove, salt, values]
+  );
 
   const loaderItem = useMemo(() => {
-    let _e: undefined | LoaderConfig;
+    let elm: undefined | LoaderConfig;
     values.forEach((element) => {
-      if (element.showLoader && !_e) {
-        _e = element;
+      if (salt && element.showLoader && !elm) {
+        elm = element;
       }
     });
-    return _e;
+    return elm;
   }, [values, salt]);
 
   return (
@@ -79,7 +84,7 @@ export function GlobalLoaderProvider(props: React.PropsWithChildren<{}>) {
         }}
         in={!loaderItem}
       >
-        {props.children}
+        {children}
       </Fade>
       <Fade
         style={{
@@ -123,5 +128,6 @@ export function useGlobalLoader(config: LoaderConfig) {
     return () => {
       remove(config);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.showLoader, add, remove]);
 }

@@ -1,5 +1,6 @@
-import { Heading, Text, Tooltip, VStack, useToast } from '@chakra-ui/react';
 import { useCallback } from 'react';
+
+import { Heading, Text, Tooltip, useToast, VStack } from '@chakra-ui/react';
 
 /*
  * Hook to show an error toast
@@ -33,6 +34,6 @@ export function useErrorToast(title: string) {
         isClosable: true,
       });
     },
-    [toast]
+    [toast, title]
   );
 }

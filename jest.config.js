@@ -16,4 +16,7 @@ module.exports = {
   },
   verbose: true,
   testTimeout: 30000,
+  transformIgnorePatterns: [
+    "node_modules/wagmi"
+  ]
 };

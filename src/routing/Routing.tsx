@@ -1,9 +1,11 @@
-import { processQuery } from '../lib/engine';
 import { useEffect } from 'react';
-import { useSearchRoute } from '../lib/endpoints';
+
 import { Button, Center, Fade, Heading, Link, VStack } from '@chakra-ui/react';
-import { useAppSettings } from '../hooks/useAppSettings';
+
 import { LoadingScreen } from '../components/LoadingScreen';
+import { useAppSettings } from '../hooks/useAppSettings';
+import { useSearchRoute } from '../lib/endpoints';
+import { processQuery } from '../lib/engine';
 
 export function NoSettings() {
   return (
@@ -26,12 +28,14 @@ export function Routing() {
   const query = params ? params.get('q') ?? '' : '';
   const debug = params ? !!params.get('debug') : false;
   const { settings } = useAppSettings();
-  if (!settings) {
-    return <NoSettings />;
-  }
-
-  const searchRoute = useSearchRoute(settings);
-
+  const searchRoute = useSearchRoute(
+    settings ?? {
+      rpc: '',
+      chainId: 0,
+      address: '0x0',
+      contract: '0x0',
+    }
+  );
   useEffect(() => {
     if (!settings) {
       return;
@@ -39,13 +43,18 @@ export function Routing() {
     processQuery(searchRoute, query, settings.searchFallback)
       .then((url) => {
         // redirect to the processed url
-        !debug && window.location.replace(url);
+        if (!debug) {
+          window.location.replace(url);
+        }
       })
       .catch((err) => {
         console.error(err);
       });
-  }, [settings]);
+  }, [settings, query, searchRoute, debug]);
 
+  if (!settings) {
+    return <NoSettings />;
+  }
   return (
     <Fade
       style={{ height: '100%' }}
@@ -57,7 +66,7 @@ export function Routing() {
           duration: 0.2,
         },
       }}
-      in={true}
+      in
       unmountOnExit
     >
       <LoadingScreen summary="Processing your Route" />

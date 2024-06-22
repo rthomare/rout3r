@@ -1,13 +1,16 @@
 import { HashRouter, Route, Routes, useNavigate } from 'react-router-dom';
-import { Box, Fade, VStack, useColorMode } from '@chakra-ui/react';
+import { useAccountEffect } from 'wagmi';
+
+import { Box, Fade, useColorMode, VStack } from '@chakra-ui/react';
+import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+
 import { Footer } from './components/Footer';
 import { Navbar } from './components/Navbar';
-import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
-import '@rainbow-me/rainbowkit/styles.css';
 import { useAppDestinations } from './hooks/useAppDestinations';
-import { OnchainProvider } from './hooks/useOnchain';
-import { useAccountEffect } from 'wagmi';
 import { useGlobalLoader } from './hooks/useGlobalLoader';
+import { OnchainProvider } from './hooks/useOnchain';
+
+import '@rainbow-me/rainbowkit/styles.css';
 
 function Content() {
   const appDestinations = useAppDestinations();

@@ -6,8 +6,9 @@ import {
   OrderedList,
   Text,
 } from '@chakra-ui/react';
-import { Route } from '../lib/types';
+
 import { useCopy } from '../hooks/useCopy';
+import { Route } from '../lib/types';
 
 export function UseRoute({ route }: { route: Route }) {
   const copy = useCopy();

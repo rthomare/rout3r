@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { isChrome, isFirefox, isSafari } from 'react-device-detect';
 import {
   BsBrowserChrome,
   BsBrowserFirefox,
@@ -6,6 +7,7 @@ import {
   BsChevronDown,
   BsThreeDotsVertical,
 } from 'react-icons/bs';
+
 import {
   Accordion,
   AccordionButton,
@@ -21,12 +23,19 @@ import {
   OrderedList,
   VStack,
 } from '@chakra-ui/react';
-import { isChrome, isSafari, isFirefox } from 'react-device-detect';
-import { createRouterURL } from '../lib/engine';
-import { useCopy } from '../hooks/useCopy';
-import { SEARCH_REPLACEMENT } from '../lib/constants';
-import { useOnchain } from '../hooks/useOnchain';
+
 import { useAppSettings } from '../hooks/useAppSettings';
+import { useCopy } from '../hooks/useCopy';
+import { useOnchain } from '../hooks/useOnchain';
+import { SEARCH_REPLACEMENT } from '../lib/constants';
+import { createRouterURL } from '../lib/engine';
+
+function defaultBrowserIndex() {
+  if (isChrome) return [0];
+  if (isFirefox) return [1];
+  if (isSafari) return [2];
+  return [0];
+}
 
 export function SetupBrowser({
   onSetup,
@@ -38,7 +47,7 @@ export function SetupBrowser({
     `https://www.google.com/search?q=${SEARCH_REPLACEMENT}`
   );
   const routerUrl = createRouterURL();
-  const defaultIndex = isChrome ? [0] : isFirefox ? [1] : isSafari ? [2] : [];
+  const defaultIndex = defaultBrowserIndex();
   const { config } = useOnchain();
   const { updateSettings } = useAppSettings();
   const setup = useCallback(() => {
@@ -50,7 +59,7 @@ export function SetupBrowser({
       contract: config.contract?.address ?? '0x',
     });
     onSetup();
-  }, [searchFallback, config, onSetup]);
+  }, [searchFallback, config, onSetup, updateSettings]);
 
   return (
     <>

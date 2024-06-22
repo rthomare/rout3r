@@ -1,7 +1,10 @@
-import { Button, Flex, Text, VStack } from '@chakra-ui/react';
-import { useRouterContract } from '../hooks/useRouterContract';
-import { useAccount } from 'wagmi';
+import { useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAccount } from 'wagmi';
+
+import { Button, Flex, Text, VStack } from '@chakra-ui/react';
+
+import { useRouterContract } from '../hooks/useRouterContract';
 
 export function DeployContract({
   onComplete,
@@ -11,14 +14,18 @@ export function DeployContract({
   const { chain } = useAccount();
   const { isDeployed, contract, deploy } = useRouterContract();
   const navigate = useNavigate();
+  const onSuccess = useCallback(() => {
+    if (onComplete) {
+      onComplete();
+    }
+    navigate('/setup');
+  }, [onComplete, navigate]);
   return (
     <Flex>
       {isDeployed && (
         <VStack alignItems="flex-start">
           <Link
-            to={`${chain?.blockExplorers!.default.url}/search?q=${
-              contract?.address
-            }`}
+            to={`${chain?.blockExplorers?.default.url}/search?q=${contract?.address}`}
             target="_blank"
           >
             <Text textDecoration="underline">
@@ -32,11 +39,8 @@ export function DeployContract({
           <Text>Click the button below to deploy your router</Text>
           <Button
             onClick={() =>
-              deploy.mutate(void 0, {
-                onSuccess: () => {
-                  onComplete?.();
-                  navigate('/setup');
-                },
+              deploy.mutate(undefined, {
+                onSuccess,
               })
             }
             isLoading={deploy.isPending}

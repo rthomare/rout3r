@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
-import { getRoutes } from '../lib/onchain';
+
 import { useOnchain } from '../hooks/useOnchain';
+import { getRoutes } from '../lib/onchain';
+import { Route } from '../lib/types';
 
 export function Debug() {
   const { config } = useOnchain();
-  const [routes, setRoutes] = useState<any>();
+  const [routes, setRoutes] = useState<{
+    routes: Route[];
+    cursor: string;
+    length: bigint;
+  }>();
   useEffect(() => {
-    getRoutes(config, '', 10n).then((routes) => {
-      console.log('Routes:', routes);
-      setRoutes(routes);
+    getRoutes(config, '', 10n).then((retreived) => {
+      setRoutes(retreived);
     });
   }, [config]);
 
@@ -21,7 +26,7 @@ export function Debug() {
       <h1>Debug</h1>
       <div>Account: {config.walletClient.account.address}</div>
       <div>Chain: {config.walletClient.chain.name}</div>
-      <div>Routes: {routes}</div>
+      <div>Routes: {JSON.stringify(routes?.routes)}</div>
     </div>
   );
 }

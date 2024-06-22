@@ -1,29 +1,24 @@
+import { BsGithub } from 'react-icons/bs';
+import { Link, useLocation } from 'react-router-dom';
+
 import { MoonIcon, SunIcon } from '@chakra-ui/icons';
 import {
   Box,
-  HStack,
   Heading,
+  HStack,
   Icon,
   Switch,
   useColorMode,
 } from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { BsGithub } from 'react-icons/bs';
-import { Link, useLocation } from 'react-router-dom';
-import { useAppState } from '../hooks/useAppState';
+
 import { AppDestinationsResponse } from '../hooks/useAppDestinations';
-import { IS_FULL_DEV, shortenAddress } from '../utils/general';
-import { useOnchainRaw } from '../hooks/useOnchain';
-import { useCopy } from '../hooks/useCopy';
+import { useAppState } from '../hooks/useAppState';
 
 export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();
   const appState = useAppState();
-  const onchain = useOnchainRaw();
-  const address =
-    onchain?.config.walletClient.account.address ?? 'unknown address';
   const location = useLocation();
-  const copy = useCopy();
 
   if (appState.isLoading || isLoading) {
     return null;
@@ -37,8 +32,6 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
             <Link key={dest.path} to={dest.path}>
               <Heading
                 size="md"
-                textTransform={'uppercase'}
-                letterSpacing={'0.1em'}
                 color={
                   location.pathname.includes(dest.path) ? undefined : 'gray'
                 }
@@ -50,25 +43,13 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
           ))}
       </HStack>
       <HStack fontSize="lg" gap={4}>
-        {appState.isWalletConnected && !IS_FULL_DEV && (
+        {appState.isWalletConnected && (
           <ConnectButton accountStatus="address" showBalance={false} />
-        )}
-        {appState.isWalletConnected && IS_FULL_DEV && (
-          <Heading
-            size="md"
-            borderRadius={10}
-            p="10px 20px"
-            background="Background"
-            onClick={copy(address, 'Copied Address')}
-            cursor="pointer"
-          >
-            Dev Mode: {shortenAddress(address)}
-          </Heading>
         )}
         <Link
           aria-label="Go to rout3r github"
           to="https://github.com/rthomare/rout3r"
-          target={'_blank'}
+          target="_blank"
         >
           <Icon
             as={BsGithub}
@@ -92,7 +73,7 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
             top="8px"
             left="5px"
             color="white"
-            pointerEvents={'none'}
+            pointerEvents="none"
           />
           <SunIcon
             fontSize="md"
@@ -100,7 +81,7 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
             top="8px"
             right="5px"
             color="white"
-            pointerEvents={'none'}
+            pointerEvents="none"
           />
         </Box>
       </HStack>

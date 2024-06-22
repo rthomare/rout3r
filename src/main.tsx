@@ -1,14 +1,16 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { Box, ChakraProvider, ColorModeScript } from '@chakra-ui/react';
-import App from './App';
-import theme from './theme';
 import { WagmiProvider } from 'wagmi';
-import { persister, queryClient } from './lib/queryClient';
-import { Routing } from './routing/Routing';
+
+import { Box, ChakraProvider, ColorModeScript } from '@chakra-ui/react';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+
 import { GlobalLoaderProvider } from './hooks/useGlobalLoader';
 import { config } from './lib/config';
+import { persister, queryClient } from './lib/queryClient';
+import { Routing } from './routing/Routing';
+import App from './App';
+import theme from './theme';
 
 const isGoRoute = window.location.href.match('/#go') !== null;
 const container = document.getElementById('root');

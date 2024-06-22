@@ -2,29 +2,27 @@ import {
   Account,
   Address,
   Chain,
-  Hex,
-  PublicClient,
-  Transport,
-  WalletClient,
   createPublicClient,
   decodeFunctionResult,
   encodeFunctionData,
   getContract,
   getContractAddress,
+  Hex,
   http,
+  PublicClient,
+  Transport,
+  WalletClient,
 } from 'viem';
-import {
-  OnchainConfig,
-  PINNED_CONTRACT_ABI,
-  AppSettings,
-  Route,
-} from './types';
+
+import { origin } from '../utils/general';
+
 import {
   ORIGIN_REPLACEMENT,
+  PINNED_CONTRACT_ABI,
   PINNED_CONTRACT_BYTECODE,
   PINNED_CONTRACT_DEPLOYED_BYTECODE,
 } from './constants';
-import { origin } from '../utils/general';
+import { AppSettings, OnchainConfig, Route } from './types';
 
 async function checkTransactionSuccess(
   onchainConfig: OnchainConfig,
@@ -62,14 +60,18 @@ export async function getRouterContract(
       from: walletClient.account.address,
       nonce,
     });
+    // We need to check if the contract is the pinned contract successively
+    // until we can find the contract
+    // eslint-disable-next-line no-await-in-loop
     const code = await publicClient.getBytecode({
       address: contractAddress,
     });
-    // simple heuristic to check if the contract is the pinned contract by just checking the first 10 and last 10 bytes
+    // simple heuristic to check if the contract is the pinned
+    // contract by just checking the first 10 and last 10 bytes
     if (code && code === PINNED_CONTRACT_DEPLOYED_BYTECODE) {
       return contractAddress;
     }
-    nonce = nonce - 1n;
+    nonce -= 1n;
   }
   return null;
 }
@@ -102,16 +104,16 @@ export async function deployContract(
     account: config.walletClient.account.address,
     bytecode: PINNED_CONTRACT_BYTECODE,
   });
-  return checkTransactionSuccess(config, hash).then((r) => {
-    return getContract({
+  return checkTransactionSuccess(config, hash).then(() =>
+    getContract({
       address: contractAddress,
       abi: PINNED_CONTRACT_ABI,
       client: {
         public: config.publicClient,
         wallet: config.walletClient,
       },
-    });
-  });
+    })
+  );
 }
 
 /*
@@ -147,9 +149,7 @@ export async function searchRoute(
       data,
       account: appSettings.address,
     })
-    .catch(() => {
-      return { data: undefined };
-    });
+    .catch(() => ({ data: undefined }));
   if (!result.data) {
     return undefined;
   }
@@ -160,9 +160,9 @@ export async function searchRoute(
   }) as Route;
   return {
     ...route,
-    url: route.url.replace(ORIGIN_REPLACEMENT, origin),
+    url: route.url.replace(ORIGIN_REPLACEMENT, origin()),
     subRoutes: route.subRoutes.map((sr: string) =>
-      sr.replace(ORIGIN_REPLACEMENT, origin)
+      sr.replace(ORIGIN_REPLACEMENT, origin())
     ),
   };
 }
@@ -224,20 +224,18 @@ export async function getRoutes(
   const [routes, length, newCursor] = (await config.contract.read.getRoutes(
     [cursor, limit],
     {
-      account: config.walletClient.account as any,
+      account: config.walletClient.account,
     }
   )) as [Route[], bigint, string];
   const validatedRoutes = routes
     .filter((val) => val.isValue)
-    .map((v) => {
-      return {
-        ...v,
-        url: v.url.replace(ORIGIN_REPLACEMENT, origin),
-        subRoutes: v.subRoutes.map((sr) =>
-          sr.replace(ORIGIN_REPLACEMENT, origin)
-        ),
-      };
-    });
+    .map((v) => ({
+      ...v,
+      url: v.url.replace(ORIGIN_REPLACEMENT, origin()),
+      subRoutes: v.subRoutes.map((sr) =>
+        sr.replace(ORIGIN_REPLACEMENT, origin())
+      ),
+    }));
   return {
     routes: validatedRoutes,
     cursor: newCursor,
@@ -268,17 +266,18 @@ export async function addRoute(
   if (!config.contract) {
     throw new Error('No contract found to update route.');
   }
-  const { result: route } = await config.contract.simulate.addRoute(
+  const { request, result: route } = await config.contract.simulate.addRoute(
     [createRouteData],
     {
-      account: config.walletClient.account as any,
+      account: config.walletClient.account.address,
     }
   );
   const hash = await config.contract.write.addRoute([route], {
-    account: config.walletClient.account as any,
+    ...request,
+    account: config.walletClient.account,
   });
   await checkTransactionSuccess(config, hash);
-  return route;
+  return route as unknown as Route;
 }
 
 /*
@@ -313,7 +312,7 @@ export async function updateRoute(
   const { request, result: route } = await config.contract.simulate.updateRoute(
     [command, updateRouteData],
     {
-      account: config.walletClient.account as any,
+      account: config.walletClient.account.address,
     }
   );
   const hash = await config.walletClient.writeContract({
@@ -321,7 +320,7 @@ export async function updateRoute(
     account: config.walletClient.account,
   });
   await checkTransactionSuccess(config, hash);
-  return route as Route;
+  return route as unknown as Route;
 }
 
 /*
@@ -340,7 +339,7 @@ export async function deleteRoute(config: OnchainConfig, command: string) {
     throw new Error('No contract found to delete route.');
   }
   const { request } = await config.contract.simulate.deleteRoute([command], {
-    account: config.walletClient.account as any,
+    account: config.walletClient.account.address,
   });
   return config.walletClient.writeContract({
     ...request,

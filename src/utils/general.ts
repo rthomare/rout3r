@@ -1,4 +1,5 @@
 import { CreateStyled } from '@emotion/styled';
+
 import { SUBROUTE_SEPERATOR } from '../lib/constants';
 
 export const transientOptions: Parameters<CreateStyled>[1] = {
@@ -6,8 +7,6 @@ export const transientOptions: Parameters<CreateStyled>[1] = {
 };
 
 export default transientOptions;
-
-export const IS_FULL_DEV = import.meta.env.VITE_FULL_DEV ? true : false;
 
 export function shortenAddress(address: string, length = 3): string {
   // + 2 to account for the '0x' prefix
@@ -20,7 +19,9 @@ export function mapSubroute(subroute: string): {
 } {
   const split = subroute.split(SUBROUTE_SEPERATOR);
   if (split.length < 1) {
-    throw 'Error with subroute string please confirm it follows form <command>::<url>';
+    throw new Error(
+      'Error with subroute string please confirm it follows form <command>::<url>'
+    );
   }
   return {
     command: split[0],
@@ -46,9 +47,10 @@ export function unmapSubroutes(subroutes: { command: string; url: string }[]) {
   return subroutes.map(unmapSubroute);
 }
 
-export let origin: string;
-try {
-  origin = window.location.origin;
-} catch {
-  origin = '';
-}
+export const origin = (): string => {
+  try {
+    return window.location.origin;
+  } catch {
+    return '';
+  }
+};

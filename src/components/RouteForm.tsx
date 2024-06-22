@@ -8,6 +8,7 @@ import {
 } from 'formik';
 import { useState } from 'react';
 import { BsFloppyFill } from 'react-icons/bs';
+import { Link } from 'react-router-dom';
 
 import { MinusIcon } from '@chakra-ui/icons';
 import {
@@ -25,10 +26,9 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import { Route, RouteType } from '../lib/types';
-import { Link } from 'react-router-dom';
-import { mapSubroutes, unmapSubroutes } from '../utils/general';
 import { SEARCH_REPLACEMENT } from '../lib/constants';
+import { Route, RouteType } from '../lib/types';
+import { mapSubroutes, unmapSubroutes } from '../utils/general';
 
 type RouteFromType = Omit<Route, 'isValue' | 'routeType' | 'subRoutes'> & {
   subRoutes: {
@@ -93,13 +93,12 @@ export function RouteForm({
       onSubmit={(values: RouteFromType, actions) => {
         actions.setSubmitting(true);
         setFormError(undefined);
-        const route = {
+        onSubmit({
           ...values,
           subRoutes: unmapSubroutes(values.subRoutes),
           routeType: RouteType.MANUAL,
           isValue: true,
-        };
-        onSubmit(route).finally(() => {
+        }).finally(() => {
           actions.setSubmitting(false);
         });
       }}
@@ -200,7 +199,7 @@ export function RouteForm({
             name="subRoutes"
             render={(arrayHelpers) => (
               <VStack alignItems="flex-start" gap={3}>
-                {props.values.subRoutes?.map((_, index) => {
+                {props.values.subRoutes?.map((data, index) => {
                   const touched = (props.touched.subRoutes || [])[index];
                   const ne =
                     props.errors.subRoutes?.[index] ??
@@ -211,7 +210,7 @@ export function RouteForm({
                     error.command || error.url;
                   const wasTouched = touched?.command && touched?.url;
                   return (
-                    <Box as="span" key={index} width="100%">
+                    <Box as="span" key={data.command} width="100%">
                       <HStack gap={2}>
                         <Field
                           name={`subRoutes.${index}.command`}
@@ -248,7 +247,7 @@ export function RouteForm({
                               )}
                               <Input
                                 {...field}
-                                placeholder={`https://www.g.com/search?q=anime+db+${SEARCH_REPLACEMENT}`}
+                                placeholder={`https://g.com/s?q=anime+db+${SEARCH_REPLACEMENT}`}
                               />
                             </FormControl>
                           )}

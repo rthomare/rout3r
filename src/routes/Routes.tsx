@@ -1,5 +1,6 @@
 import { BsCheckSquare, BsSquare } from 'react-icons/bs';
 import { Link, useNavigate } from 'react-router-dom';
+
 import {
   Button,
   Center,
@@ -18,10 +19,10 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import { useGetRoutes } from '../lib/endpoints';
-import { RouteType } from '../lib/types';
 import { PageHeader } from '../components/PageHeader';
 import { useGlobalLoader } from '../hooks/useGlobalLoader';
+import { useGetRoutes } from '../lib/endpoints';
+import { RouteType } from '../lib/types';
 
 export function Routes(): JSX.Element {
   const routesQuery = useGetRoutes();
