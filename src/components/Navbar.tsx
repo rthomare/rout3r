@@ -14,18 +14,11 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 import { AppDestinationsResponse } from '../hooks/useAppDestinations';
 import { useAppState } from '../hooks/useAppState';
-import { useCopy } from '../hooks/useCopy';
-import { useOnchainRaw } from '../hooks/useOnchain';
-import { IS_FULL_DEV, shortenAddress } from '../utils/general';
 
 export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();
   const appState = useAppState();
-  const onchain = useOnchainRaw();
-  const address =
-    onchain?.config.walletClient.account.address ?? 'unknown address';
   const location = useLocation();
-  const copy = useCopy();
 
   if (appState.isLoading || isLoading) {
     return null;
@@ -39,8 +32,6 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
             <Link key={dest.path} to={dest.path}>
               <Heading
                 size="md"
-                textTransform="uppercase"
-                letterSpacing="0.1em"
                 color={
                   location.pathname.includes(dest.path) ? undefined : 'gray'
                 }
@@ -52,20 +43,8 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
           ))}
       </HStack>
       <HStack fontSize="lg" gap={4}>
-        {appState.isWalletConnected && !IS_FULL_DEV && (
+        {appState.isWalletConnected && (
           <ConnectButton accountStatus="address" showBalance={false} />
-        )}
-        {appState.isWalletConnected && IS_FULL_DEV && (
-          <Heading
-            size="md"
-            borderRadius={10}
-            p="10px 20px"
-            background="Background"
-            onClick={copy(address, 'Copied Address')}
-            cursor="pointer"
-          >
-            Dev Mode: {shortenAddress(address)}
-          </Heading>
         )}
         <Link
           aria-label="Go to rout3r github"

@@ -8,9 +8,7 @@ import {
   WalletClient,
 } from 'viem';
 
-import ROUTER_V1_0_0 from '../../contracts/versions/Router-1.0.0.json';
-
-export const PINNED_CONTRACT_ABI = ROUTER_V1_0_0.abi;
+import { PINNED_CONTRACT_ABI } from './constants';
 
 // eslint-disable-next-line no-shadow
 export enum RouteType {

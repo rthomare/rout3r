@@ -26,7 +26,7 @@ export function Debug() {
       <h1>Debug</h1>
       <div>Account: {config.walletClient.account.address}</div>
       <div>Chain: {config.walletClient.chain.name}</div>
-      <div>Routes: {routes}</div>
+      <div>Routes: {JSON.stringify(routes?.routes)}</div>
     </div>
   );
 }

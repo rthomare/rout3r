@@ -18,15 +18,11 @@ import { origin } from '../utils/general';
 
 import {
   ORIGIN_REPLACEMENT,
+  PINNED_CONTRACT_ABI,
   PINNED_CONTRACT_BYTECODE,
   PINNED_CONTRACT_DEPLOYED_BYTECODE,
 } from './constants';
-import {
-  AppSettings,
-  OnchainConfig,
-  PINNED_CONTRACT_ABI,
-  Route,
-} from './types';
+import { AppSettings, OnchainConfig, Route } from './types';
 
 async function checkTransactionSuccess(
   onchainConfig: OnchainConfig,
@@ -270,17 +266,18 @@ export async function addRoute(
   if (!config.contract) {
     throw new Error('No contract found to update route.');
   }
-  const { result: route } = await config.contract.simulate.addRoute(
+  const { request, result: route } = await config.contract.simulate.addRoute(
     [createRouteData],
     {
-      account: config.walletClient.account,
+      account: config.walletClient.account.address,
     }
   );
   const hash = await config.contract.write.addRoute([route], {
+    ...request,
     account: config.walletClient.account,
   });
   await checkTransactionSuccess(config, hash);
-  return route;
+  return route as unknown as Route;
 }
 
 /*
@@ -315,7 +312,7 @@ export async function updateRoute(
   const { request, result: route } = await config.contract.simulate.updateRoute(
     [command, updateRouteData],
     {
-      account: config.walletClient.account,
+      account: config.walletClient.account.address,
     }
   );
   const hash = await config.walletClient.writeContract({
@@ -323,7 +320,7 @@ export async function updateRoute(
     account: config.walletClient.account,
   });
   await checkTransactionSuccess(config, hash);
-  return route as Route;
+  return route as unknown as Route;
 }
 
 /*
@@ -342,7 +339,7 @@ export async function deleteRoute(config: OnchainConfig, command: string) {
     throw new Error('No contract found to delete route.');
   }
   const { request } = await config.contract.simulate.deleteRoute([command], {
-    account: config.walletClient.account,
+    account: config.walletClient.account.address,
   });
   return config.walletClient.writeContract({
     ...request,

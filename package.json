@@ -9,7 +9,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "./fulldev.sh",
+    "dev": "./dev.sh",
     "add-domain": "echo \"rthree.xyz\" > dist/CNAME",
     "build": "tsc && vite build",
     "serve": "vite preview",
@@ -19,7 +19,7 @@
     "lint:fix": "yarn lint --fix",
     "format": "prettier --config ./.prettierrc -w 'src/**/*.{tsx,ts}' && git update-index --again",
     "pretest": "yarn lint:fix",
-    "test": "jest --colors --passWithNoTests",
+    "test": "vitest",
     "posttest": "npx http-server coverage/lcov-report",
     "test:watch": "yarn test --collectCoverage=false --watch",
     "prepare": "husky install",
@@ -82,6 +82,7 @@
     "sass": "^1.77.4",
     "ts-jest": "^29.0.5",
     "typescript": "^5.4.3",
-    "vite": "^4.0.4"
+    "vite": "^4.0.4",
+    "vitest": "^1.6.0"
   }
 }

@@ -7,10 +7,13 @@ import {
 } from 'react';
 import { getContract } from 'viem';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { PINNED_CONTRACT_ABI } from '../lib/constants';
 import { queryKeyForRouterAddress } from '../lib/endpoints';
 import { getRouterContract } from '../lib/onchain';
-import { OnchainConfig, PINNED_CONTRACT_ABI } from '../lib/types';
+import { OnchainConfig } from '../lib/types';
 
 import { useGlobalLoader } from './useGlobalLoader';
 
@@ -54,7 +57,8 @@ export function OnchainProvider({ children }: PropsWithChildren) {
   const walletClient = walletClientQuery.data;
   const publicClient = usePublicClient();
   const { isDisconnected } = useAccount();
-  const showLoader = !walletClient || walletClientQuery.isLoading;
+  const showLoader =
+    !isDisconnected && (!walletClient || walletClientQuery.isLoading);
   const value = useMemo(() => {
     if (!walletClient || walletClientQuery.isLoading || !publicClient) {
       return undefined;
@@ -68,7 +72,7 @@ export function OnchainProvider({ children }: PropsWithChildren) {
   });
   useGlobalLoader({
     id: 'onchain-data',
-    showLoader: !value,
+    showLoader: !value && !isDisconnected,
     helperText: 'Initializing Onchain Data',
   });
 

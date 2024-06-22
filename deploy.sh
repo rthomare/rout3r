@@ -15,7 +15,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-
 if [[ ! $REPLY =~ ^[Yy]$ ]]
 # update version number in package.json
 yarn version --patch

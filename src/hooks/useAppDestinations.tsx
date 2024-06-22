@@ -176,12 +176,6 @@ export function useAppDestinations(): AppDestinationsResponse {
           shouldHideNav: true,
         },
         {
-          content: <Redirect to="/setup" />,
-          path: '/routes',
-          name: 'Routes',
-          shouldHideNav: false,
-        },
-        {
           content: <Onboard />,
           path: '/setup',
           name: 'Setup',

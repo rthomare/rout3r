@@ -117,10 +117,10 @@ export function Onboard() {
       <PageHeader>Setup</PageHeader>
       <Accordion index={index}>
         <Heading size="md" fontWeight="400" marginBottom={5}>
-          To get started, let&aposs follow the steps below:
+          To get started, let&apos;s follow the steps below:
         </Heading>
         <OnboardingStep
-          title="Step 1: Deploy the Router"
+          title="Deploy your new Router!"
           subtitle="Deploy your router to create and manage your routes"
           completed={conditions[1]}
           onClick={() => setIndex(0)}
@@ -128,7 +128,7 @@ export function Onboard() {
           <DeployContract onComplete={() => setIndex(1, true)} />
         </OnboardingStep>
         <OnboardingStep
-          title="Step 2: Setup your Browser"
+          title="Setup your Browser"
           subtitle="Setup a search fallback and your browser"
           completed={conditions[2]}
           onClick={() => setIndex(1)}
@@ -143,7 +143,7 @@ export function Onboard() {
           />
         </OnboardingStep>
         <OnboardingStep
-          title="Step 3: Create your first route"
+          title="Create your first route"
           subtitle="Create a route and test it out!"
           completed={conditions[3]}
           onClick={() => setIndex(2)}
@@ -156,7 +156,7 @@ export function Onboard() {
           )}
         </OnboardingStep>
         <OnboardingStep
-          title="Step 4: Try out your first route"
+          title="Try out your first route"
           subtitle="Test out your new route in the browser!"
           completed={false}
           onClick={() => setIndex(3)}
