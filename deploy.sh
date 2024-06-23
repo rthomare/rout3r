@@ -4,7 +4,7 @@ echo
 version=$(node -p -e "require('./package.json').version")
 
 # run tests and build before deploying and exit if tests or build fail
-yarn test
+yarn run vitest --dom --run
 if [ $? -ne 0 ]; then
   echo "Tests failed, aborting deploy"
   exit 1
@@ -15,18 +15,18 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-if [[ ! $REPLY =~ ^[Yy]$ ]]
-# update version number in package.json
-yarn version --patch
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  # update version number in package.json
+  yarn version --patch
 
-# get the current version number
-version=$(node -p -e "require('./package.json').version")
-echo "Deploying version $version"
+  # get the current version number
+  version=$(node -p -e "require('./package.json').version")
+  echo "Deploying version $version"
 
-# commit changes
-git add -A
-git commit -m "build: bump to version $version"
-git push
+  # commit changes
+  git add -A
+  git commit -m "build: bump to version $version"
+  git push
 fi
 
 # deploy to gh-pages
