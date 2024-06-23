@@ -1,18 +1,30 @@
 import { HashRouter, Route, Routes, useNavigate } from 'react-router-dom';
-import { useAccountEffect } from 'wagmi';
+import { useAccountEffect, WagmiProvider } from 'wagmi';
 
-import { Box, Fade, useColorMode, VStack } from '@chakra-ui/react';
+import {
+  Box,
+  ChakraProvider,
+  ColorModeScript,
+  Fade,
+  useColorMode,
+  VStack,
+} from '@chakra-ui/react';
 import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 
 import { Footer } from './components/Footer';
 import { Navbar } from './components/Navbar';
 import { useAppDestinations } from './hooks/useAppDestinations';
-import { useGlobalLoader } from './hooks/useGlobalLoader';
+import { GlobalLoaderProvider, useGlobalLoader } from './hooks/useGlobalLoader';
 import { OnchainProvider } from './hooks/useOnchain';
+import { config } from './lib/config';
+import { persister, queryClient } from './lib/queryClient';
+import { Routing } from './routing/Routing';
+import theme from './theme';
 
 import '@rainbow-me/rainbowkit/styles.css';
 
-function Content() {
+export function Content() {
   const appDestinations = useAppDestinations();
   const navigate = useNavigate();
   useAccountEffect({
@@ -50,29 +62,50 @@ function Content() {
   );
 }
 
+const appConfig = config();
+
 function App(): JSX.Element {
   const { colorMode } = useColorMode();
+  const isGoRoute = window.location.href.match('/#go') !== null;
 
   return (
-    <HashRouter>
-      <OnchainProvider>
-        <RainbowKitProvider
-          theme={
-            colorMode === 'dark'
-              ? darkTheme({
-                  accentColor: '#0f0f0f',
-                  accentColorForeground: 'white',
-                  borderRadius: 'large',
-                  fontStack: 'rounded',
-                  overlayBlur: 'small',
-                })
-              : undefined
-          }
+    <ChakraProvider theme={theme}>
+      <GlobalLoaderProvider>
+        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister }}
         >
-          <Content />
-        </RainbowKitProvider>
-      </OnchainProvider>
-    </HashRouter>
+          {isGoRoute ? (
+            <Box h="100vh" w="100vw">
+              <Routing />
+            </Box>
+          ) : (
+            <WagmiProvider config={appConfig}>
+              <HashRouter>
+                <OnchainProvider>
+                  <RainbowKitProvider
+                    theme={
+                      colorMode === 'dark'
+                        ? darkTheme({
+                            accentColor: '#0f0f0f',
+                            accentColorForeground: 'white',
+                            borderRadius: 'large',
+                            fontStack: 'rounded',
+                            overlayBlur: 'small',
+                          })
+                        : undefined
+                    }
+                  >
+                    <Content />
+                  </RainbowKitProvider>
+                </OnchainProvider>
+              </HashRouter>
+            </WagmiProvider>
+          )}
+        </PersistQueryClientProvider>
+      </GlobalLoaderProvider>
+    </ChakraProvider>
   );
 }
 

@@ -1,3 +1,5 @@
+// ignore all es lint errors in this file
+/* eslint-disable */
 export const ROUTER_V1_0_0 = {
   abi: [
     { type: 'constructor', inputs: [], stateMutability: 'nonpayable' },

@@ -4,7 +4,7 @@ import {
   defineChain,
   http,
 } from 'viem';
-import { mnemonicToAccount } from 'viem/accounts';
+import { privateKeyToAccount } from 'viem/accounts';
 import { arbitrumSepolia } from 'viem/chains';
 import { createConfig } from 'wagmi';
 
@@ -15,10 +15,6 @@ declare module 'wagmi' {
     config: typeof config;
   }
 }
-
-export const anvilWallet = mnemonicToAccount(
-  'test test test test test test test test test test test junk'
-);
 
 export const anvilChain = defineChain({
   /** Collection of block explorers */
@@ -45,6 +41,9 @@ export const anvilChain = defineChain({
 });
 
 export const anvilClients = () => {
+  const anvilWallet = privateKeyToAccount(
+    '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+  );
   const account = anvilWallet;
   const chain = anvilChain;
   const transport = http('http://localhost:8545');

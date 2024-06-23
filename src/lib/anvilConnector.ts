@@ -6,8 +6,8 @@ import {
   custom,
   fromHex,
   getAddress,
-  HDAccount,
   numberToHex,
+  PrivateKeyAccount,
   RpcRequestError,
   SwitchChainError,
 } from 'viem';
@@ -15,7 +15,7 @@ import { rpc } from 'viem/utils';
 import { createConnector } from 'wagmi';
 
 export type AnvilParameters = {
-  account: HDAccount;
+  account: PrivateKeyAccount;
 };
 
 anvilConnector.type = 'anvil' as const;
