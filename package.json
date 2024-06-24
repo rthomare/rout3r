@@ -13,7 +13,6 @@
     "add-domain": "echo \"rthree.xyz\" > dist/CNAME",
     "build": "tsc && vite build",
     "serve": "vite preview",
-    "predeploy": "yarn build && yarn add-domain",
     "deploy": "./deploy.sh",
     "lint": "eslint src --ext .tsx --ext .ts",
     "lint:fix": "yarn lint --fix",

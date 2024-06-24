@@ -15,6 +15,8 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+yarn add-domain
+
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
   # update version number in package.json
   yarn version --patch
