@@ -90,8 +90,8 @@ export const config = () => {
       },
     ],
     {
-      appName: 'My RainbowKit App',
-      projectId: 'YOUR_PROJECT_ID',
+      appName: 'Rout3r',
+      projectId: 'daba908b6f524d3924a0ed3ac48d4077',
     }
   );
   return createConfig({

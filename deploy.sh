@@ -29,6 +29,6 @@ if [ $REPLY ==  "y" ]; then
   git push
 fi
 
-deploy to gh-pages
+# deploy to gh-pages
 echo "Deploying to gh-pages for version $version"
 gh-pages -d dist
