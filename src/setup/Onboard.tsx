@@ -73,7 +73,11 @@ function OnboardingStep({
                     {completed ? <BsCheckCircleFill /> : <BsCheckCircle />}
                   </Box>
                 </Flex>
-                {subtitle && <Text fontSize="md">{subtitle}</Text>}
+                {subtitle && (
+                  <Text textAlign="start" fontSize="md">
+                    {subtitle}
+                  </Text>
+                )}
               </VStack>
             </AccordionButton>
             <AccordionPanel pb={4}>{children}</AccordionPanel>

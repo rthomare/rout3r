@@ -1,6 +1,6 @@
 # ask if a new version should be deployed
 read -p "Do you want to deploy a new version? (y/n) " -n 1 -r
-echo
+RESULT=$(echo $REPLY | tr '[:upper:]' '[:lower:]')
 version=$(node -p -e "require('./package.json').version")
 
 # run tests and build before deploying and exit if tests or build fail
@@ -17,9 +17,23 @@ fi
 
 yarn add-domain
 
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+if [ $REPLY ==  "y" ]; then
+  read -p "Version type: major, minor, patch? (m/n/p) " -n 1 -r
+  MAJOR_RESULT=$(echo $REPLY | tr '[:upper:]' '[:lower:]')
+
+  if [ $MAJOR_RESULT == "m" ]; then
+    # update version number in package.json
+    yarn version --major
+  elif [ $MAJOR_RESULT == "p" ]; then
+    # update version number in package.json
+    yarn version --patch
+  elif [ $MAJOR_RESULT == "n" ]; then
   # update version number in package.json
-  yarn version --patch
+    yarn version --minor
+  else
+    echo "Invalid version type, aborting deploy"
+    exit 1
+  fi
 
   # get the current version number
   version=$(node -p -e "require('./package.json').version")
@@ -31,6 +45,6 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
   git push
 fi
 
-# deploy to gh-pages
+deploy to gh-pages
 echo "Deploying to gh-pages for version $version"
 gh-pages -d dist

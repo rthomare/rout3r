@@ -9,6 +9,12 @@ import { arbitrumSepolia } from 'viem/chains';
 import { createConfig } from 'wagmi';
 
 import { anvilConnector } from './anvilConnector';
+// import { injected, walletConnect } from 'wagmi/connectors';
+import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import {
+  injectedWallet,
+  walletConnectWallet,
+} from '@rainbow-me/rainbowkit/wallets';
 
 declare module 'wagmi' {
   interface Register {
@@ -76,10 +82,23 @@ export const config = () => {
       connectors: [connector],
     });
   }
+  const connectors = connectorsForWallets(
+    [
+      {
+        groupName: 'Recommended',
+        wallets: [injectedWallet, walletConnectWallet],
+      },
+    ],
+    {
+      appName: 'My RainbowKit App',
+      projectId: 'YOUR_PROJECT_ID',
+    }
+  );
   return createConfig({
     chains: [arbitrumSepolia],
     transports: {
       [arbitrumSepolia.id]: http(),
     },
+    connectors,
   });
 };

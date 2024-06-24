@@ -1,51 +1,119 @@
 import { BsGithub } from 'react-icons/bs';
 import { Link, useLocation } from 'react-router-dom';
 
-import { MoonIcon, SunIcon } from '@chakra-ui/icons';
+import { HamburgerIcon, MoonIcon, SunIcon } from '@chakra-ui/icons';
 import {
   Box,
+  Divider,
+  Drawer,
+  DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
+  DrawerHeader,
+  DrawerOverlay,
   Heading,
   HStack,
   Icon,
+  IconButton,
   Switch,
   useColorMode,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 import { AppDestinationsResponse } from '../hooks/useAppDestinations';
 import { useAppState } from '../hooks/useAppState';
+import { useRef } from 'react';
+import { ConnectButton } from './ConnectButton';
 
 export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();
   const appState = useAppState();
   const location = useLocation();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   if (appState.isLoading || isLoading) {
     return null;
   }
   return (
     <HStack justifyContent="space-between" w="100%">
+      {/* If on mobile show a hamburger menu wuth desinations as opposed to hstack */}
+      <Box display={{ base: 'block', md: 'none' }}>
+        <IconButton
+          icon={<HamburgerIcon />}
+          fontSize={'2xl'}
+          ref={btnRef}
+          onClick={onOpen}
+          aria-label={'menu'}
+          background="transparent"
+        >
+          Open
+        </IconButton>
+        <Drawer
+          isOpen={isOpen}
+          placement="left"
+          onClose={onClose}
+          finalFocusRef={btnRef}
+        >
+          <DrawerOverlay />
+          <DrawerContent>
+            <DrawerCloseButton />
+            <DrawerHeader>
+              {appState.isWalletConnected && <ConnectButton />}
+            </DrawerHeader>
+
+            <DrawerBody>
+              {destinations
+                .filter((v) => !v.shouldHideNav)
+                .map((dest) => (
+                  <>
+                    <Link
+                      key={dest.path}
+                      to={dest.path}
+                      onClickCapture={onClose}
+                    >
+                      <Heading
+                        size="md"
+                        padding="1rem 0"
+                        color={
+                          location.pathname.includes(dest.path)
+                            ? undefined
+                            : 'gray'
+                        }
+                        transition="color 0.2s"
+                      >
+                        {dest.name}
+                      </Heading>
+                    </Link>
+                    <Divider />
+                  </>
+                ))}
+            </DrawerBody>
+          </DrawerContent>
+        </Drawer>
+      </Box>
+      <Box display={{ base: 'none', md: 'block' }}>
+        <HStack fontSize="lg" gap={4}>
+          {destinations
+            .filter((v) => !v.shouldHideNav)
+            .map((dest) => (
+              <Link key={dest.path} to={dest.path}>
+                <Heading
+                  size="md"
+                  color={
+                    location.pathname.includes(dest.path) ? undefined : 'gray'
+                  }
+                  transition="color 0.2s"
+                >
+                  {dest.name}
+                </Heading>
+              </Link>
+            ))}
+          {appState.isWalletConnected && <ConnectButton />}
+        </HStack>
+      </Box>
+
       <HStack fontSize="lg" gap={4}>
-        {destinations
-          .filter((v) => !v.shouldHideNav)
-          .map((dest) => (
-            <Link key={dest.path} to={dest.path}>
-              <Heading
-                size="md"
-                color={
-                  location.pathname.includes(dest.path) ? undefined : 'gray'
-                }
-                transition="color 0.2s"
-              >
-                {dest.name}
-              </Heading>
-            </Link>
-          ))}
-      </HStack>
-      <HStack fontSize="lg" gap={4}>
-        {appState.isWalletConnected && (
-          <ConnectButton accountStatus="address" showBalance={false} />
-        )}
         <Link
           aria-label="Go to rout3r github"
           to="https://github.com/rthomare/rout3r"
