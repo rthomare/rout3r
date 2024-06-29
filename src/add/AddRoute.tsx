@@ -9,7 +9,7 @@ export function AddRoute(): JSX.Element {
   const createRouteMutation = useCreateRoute();
   return (
     <>
-      <PageHeader>Add Route</PageHeader>
+      <PageHeader>add route</PageHeader>
       <RouteForm
         route={{}}
         onSubmit={async (routeData) => {

@@ -64,7 +64,7 @@ export function SetupBrowser({
   return (
     <>
       <VStack alignItems="flex-start">
-        <Heading size="sm">Fallback URL</Heading>
+        <Heading size="sm">fallback url</Heading>
         <Input
           mb={3}
           placeholder="Enter your Fallback Search URL"
@@ -80,7 +80,7 @@ export function SetupBrowser({
             <AccordionPanel pb={4}>
               <OrderedList>
                 <ListItem>
-                  Go to&nbsp;
+                  go to&nbsp;
                   <Code
                     cursor="pointer"
                     onClick={copy('chrome://settings/searchEngines')}
@@ -90,10 +90,10 @@ export function SetupBrowser({
                   &nbsp;in a new tab.
                 </ListItem>
                 <ListItem>
-                  Next to <b>Site Search</b> click <b>Add</b>
+                  next to <b>site search</b> click <b>Add</b>
                 </ListItem>
                 <ListItem>
-                  In the search engine popup enter:
+                  in the search engine popup enter:
                   <ul>
                     <ListItem>
                       <b>Name:</b>{' '}
@@ -118,7 +118,7 @@ export function SetupBrowser({
                   </ul>
                 </ListItem>
                 <ListItem>
-                  Click <b>Add</b> to save.
+                  click <b>Add</b> to save.
                 </ListItem>
               </OrderedList>
               <Divider my={3} />
@@ -128,11 +128,11 @@ export function SetupBrowser({
                 fontWeight={600}
                 size="sm"
               >
-                (Optional) Make Rout3r the default search engine
+                (optional) make Rout3r the default search engine
               </Heading>
               <OrderedList>
                 <ListItem>
-                  Find the router entry by clicking on{' '}
+                  find the router entry by clicking on{' '}
                   <b>
                     Additional sites{' '}
                     <BsChevronDown
@@ -144,7 +144,7 @@ export function SetupBrowser({
                   and finding it under the name <b>rout3r</b>.
                 </ListItem>
                 <ListItem>
-                  (Optional) Click the three dots&nbsp;
+                  (optional) click the three dots&nbsp;
                   <BsThreeDotsVertical
                     style={{
                       display: 'inline',
@@ -160,14 +160,14 @@ export function SetupBrowser({
               <BsBrowserFirefox />
               &nbsp;Firefox
             </AccordionButton>
-            <AccordionPanel pb={4}>Not supported yet.</AccordionPanel>
+            <AccordionPanel pb={4}>not supported yet.</AccordionPanel>
           </AccordionItem>
           <AccordionItem>
             <AccordionButton>
               <BsBrowserSafari />
               &nbsp; Safari
             </AccordionButton>
-            <AccordionPanel pb={4}>Not supported yet.</AccordionPanel>
+            <AccordionPanel pb={4}>not supported yet.</AccordionPanel>
           </AccordionItem>
         </Accordion>
       </VStack>

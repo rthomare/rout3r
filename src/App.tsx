@@ -43,7 +43,7 @@ export function Content() {
       in={!appDestinations.isLoading}
       unmountOnExit
     >
-      <VStack h="100vh" w="100vw" padding={8}>
+      <VStack h="100vh" w="100vw" padding={8} paddingBottom={4}>
         <Navbar {...appDestinations} />
         <Box flexGrow={1} w="100%" padding="1rem 0">
           <Routes>

@@ -64,7 +64,7 @@ function OnboardingStep({
                 >
                   <Heading
                     size="md"
-                    fontWeight="bold"
+                    fontWeight={highlighted ? 'semibold' : 'normal'}
                     color={completed ? 'green.500' : undefined}
                   >
                     {title}
@@ -118,22 +118,22 @@ export function Onboard() {
   );
   return (
     <>
-      <PageHeader>Setup</PageHeader>
+      <PageHeader>setup</PageHeader>
       <Accordion index={index}>
-        <Heading size="md" fontWeight="400" marginBottom={5}>
-          To get started, let&apos;s follow the steps below:
+        <Heading size="sm" marginBottom={5}>
+          follow the steps below:
         </Heading>
         <OnboardingStep
-          title="Deploy your new Router!"
-          subtitle="Deploy your router to create and manage your routes"
+          title="deploy"
+          subtitle="deploy your router to create and manage your routes"
           completed={conditions[1]}
           onClick={() => setIndex(0)}
         >
           <DeployContract onComplete={() => setIndex(1, true)} />
         </OnboardingStep>
         <OnboardingStep
-          title="Setup your Browser"
-          subtitle="Setup a search fallback and your browser"
+          title="fallback"
+          subtitle="setup a search fallback and your browser"
           completed={conditions[2]}
           onClick={() => setIndex(1)}
         >
@@ -147,8 +147,8 @@ export function Onboard() {
           />
         </OnboardingStep>
         <OnboardingStep
-          title="Create your first route"
-          subtitle="Create a route and test it out!"
+          title="your first route"
+          subtitle="create a route and test it out!"
           completed={conditions[3]}
           onClick={() => setIndex(2)}
         >
@@ -160,8 +160,8 @@ export function Onboard() {
           )}
         </OnboardingStep>
         <OnboardingStep
-          title="Try out your first route"
-          subtitle="Test out your new route in the browser!"
+          title="try it out"
+          subtitle="test out your new route in the browser!"
           completed={false}
           onClick={() => setIndex(3)}
         >

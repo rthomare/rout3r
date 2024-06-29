@@ -16,16 +16,14 @@ export function Settings() {
   }
   return (
     <VStack alignItems="flex-start">
-      <PageHeader>Settings</PageHeader>
-      <Heading size="md">Fallback URL</Heading>
+      <PageHeader>settings</PageHeader>
+      <Heading size="sm">fallback url</Heading>
       <Input
-        placeholder="Enter your Fallback Search URL"
+        placeholder="enter your fallback search url"
         value={settings?.searchFallback}
         onChange={(e) => setSearchFallback(e.target.value)}
       />
-      <Heading size="md">RPC URL</Heading>
-      <Input disabled value={settings?.rpc} />
-      <Heading size="md">RPC URL</Heading>
+      <Heading size="sm">rpc url</Heading>
       <Input disabled value={settings?.rpc} />
       <Button
         onClick={() =>
@@ -40,7 +38,7 @@ export function Settings() {
         colorScheme="blue"
         flexGrow={1}
       >
-        Save
+        save
       </Button>
     </VStack>
   );

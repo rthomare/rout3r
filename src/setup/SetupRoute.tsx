@@ -20,8 +20,8 @@ export function SetupRoute({
   }, [generatedRoute]);
   return selectedRoute ? (
     <VStack alignItems="start">
-      <Heading size="md">
-        Your route: <Code>{selectedRoute.command}</Code> has been created!
+      <Heading size="sm">
+        your route: <Code>{selectedRoute.command}</Code> has been created!
       </Heading>
       <Button onClick={reset}>Redo this step!</Button>
     </VStack>
@@ -36,7 +36,7 @@ export function SetupRoute({
         cancel={
           routeQuery.data?.routes[0]
             ? {
-                text: `Skip and use ${routeQuery.data.routes[0].command}`,
+                text: `skip and use ${routeQuery.data.routes[0].command}`,
                 onClick: () => {
                   generatedRoute(routeQuery.data.routes[0]);
                 },

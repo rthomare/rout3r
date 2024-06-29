@@ -59,10 +59,10 @@ export function Routes(): JSX.Element {
   return (
     <VStack h="100%">
       <HStack w="100%" justifyContent="space-between">
-        <PageHeader>Routes</PageHeader>
+        <PageHeader mb="0">routes</PageHeader>
         {routesQuery.data.routes.length > 0 && (
           <Link to="/routes/new">
-            <Button>+ Add a Route</Button>
+            <Button>new route</Button>
           </Link>
         )}
       </HStack>
@@ -71,11 +71,11 @@ export function Routes(): JSX.Element {
           <Table variant="simple">
             <Thead>
               <Tr>
-                <Th>Command</Th>
-                <Th>Name</Th>
-                <Th>URL</Th>
-                <Th isNumeric>Subroutes</Th>
-                <Th>Reserved</Th>
+                <Th>command</Th>
+                <Th>name</Th>
+                <Th>url</Th>
+                <Th isNumeric>subroutes</Th>
+                <Th>reserved</Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -110,9 +110,9 @@ export function Routes(): JSX.Element {
         </TableContainer>
       ) : (
         <VStack flexGrow={1} justifyContent="center">
-          <Heading size="md">You don&apos;t have any routes</Heading>
+          <Heading size="md">you don&apos;t have any routes</Heading>
           <Link to="/routes/new">
-            <Button>Create a Route</Button>
+            <Button>create a route</Button>
           </Link>
         </VStack>
       )}

@@ -9,7 +9,7 @@ import { PageHeader } from '../components/PageHeader';
 export function About(): JSX.Element {
   return (
     <VStack alignItems="start" gap={5}>
-      <PageHeader>About rout3r</PageHeader>
+      <PageHeader>about rout3r</PageHeader>
       <Flex
         style={{
           marginTop: 0,
@@ -30,7 +30,7 @@ export function About(): JSX.Element {
             }}
             transition="all 0.2s"
           >
-            Follow @rthomare
+            follow @rthomare
           </Button>
         </Link>
         <Link
@@ -52,7 +52,7 @@ export function About(): JSX.Element {
         </Link>
       </Flex>
       <Box>
-        <Heading size="md">What is rout3r?</Heading>
+        <Heading size="md">what is rout3r?</Heading>
         <Text>
           rout3r is a simple routing application that allows you turn your
           browser into a command line interface to navigate to different
@@ -60,16 +60,16 @@ export function About(): JSX.Element {
         </Text>
       </Box>
       <Box>
-        <Heading size="md">What can I do with rout3r?</Heading>
+        <Heading size="md">what can I do with rout3r?</Heading>
         <Text>
-          You can create, edit, and delete routes. You can also view a list of
+          you can create, edit, and delete routes. You can also view a list of
           all routes.
         </Text>
       </Box>
       <Box>
-        <Heading size="md">How do I get started?</Heading>
+        <Heading size="md">how do I get started?</Heading>
         <Text>
-          To get started, click on the &quot;Setup&quot; link and follow the
+          to get started, click on the &quot;Setup&quot; link and follow the
           instructions to add it to your browser. Then click on the
           &quot;Routes&quot; link to view a list of all routes. From there, you
           can click on the &quot;Add a Route&quot; button to create a new route.

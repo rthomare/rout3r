@@ -29,14 +29,14 @@ export function DeployContract({
             target="_blank"
           >
             <Text textDecoration="underline">
-              Router contract already deployed at {contract?.address}
+              router contract already deployed at {contract?.address}
             </Text>
           </Link>
         </VStack>
       )}
       {!isDeployed && (
         <VStack alignItems="flex-start">
-          <Text>Click the button below to deploy your router</Text>
+          <Text>click the button below to deploy your router</Text>
           <Button
             onClick={() =>
               deploy.mutate(undefined, {
@@ -45,7 +45,7 @@ export function DeployContract({
             }
             isLoading={deploy.isPending}
           >
-            Deploy Router
+            deploy Router
           </Button>
         </VStack>
       )}

@@ -60,23 +60,23 @@ export function RouteForm({
   const validation = {
     name: (name: string) => {
       if (!name || name === '') {
-        return 'Name is required';
+        return 'name is required';
       }
       return undefined;
     },
     command: (command: string) => {
       if (!command || command === '') {
-        return 'Command is required';
+        return 'command is required';
       }
       return undefined;
     },
     url: (url: string) => {
       if (!url || url === '') {
-        return 'URL is required';
+        return 'url is required';
       }
       // check if url is valid format
       if (url.match(/^(http|https):\/\/[^ "]+$/) === null) {
-        return 'URL is invalid';
+        return 'url is invalid';
       }
       return undefined;
     },
@@ -119,9 +119,9 @@ export function RouteForm({
                 isInvalid={!!(form.touched.command && form.errors.command)}
                 isDisabled={disabledFields?.includes('command')}
               >
-                <FormLabel>Command</FormLabel>
+                <FormLabel>command</FormLabel>
                 <FormHelperText marginBottom="5px">
-                  Command to trigger the route
+                  command to trigger the route
                 </FormHelperText>
                 <Input {...field} placeholder="ga" />
                 <FormErrorMessage>
@@ -137,9 +137,9 @@ export function RouteForm({
                 isInvalid={!!(form.touched.name && form.errors.name)}
                 isDisabled={disabledFields?.includes('name')}
               >
-                <FormLabel>Name</FormLabel>
+                <FormLabel>name</FormLabel>
                 <FormHelperText marginBottom="5px">
-                  Name of the route you are creating
+                  name of the route you are creating
                 </FormHelperText>
                 <Input {...field} placeholder="Google Anime Search" />
                 <FormErrorMessage>
@@ -155,9 +155,9 @@ export function RouteForm({
                 isInvalid={!!(form.touched.url && form.errors.url)}
                 isDisabled={disabledFields?.includes('url')}
               >
-                <FormLabel>URL</FormLabel>
+                <FormLabel>url</FormLabel>
                 <FormHelperText marginBottom="5px">
-                  Optionally add {SEARCH_REPLACEMENT} to allow for the text
+                  optionally add {SEARCH_REPLACEMENT} to allow for the text
                   after the command to populate the url&apos;s search query.
                 </FormHelperText>
                 <Input
@@ -173,15 +173,15 @@ export function RouteForm({
           <Field name="description">
             {({ field }: FieldProps) => (
               <FormControl isDisabled={disabledFields?.includes('description')}>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>description</FormLabel>
                 <FormHelperText marginBottom="5px">
-                  Description of the route, feel free to add examples.{' '}
+                  description of the route, feel free to add examples.{' '}
                   <Link
                     target="_blank"
                     to="https://www.markdownguide.org/cheat-sheet/"
                   >
                     <Box as="span" textDecor="underline">
-                      Supports Markdown
+                      supports Markdown
                     </Box>
                   </Link>
                 </FormHelperText>
@@ -225,7 +225,7 @@ export function RouteForm({
                             >
                               {index === 0 && (
                                 <FormLabel marginBottom={2}>
-                                  Subcommand
+                                  subcommand
                                 </FormLabel>
                               )}
                               <Input {...field} placeholder="db" />
@@ -243,7 +243,7 @@ export function RouteForm({
                               isDisabled={disabledFields?.includes('subRoutes')}
                             >
                               {index === 0 && (
-                                <FormLabel marginBottom={2}>URL</FormLabel>
+                                <FormLabel marginBottom={2}>url</FormLabel>
                               )}
                               <Input
                                 {...field}
@@ -273,7 +273,7 @@ export function RouteForm({
                   type="submit"
                   isDisabled={disabledFields?.includes('subRoutes')}
                 >
-                  + Add a Subroute
+                  add subroute
                 </Button>
               </VStack>
             )}
@@ -287,7 +287,7 @@ export function RouteForm({
               isDisabled={disabled}
               flexGrow={1}
             >
-              Save
+              save
             </Button>
             {cancel && (
               <Button

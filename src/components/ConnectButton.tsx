@@ -1,5 +1,5 @@
-import { Button } from '@chakra-ui/react';
 import { ConnectButton as RConnectButton } from '@rainbow-me/rainbowkit';
+import { GlowButton } from './GlowButton';
 
 export function ConnectButton() {
   return (
@@ -36,28 +36,39 @@ export function ConnectButton() {
             {(() => {
               if (!connected) {
                 return (
-                  <Button
+                  <GlowButton
                     fontSize="lg"
+                    fontWeight="normal"
                     onClick={openConnectModal}
                     type="button"
                   >
-                    Connect Wallet
-                  </Button>
+                    connect
+                  </GlowButton>
                 );
               }
 
               if (chain.unsupported) {
                 return (
-                  <Button fontSize="lg" onClick={openChainModal} type="button">
-                    Wrong network
-                  </Button>
+                  <GlowButton
+                    fontSize="sm"
+                    fontWeight="normal"
+                    onClick={openChainModal}
+                    type="button"
+                  >
+                    wrong network
+                  </GlowButton>
                 );
               }
 
               return (
-                <Button fontSize="lg" onClick={openAccountModal} type="button">
+                <GlowButton
+                  fontSize="sm"
+                  fontWeight="normal"
+                  onClick={openAccountModal}
+                  type="button"
+                >
                   {account.displayName}
-                </Button>
+                </GlowButton>
               );
             })()}
           </div>

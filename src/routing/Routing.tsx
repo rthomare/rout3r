@@ -6,14 +6,16 @@ import { LoadingScreen } from '../components/LoadingScreen';
 import { useAppSettings } from '../hooks/useAppSettings';
 import { useSearchRoute } from '../lib/endpoints';
 import { processQuery } from '../lib/engine';
+import { origin } from '../utils/general';
 
 export function NoSettings() {
+  const or = origin();
   return (
     <Center w="100vw" h="100vh">
       <VStack>
         <Heading>No settings were found for your Router</Heading>
         <Heading size="md">Try going through the setup process again</Heading>
-        <Link href="/#setup">
+        <Link target="_blank" href={`${or}/#setup`}>
           <Button>Go to Setup</Button>
         </Link>
       </VStack>

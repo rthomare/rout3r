@@ -15,12 +15,12 @@ export function UseRoute({ route }: { route: Route }) {
   return (
     <>
       <Heading marginBottom={1} fontWeight={600} size="sm">
-        If you made rout3r your default (in step 2):
+        if you made rout3r your default (in step 2):
       </Heading>
       <OrderedList>
         <ListItem>
           <Text>
-            Try it out by{' '}
+            try it out by{' '}
             <Box
               as="span"
               cursor="pointer"
@@ -33,7 +33,7 @@ export function UseRoute({ route }: { route: Route }) {
         </ListItem>
         <ListItem>
           <Text>
-            Then type in
+            then type in
             <Code cursor="pointer" onClick={copy(route.command)}>
               {route.command}
             </Code>{' '}
@@ -42,12 +42,12 @@ export function UseRoute({ route }: { route: Route }) {
         </ListItem>
       </OrderedList>
       <Heading marginTop={6} marginBottom={1} fontWeight={600} size="sm">
-        If you made rout3r is NOT your default search engine (in step 2):
+        if you made rout3r is NOT your default search engine (in step 2):
       </Heading>
       <OrderedList>
         <ListItem>
           <Text>
-            Try it out by{' '}
+            try it out by{' '}
             <Box
               as="span"
               cursor="pointer"
@@ -60,7 +60,7 @@ export function UseRoute({ route }: { route: Route }) {
         </ListItem>
         <ListItem>
           <Text>
-            Select rout3r as the search by typing in
+            select rout3r as the search by typing in
             <Code cursor="pointer" onClick={copy('r')}>
               r
             </Code>{' '}
@@ -69,7 +69,7 @@ export function UseRoute({ route }: { route: Route }) {
         </ListItem>
         <ListItem>
           <Text>
-            Then type in
+            then type in
             <Code cursor="pointer" onClick={copy(route.command)}>
               {route.command}
             </Code>{' '}

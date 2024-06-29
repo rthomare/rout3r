@@ -78,7 +78,7 @@ export function EditRoute(): JSX.Element {
           {routeQuery.data.name}
           {routeQuery.data.routeType === RouteType.RESERVED && (
             <Box as="span" color="gray">
-              &nbsp;(Reserved Route)
+              &nbsp;(reserved route)
             </Box>
           )}
         </PageHeader>

@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 
 import { Heading, VStack } from '@chakra-ui/react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 import { About } from '../about/About';
 import { AddRoute } from '../add/AddRoute';
@@ -14,6 +13,7 @@ import { Settings } from '../settings/Settings';
 import { Onboard } from '../setup/Onboard';
 
 import { useAppState } from './useAppState';
+import { ConnectButton } from '../components/ConnectButton';
 
 type AppDestinations = {
   content: React.ReactElement;
@@ -56,17 +56,24 @@ export function useAppDestinations(): AppDestinationsResponse {
           {
             content: (
               <VStack alignItems="center" justifyContent="center" h="100%">
-                <Heading size="lg">Welcome to router!</Heading>
-                <ConnectButton label="Connect Your Wallet" />
+                <ConnectButton />
               </VStack>
             ),
             path: '/',
-            name: 'Routes',
+            name: 'routes',
+            shouldHideNav: true,
           },
           {
             content: <About />,
             path: '/about',
-            name: 'About',
+            name: 'about',
+            shouldHideNav: true,
+          },
+          {
+            content: <Redirect to="/" />,
+            path: '/setup',
+            name: 'setup',
+            shouldHideNav: true,
           },
         ],
         basename: 'rout3r',
@@ -88,17 +95,23 @@ export function useAppDestinations(): AppDestinationsResponse {
               </VStack>
             ),
             path: '/',
-            name: 'Routes',
+            name: 'routes',
           },
           {
             content: <About />,
             path: '/about',
-            name: 'About',
+            name: 'about',
           },
           {
             content: <Debug />,
             path: '/debug',
-            name: 'Debug',
+            name: 'debug',
+            shouldHideNav: true,
+          },
+          {
+            content: <Redirect to="/" />,
+            path: '/setup',
+            name: 'setup',
             shouldHideNav: true,
           },
         ],
@@ -113,52 +126,52 @@ export function useAppDestinations(): AppDestinationsResponse {
           {
             content: <Rout3s />,
             path: '/routes',
-            name: 'Routes',
+            name: 'routes',
             shouldHideNav: false,
           },
           {
             content: <Redirect to="/routes" />,
             path: '/',
-            name: 'Root',
+            name: 'root',
             shouldHideNav: true,
           },
           {
             content: <Settings />,
             path: '/settings',
-            name: 'Settings',
+            name: 'settings',
           },
           {
             content: <Onboard />,
             path: '/setup',
-            name: 'Setup',
+            name: 'setup',
           },
           {
             content: <About />,
             path: '/about',
-            name: 'About',
+            name: 'about',
           },
           {
             content: <AddRoute />,
             path: '/routes/new',
-            name: 'New Route',
+            name: 'new route',
             shouldHideNav: true,
           },
           {
             content: <EditRoute />,
             path: '/routes/edit/:command',
-            name: 'Edit Route',
+            name: 'edit route',
             shouldHideNav: true,
           },
           {
             content: <Debug />,
             path: '/debug',
-            name: 'Debug',
+            name: 'debug',
             shouldHideNav: true,
           },
           {
             content: <Routing />,
             path: '/go',
-            name: 'Go',
+            name: 'go',
             shouldHideNav: true,
           },
         ],
