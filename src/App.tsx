@@ -35,7 +35,7 @@ export function Content() {
   useGlobalLoader({
     id: 'app-destinations',
     showLoader: appDestinations.isLoading,
-    helperText: 'Booting up Application',
+    helperText: 'booting up application',
   });
   return (
     <Fade

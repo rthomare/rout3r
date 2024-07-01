@@ -1,4 +1,9 @@
-import { extendTheme, StyleFunctionProps, ThemeConfig } from '@chakra-ui/react';
+import {
+  background,
+  extendTheme,
+  StyleFunctionProps,
+  ThemeConfig,
+} from '@chakra-ui/react';
 
 import '@fontsource/quattrocento-sans';
 

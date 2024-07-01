@@ -1,5 +1,4 @@
-import { BsCheckSquare, BsSquare } from 'react-icons/bs';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import {
   Button,
@@ -7,31 +6,23 @@ import {
   Heading,
   HStack,
   Spinner,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
   Text,
-  Th,
-  Thead,
-  Tr,
-  useColorMode,
   VStack,
+  Wrap,
+  WrapItem,
 } from '@chakra-ui/react';
 
 import { PageHeader } from '../components/PageHeader';
 import { useGlobalLoader } from '../hooks/useGlobalLoader';
 import { useGetRoutes } from '../lib/endpoints';
-import { RouteType } from '../lib/types';
+import { RouteCard } from './RouteCard';
 
 export function Routes(): JSX.Element {
   const routesQuery = useGetRoutes();
-  const navigate = useNavigate();
-  const colorMode = useColorMode();
   useGlobalLoader({
     id: 'get-routes',
     showLoader: routesQuery.isLoading,
-    helperText: 'Getting your Routes',
+    helperText: 'getting your routes',
   });
 
   if (routesQuery.isLoading) {
@@ -67,47 +58,15 @@ export function Routes(): JSX.Element {
         )}
       </HStack>
       {routesQuery.data.routes.length > 0 ? (
-        <TableContainer w="100%">
-          <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th>command</Th>
-                <Th>name</Th>
-                <Th>url</Th>
-                <Th isNumeric>subroutes</Th>
-                <Th>reserved</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {routesQuery.data.routes.map((route) => (
-                <Tr
-                  cursor="pointer"
-                  onClick={() => {
-                    navigate(`/routes/edit/${route.command}`);
-                  }}
-                  transition="background-color 0.2s"
-                  _hover={{
-                    bg:
-                      colorMode.colorMode === 'light' ? 'gray.200' : 'gray.700',
-                  }}
-                  key={route.command}
-                >
-                  <Td>{route.command}</Td>
-                  <Td>{route.name}</Td>
-                  <Td isTruncated>{route.url}</Td>
-                  <Td isNumeric>{route.subRoutes.length}</Td>
-                  <Td>
-                    {route.routeType === RouteType.RESERVED ? (
-                      <BsCheckSquare />
-                    ) : (
-                      <BsSquare />
-                    )}
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
+        <Wrap width="100%" spacing="40px">
+          {routesQuery.data.routes.map((route) => {
+            return (
+              <WrapItem>
+                <RouteCard key={route.command} route={route} />
+              </WrapItem>
+            );
+          })}
+        </Wrap>
       ) : (
         <VStack flexGrow={1} justifyContent="center">
           <Heading size="md">you don&apos;t have any routes</Heading>
