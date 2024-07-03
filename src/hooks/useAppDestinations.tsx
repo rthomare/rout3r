@@ -153,7 +153,7 @@ export function useAppDestinations(): AppDestinationsResponse {
           {
             content: <AddRoute />,
             path: '/routes/new',
-            name: 'new route',
+            name: 'add route',
             shouldHideNav: true,
           },
           {

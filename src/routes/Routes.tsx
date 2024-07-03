@@ -53,16 +53,16 @@ export function Routes(): JSX.Element {
         <PageHeader mb="0">routes</PageHeader>
         {routesQuery.data.routes.length > 0 && (
           <Link to="/routes/new">
-            <Button>new route</Button>
+            <Button>add route</Button>
           </Link>
         )}
       </HStack>
       {routesQuery.data.routes.length > 0 ? (
-        <Wrap width="100%" spacing="40px">
+        <Wrap width="100%" spacing="40px" transitionDuration=".6s">
           {routesQuery.data.routes.map((route) => {
             return (
-              <WrapItem>
-                <RouteCard key={route.command} route={route} />
+              <WrapItem key={route.command} transitionDuration=".6s">
+                <RouteCard route={route} />
               </WrapItem>
             );
           })}
