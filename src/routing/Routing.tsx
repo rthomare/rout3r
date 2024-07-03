@@ -16,7 +16,7 @@ export function NoSettings() {
         <Heading>no settings were found for your Router</Heading>
         <Heading size="md">try going through the setup process again</Heading>
         <Link target="_blank" href={`${or}/#setup`}>
-          <Button>go to Setup</Button>
+          <Button>go to setup</Button>
         </Link>
       </VStack>
     </Center>

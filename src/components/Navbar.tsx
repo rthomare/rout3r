@@ -60,13 +60,19 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
             finalFocusRef={btnRef}
           >
             <DrawerOverlay />
-            <DrawerContent background="black">
+            <DrawerContent
+              background={colorMode === 'dark' ? 'black' : 'white'}
+            >
               <DrawerCloseButton />
-              <DrawerHeader>
-                {appState.isWalletConnected && <ConnectButton />}
+              <DrawerHeader padding={'20px 10px 0px 25px'}>
+                {appState.isWalletConnected && (
+                  <Box as="span">
+                    <ConnectButton />
+                  </Box>
+                )}
               </DrawerHeader>
-
               <DrawerBody>
+                <Divider />
                 {destinations
                   .filter((v) => !v.shouldHideNav)
                   .map((dest) => (

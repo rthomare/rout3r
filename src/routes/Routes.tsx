@@ -49,7 +49,7 @@ export function Routes(): JSX.Element {
 
   return (
     <VStack h="100%">
-      <HStack w="100%" justifyContent="space-between">
+      <HStack w="100%" justifyContent="space-between" mb={4}>
         <PageHeader mb="0">routes</PageHeader>
         {routesQuery.data.routes.length > 0 && (
           <Link to="/routes/new">
@@ -58,7 +58,7 @@ export function Routes(): JSX.Element {
         )}
       </HStack>
       {routesQuery.data.routes.length > 0 ? (
-        <Wrap width="100%" spacing="40px" transitionDuration=".6s">
+        <Wrap spacing="40px" transitionDuration=".6s" justify="center">
           {routesQuery.data.routes.map((route) => {
             return (
               <WrapItem key={route.command} transitionDuration=".6s">
