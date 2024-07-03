@@ -27,7 +27,7 @@ export function GlowButton(
       position={'relative'}
       backgroundColor={colorMode.colorMode === 'dark' ? 'black' : 'white'}
       _hover={{
-        'background-color': colorMode.colorMode === 'dark' ? 'black' : 'white',
+        backgroundColor: colorMode.colorMode === 'dark' ? 'black' : 'white',
       }}
       {...rest}
     >

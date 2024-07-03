@@ -47,7 +47,7 @@ export function EditRoute(): JSX.Element {
   useGlobalLoader({
     id: 'edit-route',
     showLoader: routeQuery.isLoading,
-    helperText: `Getting route ${command}`,
+    helperText: `getting route ${command}`,
   });
 
   if (routeQuery.isLoading) {
@@ -89,7 +89,7 @@ export function EditRoute(): JSX.Element {
           leftIcon={<BsTrash />}
           isDisabled={routeQuery.data.routeType === RouteType.RESERVED}
         >
-          Delete
+          delete
         </Button>
       </HStack>
 
@@ -105,11 +105,11 @@ export function EditRoute(): JSX.Element {
       <Modal onClose={onClose} isOpen={isOpen} isCentered>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Delete Route?</ModalHeader>
+          <ModalHeader>delete route?</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Text>
-              Are you sure you want to delete the route {routeQuery.data.name}?
+              are you sure you want to delete the route {routeQuery.data.name}?
             </Text>
           </ModalBody>
           <ModalFooter>
@@ -120,9 +120,9 @@ export function EditRoute(): JSX.Element {
               isLoading={routeRemoveMutation.isPending}
               disabled={routeQuery.data.routeType === RouteType.RESERVED}
             >
-              Delete
+              delete
             </Button>
-            <Button onClick={onClose}>Close</Button>
+            <Button onClick={onClose}>close</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

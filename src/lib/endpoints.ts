@@ -112,7 +112,7 @@ export function useGetRoute(command: string) {
   const props = appSettingsFromConfig(config);
   const qk = queryKeyForRoute(command, props);
   const isMutating = useIsMutating({ mutationKey: qk }, queryClient);
-  const errorToast = useErrorToast("Route couldn't be found");
+  const errorToast = useErrorToast("route couldn't be found");
   const query = useQuery({
     queryKey: qk,
     queryFn: async () => getRoute(config, command),
@@ -145,7 +145,7 @@ export function useGetRoutes() {
   const props = appSettingsFromConfig(config);
   const qk = queryKeyForRoutes(props);
   const isMutating = useIsMutating({ mutationKey: qk }, queryClient);
-  const errorToast = useErrorToast("Routes couldn't be found");
+  const errorToast = useErrorToast("routes couldn't be found");
   const query = useQuery({
     queryKey: qk,
     queryFn: async () => {
@@ -208,7 +208,7 @@ export function useCreateRoute(
   const toast = useToast();
   const props = appSettingsFromConfig(config);
   const qrk = queryKeyForRoutes(props);
-  const errorToast = useErrorToast("Route couldn't created");
+  const errorToast = useErrorToast("route couldn't created");
   return useMutation({
     mutationKey: qrk,
     mutationFn: async (route: Omit<Route, 'id'>) =>
@@ -223,8 +223,8 @@ export function useCreateRoute(
       }),
     onSuccess: (route) => {
       toast({
-        title: 'Route created.',
-        description: `Route ${route.command} has been created.`,
+        title: 'route created.',
+        description: `route ${route.command} has been created.`,
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -269,7 +269,7 @@ export function useDeleteRoute(
   const qrk = queryKeyForRoutes(props);
   const qk = queryKeyForRoute(command, props);
   const toast = useToast();
-  const errorToast = useErrorToast("Route couldn't deleted");
+  const errorToast = useErrorToast("route couldn't deleted");
   return useMutation({
     mutationKey: qk,
     mutationFn: async () =>
@@ -284,8 +284,8 @@ export function useDeleteRoute(
       }),
     onSuccess: () => {
       toast({
-        title: 'Route Deleted.',
-        description: `Route (command: ${command}) has been deleted.`,
+        title: 'route deleted.',
+        description: `route (command: ${command}) has been deleted.`,
         status: 'info',
         duration: 3000,
         isClosable: true,
@@ -344,7 +344,7 @@ export function useUpdateRoute(
   const props = appSettingsFromConfig(config);
   const qk = queryKeyForRoute(command, props);
   const toast = useToast();
-  const errorToast = useErrorToast("Route couldn't updated");
+  const errorToast = useErrorToast("route couldn't updated");
   return useMutation({
     mutationKey: qk,
     mutationFn: async (
@@ -357,8 +357,8 @@ export function useUpdateRoute(
       }),
     onSuccess: (route) => {
       toast({
-        title: 'Route Updated.',
-        description: `Route ${command} has been updated.`,
+        title: 'route Updated.',
+        description: `route ${command} has been updated.`,
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -399,7 +399,7 @@ export function useDeployRouter(
   const { config } = useOnchain();
   const queryClient = useQueryClient();
   const toast = useToast();
-  const errorToast = useErrorToast("Couldn't deploy router contract");
+  const errorToast = useErrorToast("couldn't deploy router contract");
   const qk = queryKeyForRouterAddress(appSettingsFromConfig(config));
   return useMutation({
     mutationKey: qk,
@@ -413,8 +413,8 @@ export function useDeployRouter(
       }),
     onSuccess: (contract) => {
       toast({
-        title: 'Router Deployed!',
-        description: `Route deployed at ${contract?.address}.`,
+        title: 'router Deployed!',
+        description: `route deployed at ${contract?.address}.`,
         status: 'success',
         duration: 3000,
         isClosable: true,

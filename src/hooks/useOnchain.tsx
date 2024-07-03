@@ -68,12 +68,12 @@ export function OnchainProvider({ children }: PropsWithChildren) {
   useGlobalLoader({
     id: 'onchain-client',
     showLoader,
-    helperText: 'Initializing your Wallet Client',
+    helperText: 'initializing your wallet client',
   });
   useGlobalLoader({
     id: 'onchain-data',
     showLoader: !value && !isDisconnected,
-    helperText: 'Initializing Onchain Data',
+    helperText: 'initializing onchain data',
   });
 
   if (isDisconnected || !value) {
@@ -98,7 +98,7 @@ function ConfigInnerProvider({
   useGlobalLoader({
     id: 'deployed-contracts',
     showLoader: !!contractQuery && contractQuery.isLoading,
-    helperText: 'Finding your account',
+    helperText: 'finding your account',
   });
   const contract = useMemo(
     () =>
