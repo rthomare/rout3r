@@ -283,7 +283,6 @@ export function RouteForm({
               isLoading={props.isSubmitting}
               type="submit"
               leftIcon={<BsFloppyFill />}
-              colorScheme="blue"
               isDisabled={disabled}
               flexGrow={1}
             >

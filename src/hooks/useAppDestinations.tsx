@@ -139,6 +139,7 @@ export function useAppDestinations(): AppDestinationsResponse {
             content: <Settings />,
             path: '/settings',
             name: 'settings',
+            shouldHideNav: true,
           },
           {
             content: <Onboard />,
@@ -149,6 +150,7 @@ export function useAppDestinations(): AppDestinationsResponse {
             content: <About />,
             path: '/about',
             name: 'about',
+            shouldHideNav: true,
           },
           {
             content: <AddRoute />,
@@ -197,6 +199,7 @@ export function useAppDestinations(): AppDestinationsResponse {
           content: <About />,
           path: '/about',
           name: 'About',
+          shouldHideNav: true,
         },
       ],
       basename: 'rout3r',

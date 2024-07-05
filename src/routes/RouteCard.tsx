@@ -181,7 +181,6 @@ export function RouteCard({ route }: { route: Route }) {
       borderRadius="8px"
       _hover={{
         transform: expanded ? undefined : 'scale(1.05)',
-        border: expanded ? undefined : '.5px solid gray',
       }}
     >
       <RouteCardOverlay iconUrl={faviconUrl} expanded={expanded} />

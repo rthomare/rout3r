@@ -119,10 +119,10 @@ export function Onboard() {
   return (
     <>
       <PageHeader>setup</PageHeader>
+      <Heading size="sm" marginTop={5} marginBottom={5}>
+        follow the steps below:
+      </Heading>
       <Accordion index={index}>
-        <Heading size="sm" marginBottom={5}>
-          follow the steps below:
-        </Heading>
         <OnboardingStep
           title="deploy"
           subtitle="deploy your router to create and manage your routes"
