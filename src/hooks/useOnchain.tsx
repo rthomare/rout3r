@@ -16,6 +16,7 @@ import { getRouterContract } from '../lib/onchain';
 import { OnchainConfig } from '../lib/types';
 
 import { useGlobalLoader } from './useGlobalLoader';
+import { appConfig } from '../lib/config';
 
 const ConfigContext = createContext<{ config: OnchainConfig } | undefined>(
   undefined
@@ -53,9 +54,15 @@ function useContractQuery(
 }
 
 export function OnchainProvider({ children }: PropsWithChildren) {
-  const walletClientQuery = useWalletClient();
+  const walletClientQuery = useWalletClient({
+    chainId: appConfig.chains[0].id,
+    config: appConfig,
+  });
   const walletClient = walletClientQuery.data;
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({
+    chainId: appConfig.chains[0].id,
+    config: appConfig,
+  });
   const { isDisconnected } = useAccount();
   const showLoader =
     !isDisconnected && (!walletClient || walletClientQuery.isLoading);

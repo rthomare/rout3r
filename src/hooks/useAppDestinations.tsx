@@ -187,18 +187,18 @@ export function useAppDestinations(): AppDestinationsResponse {
         {
           content: <Redirect to="/setup" />,
           path: '/',
-          name: 'Root',
+          name: 'root',
           shouldHideNav: true,
         },
         {
           content: <Onboard />,
           path: '/setup',
-          name: 'Setup',
+          name: 'setup',
         },
         {
           content: <About />,
           path: '/about',
-          name: 'About',
+          name: 'about',
           shouldHideNav: true,
         },
       ],
