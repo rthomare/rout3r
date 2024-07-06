@@ -102,3 +102,5 @@ export const config = () => {
     connectors,
   });
 };
+
+export const appConfig = config();

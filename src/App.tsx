@@ -17,7 +17,7 @@ import { Navbar } from './components/Navbar';
 import { useAppDestinations } from './hooks/useAppDestinations';
 import { GlobalLoaderProvider, useGlobalLoader } from './hooks/useGlobalLoader';
 import { OnchainProvider } from './hooks/useOnchain';
-import { config } from './lib/config';
+import { appConfig, config } from './lib/config';
 import { persister, queryClient } from './lib/queryClient';
 import { Routing } from './routing/Routing';
 import theme from './theme';
@@ -61,8 +61,6 @@ export function Content() {
     </Fade>
   );
 }
-
-const appConfig = config();
 
 function App(): JSX.Element {
   const { colorMode } = useColorMode();

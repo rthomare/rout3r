@@ -112,7 +112,7 @@ export function SetupBrowser({
                       <b>URL:</b>
                       <InputGroup gap={1}>
                         <Input value={routerUrl} isReadOnly cursor="pointer" />
-                        <Button onClick={copy(routerUrl)}>Copy</Button>
+                        <Button onClick={copy(routerUrl)}>copy</Button>
                       </InputGroup>
                     </ListItem>
                   </ul>
@@ -172,7 +172,7 @@ export function SetupBrowser({
         </Accordion>
       </VStack>
       <Button onClick={setup} mt={2}>
-        Next
+        next
       </Button>
     </>
   );

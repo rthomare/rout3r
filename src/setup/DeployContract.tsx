@@ -45,7 +45,7 @@ export function DeployContract({
             }
             isLoading={deploy.isPending}
           >
-            deploy Router
+            deploy router
           </Button>
         </VStack>
       )}
