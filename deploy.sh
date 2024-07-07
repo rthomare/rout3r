@@ -9,20 +9,23 @@ if [ $? -ne 0 ]; then
   echo "Tests failed, aborting deploy"
   exit 1
 fi
-yarn build
-if [ $? -ne 0 ]; then
-  echo "Build failed, aborting deploy"
-  exit 1
-fi
-
-yarn add-domain
 
 if [ $REPLY ==  "y" ]; then
   yarn version --minor
   # get the current version number
   version=$(node -p -e "require('./package.json').version")
-  echo "Deploying version $version"
+  
+fi
 
+echo "Deploying version $version"
+yarn build
+if [ $? -ne 0 ]; then
+  echo "Build failed, aborting deploy"
+  exit 1
+fi
+yarn add-domain
+
+if [ $REPLY ==  "y" ]; then
   # commit changes
   git add -A
   git commit -m "build: bump to version $version"
