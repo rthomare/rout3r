@@ -1,0 +1,141 @@
+import { fonts } from './baseTheme';
+
+export const lightRainbowTheme = {
+  blurs: {
+    modalOverlay: 'blur(5px)',
+  },
+  colors: {
+    accentColor: 'rgba(0, 0, 0, .8)',
+    accentColorForeground: '#FFF',
+    actionButtonBorder: 'rgba(255, 255, 255, 0.04)',
+    actionButtonBorderMobile: 'rgba(255, 255, 255, 0.08)',
+    actionButtonSecondaryBackground: 'rgba(255, 255, 255, 0.08)',
+    closeButton: '#000',
+    closeButtonBackground: '#FFF0',
+    connectButtonBackground: '#1A1B1F',
+    connectButtonBackgroundError: '#FF494A',
+    connectButtonInnerBackground:
+      'linear-gradient(0deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.15))',
+    connectButtonText: '#000',
+    connectButtonTextError: '#000',
+    connectionIndicator: '#30E000',
+    downloadBottomCardBackground:
+      'linear-gradient(126deg, rgba(0, 0, 0, 0) 9.49%, rgba(120, 120, 120, 0.2) 71.04%), #1A1B1F',
+    downloadTopCardBackground:
+      'linear-gradient(126deg, rgba(120, 120, 120, 0.2) 9.49%, rgba(0, 0, 0, 0) 71.04%), #1A1B1F',
+    error: '#FF494A',
+    generalBorder: 'rgba(0, 0, 0, 0.1)',
+    generalBorderDim: 'rgba(0, 0, 0, 0.1)',
+    menuItemBackground: '#FFF',
+    modalBackdrop: `linear-gradient(
+            45deg,
+            #ff000022,
+            #ff730022,
+            #fffb0022,
+            #48ff0022,
+            #00ffd522,
+            #002bff22,
+            #7a00ff22,
+            #ff00c822,
+            #ff000022
+        );`,
+    modalBackground: '#FFF',
+    modalBorder: 'rgba(255, 255, 255, 0)',
+    modalText: '#000',
+    modalTextDim: '#000',
+    modalTextSecondary: '#555',
+    profileAction: 'rgba(0, 0, 0, 0.05)',
+    profileActionHover: 'rgba(224, 232, 255, 0.2)',
+    profileForeground: '#FFF',
+    selectedOptionBorder: 'rgba(224, 232, 255, 1)',
+    standby: '#FFD641',
+  },
+  fonts: {
+    body: fonts.text,
+  },
+  radii: {
+    actionButton: '8px',
+    connectButton: '8px',
+    menuButton: '8px',
+    modal: '8px',
+    modalMobile: '8px',
+  },
+  shadows: {
+    connectButton: '0px 0px 0px rgba(0, 0, 0, 0)',
+    dialog: '0px 0px 0px rgba(0, 0, 0, 0)',
+    profileDetailsAction: '0px 0px 0px rgba(0, 0, 0, 0)',
+    selectedOption: '0px 0px 0px rgba(0, 0, 0, 0)',
+    selectedWallet: '0px 0px 0px rgba(0, 0, 0, 0)',
+    walletLogo: '0px 0px 0px rgba(0, 0, 0, 0)',
+  },
+};
+
+export const darkRainbowTheme = {
+  blurs: {
+    modalOverlay: 'blur(5px)',
+  },
+  colors: {
+    accentColor: 'rgba(255, 255, 255, 0.5)',
+    accentColorForeground: '#FFF',
+    actionButtonBorder: 'rgba(255, 255, 255, 0.04)',
+    actionButtonBorderMobile: 'rgba(255, 255, 255, 0.08)',
+    actionButtonSecondaryBackground: 'rgba(255, 255, 255, 0.08)',
+    closeButton: 'rgba(224, 232, 255, 0.6)',
+    closeButtonBackground: 'rgba(255, 255, 255, 0.08)',
+    connectButtonBackground: '#1A1B1F',
+    connectButtonBackgroundError: '#FF494A',
+    connectButtonInnerBackground:
+      'linear-gradient(0deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.15))',
+    connectButtonText: '#FFF',
+    connectButtonTextError: '#FFF',
+    connectionIndicator: '#30E000',
+    downloadBottomCardBackground:
+      'linear-gradient(126deg, rgba(0, 0, 0, 0) 9.49%, rgba(120, 120, 120, 0.2) 71.04%), #1A1B1F',
+    downloadTopCardBackground:
+      'linear-gradient(126deg, rgba(120, 120, 120, 0.2) 9.49%, rgba(0, 0, 0, 0) 71.04%), #1A1B1F',
+    error: '#FF494A',
+    generalBorder: 'rgba(255, 255, 255, 0.1)',
+    generalBorderDim: 'rgba(255, 255, 255, 0.04)',
+    menuItemBackground: '#000',
+    modalBackdrop: `linear-gradient(
+            45deg,
+            #ff000011,
+            #ff730011,
+            #fffb0011,
+            #48ff0011,
+            #00ffd511,
+            #002bff11,
+            #7a00ff11,
+            #ff00c811,
+            #ff000011
+        );`,
+    modalBackground: '#000000',
+    modalBorder: 'rgba(255, 255, 255, 0)',
+    modalText: '#FFF',
+    modalTextDim: '#FFF',
+    modalTextSecondary: '#AAA',
+    profileAction: 'rgba(224, 232, 255, 0.1)',
+    profileActionHover: 'rgba(224, 232, 255, 0.2)',
+    profileForeground: '#000',
+    selectedOptionBorder: '#FFF',
+    standby: '#FFD641',
+  },
+  fonts: {
+    body: fonts.text,
+  },
+  radii: {
+    actionButton: '8px',
+    connectButton: '8px',
+    menuButton: '8px',
+    modal: '8px',
+    modalMobile: '8px',
+  },
+  shadows: {
+    connectButton: '0px 0px 0px rgba(0, 0, 0, 0)',
+    dialog: '0px 0px 0px rgba(0, 0, 0, 0)',
+    profileDetailsAction: '0px 0px 0px rgba(0, 0, 0, 0)',
+    selectedOption: '0px 0px 0px rgba(0, 0, 0, 0)',
+    selectedWallet: '0px 0px 0px rgba(0, 0, 0, 0)',
+    walletLogo: '0px 0px 0px rgba(0, 0, 0, 0)',
+  },
+};

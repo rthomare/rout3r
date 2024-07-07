@@ -9,7 +9,7 @@ import {
   useColorMode,
   VStack,
 } from '@chakra-ui/react';
-import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { RainbowKitProvider, Theme } from '@rainbow-me/rainbowkit';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 
 import { Footer } from './components/Footer';
@@ -17,12 +17,15 @@ import { Navbar } from './components/Navbar';
 import { useAppDestinations } from './hooks/useAppDestinations';
 import { GlobalLoaderProvider, useGlobalLoader } from './hooks/useGlobalLoader';
 import { OnchainProvider } from './hooks/useOnchain';
-import { appConfig, config } from './lib/config';
+import { appConfig } from './lib/config';
 import { persister, queryClient } from './lib/queryClient';
 import { Routing } from './routing/Routing';
-import theme from './theme';
+import { darkRainbowTheme, lightRainbowTheme } from './theme/rainbowTheme';
 
 import '@rainbow-me/rainbowkit/styles.css';
+import { useMemo } from 'react';
+import { chakraTheme } from './theme/chakraTheme';
+import { WalletAvatar } from './components/AvatarComponent';
 
 export function Content() {
   const appDestinations = useAppDestinations();
@@ -62,14 +65,26 @@ export function Content() {
   );
 }
 
-function App(): JSX.Element {
+function UI(): JSX.Element {
   const { colorMode } = useColorMode();
-  const isGoRoute = window.location.href.match('/#go') !== null;
-
+  const rainbowTheme: Theme | undefined = useMemo(() => {
+    return colorMode === 'light' ? lightRainbowTheme : darkRainbowTheme;
+  }, [colorMode]);
   return (
-    <ChakraProvider theme={theme}>
+    <RainbowKitProvider avatar={WalletAvatar} theme={rainbowTheme}>
+      <Content />
+    </RainbowKitProvider>
+  );
+}
+
+function App(): JSX.Element {
+  const isGoRoute = window.location.href.match('/#go') !== null;
+  return (
+    <ChakraProvider theme={chakraTheme}>
       <GlobalLoaderProvider>
-        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+        <ColorModeScript
+          initialColorMode={chakraTheme.config.initialColorMode}
+        />
         <PersistQueryClientProvider
           client={queryClient}
           persistOptions={{ persister }}
@@ -82,21 +97,7 @@ function App(): JSX.Element {
             <WagmiProvider config={appConfig}>
               <HashRouter>
                 <OnchainProvider>
-                  <RainbowKitProvider
-                    theme={
-                      colorMode === 'dark'
-                        ? darkTheme({
-                            accentColor: '#0f0f0f',
-                            accentColorForeground: 'white',
-                            borderRadius: 'large',
-                            fontStack: 'rounded',
-                            overlayBlur: 'small',
-                          })
-                        : undefined
-                    }
-                  >
-                    <Content />
-                  </RainbowKitProvider>
+                  <UI />
                 </OnchainProvider>
               </HashRouter>
             </WagmiProvider>

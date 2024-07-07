@@ -134,7 +134,7 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
           }
           target="_blank"
         >
-          <GlowButton fontWeight="normal" size={'sm'}>
+          <GlowButton fontWeight="normal" size="md">
             donate
           </GlowButton>
         </Link>

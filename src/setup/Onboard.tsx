@@ -39,7 +39,7 @@ function OnboardingStep({
     <AccordionItem
       border="solid 2px"
       borderColor={completed ? 'green.500' : undefined}
-      borderRadius={10}
+      borderRadius={8}
       marginBottom={5}
     >
       {({ isExpanded }) => {

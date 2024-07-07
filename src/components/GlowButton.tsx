@@ -55,7 +55,7 @@ export function GlowButton(
         animation={`${rotate} 20s linear infinite`}
         opacity={glow ? 1 : 0}
         transition="opacity 1s ease-in-out"
-        borderRadius="5px"
+        borderRadius="8px"
       />
       {children}
     </Button>

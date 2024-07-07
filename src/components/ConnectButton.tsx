@@ -50,7 +50,7 @@ export function ConnectButton() {
               if (chain.unsupported) {
                 return (
                   <GlowButton
-                    fontSize="sm"
+                    fontSize="md"
                     fontWeight="normal"
                     onClick={openChainModal}
                     type="button"
@@ -62,12 +62,12 @@ export function ConnectButton() {
 
               return (
                 <GlowButton
-                  fontSize="sm"
+                  fontSize="md"
                   fontWeight="normal"
                   onClick={openAccountModal}
                   type="button"
                 >
-                  {account.displayName}
+                  {account.displayName.toLowerCase()}
                 </GlowButton>
               );
             })()}
