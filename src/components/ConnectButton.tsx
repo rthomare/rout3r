@@ -1,5 +1,7 @@
 import { ConnectButton as RConnectButton } from '@rainbow-me/rainbowkit';
+
 import { GlowButton } from './GlowButton';
+
 import './connection.css';
 
 export function ConnectButton() {

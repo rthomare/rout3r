@@ -1,4 +1,5 @@
 import { extendTheme, StyleFunctionProps, ThemeConfig } from '@chakra-ui/react';
+
 import { fonts } from './baseTheme';
 
 const config: ThemeConfig = {

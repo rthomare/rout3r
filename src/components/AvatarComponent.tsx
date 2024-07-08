@@ -1,8 +1,7 @@
+import { isAddress } from 'viem';
+
 import { SettingsIcon } from '@chakra-ui/icons';
 import { Box, IconButton, Image } from '@chakra-ui/react';
-import { AvatarComponent } from '@rainbow-me/rainbowkit';
-import { useNavigate } from 'react-router-dom';
-import { isAddress } from 'viem';
 
 // Main function to run everything
 function createGradientAvatar(walletAddress: string) {
@@ -28,7 +27,7 @@ function createGradientAvatar(walletAddress: string) {
   );
 }
 
-export const WalletAvatar: AvatarComponent = ({
+export function WalletAvatar({
   address,
   ensImage,
   size,
@@ -36,8 +35,7 @@ export const WalletAvatar: AvatarComponent = ({
   address: string;
   ensImage?: string | null;
   size: number;
-}) => {
-  const navigate = useNavigate();
+}) {
   const color = createGradientAvatar(address);
   return (
     <Box position="relative">
@@ -61,8 +59,8 @@ export const WalletAvatar: AvatarComponent = ({
         icon={<SettingsIcon />}
         onClick={() => window.location.replace(`${origin}/#settings`)}
         background="#00000000"
-        aria-label={''}
+        aria-label=""
       />
     </Box>
   );
-};
+}

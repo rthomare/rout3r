@@ -15,6 +15,7 @@ import {
 import { PageHeader } from '../components/PageHeader';
 import { useGlobalLoader } from '../hooks/useGlobalLoader';
 import { useGetRoutes } from '../lib/endpoints';
+
 import { RouteCard } from './RouteCard';
 
 export function Routes(): JSX.Element {
@@ -59,13 +60,11 @@ export function Routes(): JSX.Element {
       </HStack>
       {routesQuery.data.routes.length > 0 ? (
         <Wrap spacing="40px" transitionDuration=".6s">
-          {routesQuery.data.routes.map((route) => {
-            return (
-              <WrapItem key={route.command} transitionDuration=".6s">
-                <RouteCard route={route} />
-              </WrapItem>
-            );
-          })}
+          {routesQuery.data.routes.map((route) => (
+            <WrapItem key={route.command} transitionDuration=".6s">
+              <RouteCard route={route} />
+            </WrapItem>
+          ))}
         </Wrap>
       ) : (
         <VStack flexGrow={1} justifyContent="center">

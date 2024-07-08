@@ -10,13 +10,13 @@ import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { appConfig } from '../lib/config';
 import { PINNED_CONTRACT_ABI } from '../lib/constants';
 import { queryKeyForRouterAddress } from '../lib/endpoints';
 import { getRouterContract } from '../lib/onchain';
 import { OnchainConfig } from '../lib/types';
 
 import { useGlobalLoader } from './useGlobalLoader';
-import { appConfig } from '../lib/config';
 
 const ConfigContext = createContext<{ config: OnchainConfig } | undefined>(
   undefined

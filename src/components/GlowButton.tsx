@@ -16,15 +16,15 @@ const rotate = keyframes`
 export function GlowButton(
   props: ButtonProps & { state?: 'always' | 'hover' }
 ) {
-  const { children, ...rest } = props;
+  const { children, state, ...rest } = props;
   const [tiggerGlow, { on, off }] = useBoolean();
-  const glow = props.state === 'always' || tiggerGlow;
+  const glow = state === 'always' || tiggerGlow;
   const colorMode = useColorMode();
   return (
     <Button
       onMouseEnter={on}
       onMouseLeave={off}
-      position={'relative'}
+      position="relative"
       backgroundColor={colorMode.colorMode === 'dark' ? 'black' : 'white'}
       _hover={{
         backgroundColor: colorMode.colorMode === 'dark' ? 'black' : 'white',

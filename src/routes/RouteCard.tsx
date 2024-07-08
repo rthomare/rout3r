@@ -1,21 +1,23 @@
+import { BsPencilFill } from 'react-icons/bs';
+import { useNavigate } from 'react-router-dom';
+
 import {
   Box,
   Code,
   Divider,
   Fade,
-  HStack,
   Heading,
+  HStack,
   IconButton,
   Image,
   ScaleFade,
   Stack,
   Text,
-  VStack,
   useBoolean,
+  VStack,
 } from '@chakra-ui/react';
+
 import { Route, RouteType } from '../lib/types';
-import { useNavigate } from 'react-router-dom';
-import { BsPencilFill } from 'react-icons/bs';
 
 function RouteCardOverlay({
   iconUrl,
@@ -86,7 +88,7 @@ function RouteCardContent({
     <ScaleFade
       in={expanded}
       initialScale={0.9}
-      unmountOnExit={true}
+      unmountOnExit
       style={{
         width: '100%',
       }}
@@ -145,7 +147,7 @@ function RouteHeader({
           {route.command}
         </Code>
       </HStack>
-      <Fade in={expanded} unmountOnExit={true}>
+      <Fade in={expanded} unmountOnExit>
         <IconButton
           h="100%"
           icon={<BsPencilFill />}

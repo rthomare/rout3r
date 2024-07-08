@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import { BsGithub } from 'react-icons/bs';
 import { Link, useLocation } from 'react-router-dom';
+import { mainnet } from 'viem/chains';
 
 import { HamburgerIcon, MoonIcon, SunIcon } from '@chakra-ui/icons';
 import {
@@ -22,10 +24,9 @@ import {
 
 import { AppDestinationsResponse } from '../hooks/useAppDestinations';
 import { useAppState } from '../hooks/useAppState';
-import { useRef } from 'react';
+
 import { ConnectButton } from './ConnectButton';
 import { GlowButton } from './GlowButton';
-import { mainnet } from 'viem/chains';
 
 export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -44,10 +45,10 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
         <Box display={{ base: 'block', md: 'none' }}>
           <IconButton
             icon={<HamburgerIcon />}
-            fontSize={'2xl'}
+            fontSize="2xl"
             ref={btnRef}
             onClick={onOpen}
-            aria-label={'menu'}
+            aria-label="menu"
             background="transparent"
           >
             Open
@@ -64,7 +65,7 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
               background={colorMode === 'dark' ? 'black' : 'white'}
             >
               <DrawerCloseButton />
-              <DrawerHeader padding={'20px 10px 0px 25px'}>
+              <DrawerHeader padding="20px 10px 0px 25px">
                 {appState.isWalletConnected && (
                   <Box as="span">
                     <ConnectButton />
@@ -99,7 +100,7 @@ export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
           </Drawer>
         </Box>
       ) : (
-        <Box></Box>
+        <Box />
       )}
       <Box display={{ base: 'none', md: 'block' }}>
         <HStack fontSize="lg" gap={4}>

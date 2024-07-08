@@ -8,13 +8,14 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { arbitrumSepolia } from 'viem/chains';
 import { createConfig } from 'wagmi';
 
-import { anvilConnector } from './anvilConnector';
 // import { injected, walletConnect } from 'wagmi/connectors';
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import {
   injectedWallet,
   walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets';
+
+import { anvilConnector } from './anvilConnector';
 
 declare module 'wagmi' {
   interface Register {

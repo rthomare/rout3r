@@ -1,11 +1,10 @@
-import { ButtonProps, Button as ChakraButton } from '@chakra-ui/react';
+import { Button as ChakraButton, ButtonProps } from '@chakra-ui/react';
 
 export function Button(
   props: Omit<ButtonProps, 'fontWeight'> & {
     overrideFontWight?: ButtonProps['fontWeight'];
   }
 ) {
-  return (
-    <ChakraButton {...props} fontWeight={props.overrideFontWight ?? 'normal'} />
-  );
+  const { overrideFontWight, ...rest } = props;
+  return <ChakraButton {...rest} fontWeight={overrideFontWight ?? 'normal'} />;
 }

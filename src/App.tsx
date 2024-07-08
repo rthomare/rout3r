@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { HashRouter, Route, Routes, useNavigate } from 'react-router-dom';
 import { useAccountEffect, WagmiProvider } from 'wagmi';
 
@@ -12,6 +13,7 @@ import {
 import { RainbowKitProvider, Theme } from '@rainbow-me/rainbowkit';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 
+import { WalletAvatar } from './components/AvatarComponent';
 import { Footer } from './components/Footer';
 import { Navbar } from './components/Navbar';
 import { useAppDestinations } from './hooks/useAppDestinations';
@@ -20,12 +22,10 @@ import { OnchainProvider } from './hooks/useOnchain';
 import { appConfig } from './lib/config';
 import { persister, queryClient } from './lib/queryClient';
 import { Routing } from './routing/Routing';
+import { chakraTheme } from './theme/chakraTheme';
 import { darkRainbowTheme, lightRainbowTheme } from './theme/rainbowTheme';
 
 import '@rainbow-me/rainbowkit/styles.css';
-import { useMemo } from 'react';
-import { chakraTheme } from './theme/chakraTheme';
-import { WalletAvatar } from './components/AvatarComponent';
 
 export function Content() {
   const appDestinations = useAppDestinations();
@@ -67,9 +67,10 @@ export function Content() {
 
 function UI(): JSX.Element {
   const { colorMode } = useColorMode();
-  const rainbowTheme: Theme | undefined = useMemo(() => {
-    return colorMode === 'light' ? lightRainbowTheme : darkRainbowTheme;
-  }, [colorMode]);
+  const rainbowTheme: Theme | undefined = useMemo(
+    () => (colorMode === 'light' ? lightRainbowTheme : darkRainbowTheme),
+    [colorMode]
+  );
   return (
     <RainbowKitProvider
       modalSize="compact"

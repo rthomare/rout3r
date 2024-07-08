@@ -4,6 +4,7 @@ import { Heading, VStack } from '@chakra-ui/react';
 
 import { About } from '../about/About';
 import { AddRoute } from '../add/AddRoute';
+import { ConnectButton } from '../components/ConnectButton';
 import { Redirect } from '../components/Redirect';
 import { Debug } from '../debug/Debug';
 import { EditRoute } from '../route/EditRoute';
@@ -13,7 +14,6 @@ import { Settings } from '../settings/Settings';
 import { Onboard } from '../setup/Onboard';
 
 import { useAppState } from './useAppState';
-import { ConnectButton } from '../components/ConnectButton';
 
 type AppDestinations = {
   content: React.ReactElement;
@@ -71,8 +71,8 @@ export function useAppDestinations(): AppDestinationsResponse {
           },
           {
             content: <Redirect to="/" />,
-            path: '/setup',
-            name: 'setup',
+            path: '*',
+            name: 'catchall',
             shouldHideNav: true,
           },
         ],
@@ -110,8 +110,8 @@ export function useAppDestinations(): AppDestinationsResponse {
           },
           {
             content: <Redirect to="/" />,
-            path: '/setup',
-            name: 'setup',
+            path: '*',
+            name: 'catchall',
             shouldHideNav: true,
           },
         ],
@@ -176,6 +176,12 @@ export function useAppDestinations(): AppDestinationsResponse {
             name: 'go',
             shouldHideNav: true,
           },
+          {
+            content: <Redirect to="/" />,
+            path: '*',
+            name: 'catchall',
+            shouldHideNav: true,
+          },
         ],
         basename: 'rout3r',
       };
@@ -199,6 +205,12 @@ export function useAppDestinations(): AppDestinationsResponse {
           content: <About />,
           path: '/about',
           name: 'about',
+          shouldHideNav: true,
+        },
+        {
+          content: <Redirect to="/" />,
+          path: '*',
+          name: 'catchall',
           shouldHideNav: true,
         },
       ],
