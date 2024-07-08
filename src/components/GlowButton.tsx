@@ -52,7 +52,7 @@ export function GlowButton(
             #ff0000
         );"
         backgroundSize="400%"
-        animation={`${rotate} 20s linear infinite`}
+        animation={`${rotate} 20s linear reverse infinite`}
         opacity={glow ? 1 : 0}
         transition="opacity 1s ease-in-out"
         borderRadius="8px"

@@ -1,0 +1,16 @@
+[data-rk] * {
+  font-weight: 400 !important;
+  text-transform: lowercase !important;
+}
+
+@keyframes rotate {
+  0% {
+    background-position: 0 0 !important;
+  }
+  50% {
+    background-position: 400% 0 !important;
+  }
+  100% {
+    background-position: 0 0 !important;
+  }
+}

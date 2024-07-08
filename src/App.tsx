@@ -71,7 +71,11 @@ function UI(): JSX.Element {
     return colorMode === 'light' ? lightRainbowTheme : darkRainbowTheme;
   }, [colorMode]);
   return (
-    <RainbowKitProvider avatar={WalletAvatar} theme={rainbowTheme}>
+    <RainbowKitProvider
+      modalSize="compact"
+      avatar={WalletAvatar}
+      theme={rainbowTheme}
+    >
       <Content />
     </RainbowKitProvider>
   );
