@@ -118,10 +118,6 @@ export function Onboard() {
   );
   return (
     <>
-      <PageHeader>setup</PageHeader>
-      <Heading size="sm" marginTop={5} marginBottom={5}>
-        follow the steps below:
-      </Heading>
       <Accordion index={index}>
         <OnboardingStep
           title="deploy"

@@ -85,6 +85,15 @@ contract Router_V1 is IRouteReader, IRouteMutator {
         return newRoute;
     }
 
+    /// @notice Adds multiple nodes to the linked list
+    function addRoutes(RouteAddData[] memory newRoutes) onlyOwner public returns (Route[] memory) {
+        Route[] memory results = new Route[](newRoutes.length);
+        for (uint256 i = 0; i < newRoutes.length; i++) {
+            results[i] = addRoute(newRoutes[i]);
+        }
+        return results;
+    }
+
     function updateRoute(string memory command, RouteUpdateData memory route) onlyOwner public {
         require(isValidRoute(command), "Route with command does not exist");
         routes[command].name = route.name;
@@ -104,6 +113,13 @@ contract Router_V1 is IRouteReader, IRouteMutator {
         delete cll[command][PREV];
         delete cll[command][NEXT];
         delete routes[command];
+    }
+
+    /// @notice Removes multiple nodes from the linked list
+    function deleteRoutes(string[] memory commands) onlyOwner public {
+        for (uint256 i = 0; i < commands.length; i++) {
+            deleteRoute(commands[i]);
+        }
     }
 
     function getRoute(string memory command) public view returns (Route memory) {

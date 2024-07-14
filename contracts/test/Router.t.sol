@@ -34,12 +34,10 @@ contract RouterTest is Test {
 
     function test_CreateAndGetRoutes() public {
         string[] memory subRoutes = new string[](0);
-        router.addRoute(
-            RouteAddData("command1", "name1", "url1", "description2", subRoutes)
-        );
-        router.addRoute(
-            RouteAddData("command2", "name2", "url2", "description2", subRoutes)
-        );
+        RouteAddData[] memory routeAddDatas = new RouteAddData[](2);
+        routeAddDatas[0] = RouteAddData("command1", "name1", "url1", "description1", subRoutes);
+        routeAddDatas[1] = RouteAddData("command2", "name2", "url2", "description2", subRoutes);
+        router.addRoutes(routeAddDatas);
         (Route[] memory routes, uint256 length, string memory cursor) = router.getRoutes("", 10);
         // account for reserved routes
         assertEq(length, 3);
@@ -89,6 +87,30 @@ contract RouterTest is Test {
         assertEq(length, 10);
         (routes, length, cursor) = router.getRoutes(cursor, 10);
         assertEq(length, 5);
+    }
+
+    function test_DeleteRoutes() public {
+        // account for reserved routes 16 total
+        for (uint i = 0; i < 15; i++) {
+            router.addRoute(newRoute(i));
+        }
+        (Route[] memory routes, uint256 length, string memory cursor) = router.getRoutes("", 10);
+        assertEq(length, 10);
+        // account for reserved routes
+        assertEq(cursor, "9");
+        (routes, length, cursor) = router.getRoutes(cursor, 10);
+        assertEq(length, 6);
+        assertEq(cursor, "");
+        // deleting route at id 10
+        string[] memory deleteCommands = new string[](3);
+        deleteCommands[0] = "10";
+        deleteCommands[1] = "11";
+        deleteCommands[2] = "12";
+        router.deleteRoutes(deleteCommands);
+        (routes, length, cursor) = router.getRoutes("", 10);
+        assertEq(length, 10);
+        (routes, length, cursor) = router.getRoutes(cursor, 10);
+        assertEq(length, 3);
     }
 
     function test_UpdateRoute() public {
