@@ -1,19 +1,15 @@
-import { useMemo } from 'react';
 import { HashRouter, Route, Routes, useNavigate } from 'react-router-dom';
-import { useAccountEffect, WagmiProvider } from 'wagmi';
+import { useAccountEffect } from 'wagmi';
+import { cookieToInitialState } from '@account-kit/core';
 
 import {
   Box,
   ChakraProvider,
   ColorModeScript,
   Fade,
-  useColorMode,
   VStack,
 } from '@chakra-ui/react';
-import { RainbowKitProvider, Theme } from '@rainbow-me/rainbowkit';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-
-import { WalletAvatar } from './components/AvatarComponent';
 import { Footer } from './components/Footer';
 import { Navbar } from './components/Navbar';
 import { useAppDestinations } from './hooks/useAppDestinations';
@@ -23,9 +19,9 @@ import { appConfig } from './lib/config';
 import { persister, queryClient } from './lib/queryClient';
 import { Routing } from './routing/Routing';
 import { chakraTheme } from './theme/chakraTheme';
-import { darkRainbowTheme, lightRainbowTheme } from './theme/rainbowTheme';
 
 import '@rainbow-me/rainbowkit/styles.css';
+import { AlchemyAccountProvider } from '@account-kit/react';
 
 export function Content() {
   const appDestinations = useAppDestinations();
@@ -65,25 +61,10 @@ export function Content() {
   );
 }
 
-function UI(): JSX.Element {
-  const { colorMode } = useColorMode();
-  const rainbowTheme: Theme | undefined = useMemo(
-    () => (colorMode === 'light' ? lightRainbowTheme : darkRainbowTheme),
-    [colorMode]
-  );
-  return (
-    <RainbowKitProvider
-      modalSize="compact"
-      avatar={WalletAvatar}
-      theme={rainbowTheme}
-    >
-      <Content />
-    </RainbowKitProvider>
-  );
-}
-
 function App(): JSX.Element {
   const isGoRoute = window.location.href.match('/#go') !== null;
+  // This will allow us to persist state across page boundaries (read more here: https://accountkit.alchemy.com/react/ssr#persisting-the-account-state)
+  const initialState = cookieToInitialState(appConfig, undefined);
   return (
     <ChakraProvider theme={chakraTheme}>
       <GlobalLoaderProvider>
@@ -99,13 +80,17 @@ function App(): JSX.Element {
               <Routing />
             </Box>
           ) : (
-            <WagmiProvider config={appConfig}>
+            <AlchemyAccountProvider
+              config={appConfig}
+              queryClient={queryClient}
+              initialState={initialState}
+            >
               <HashRouter>
                 <OnchainProvider>
-                  <UI />
+                  <Content />
                 </OnchainProvider>
               </HashRouter>
-            </WagmiProvider>
+            </AlchemyAccountProvider>
           )}
         </PersistQueryClientProvider>
       </GlobalLoaderProvider>

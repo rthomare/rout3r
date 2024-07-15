@@ -6,29 +6,18 @@ import {
   useMemo,
 } from 'react';
 import { getContract } from 'viem';
-import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
-
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-
-import { appConfig } from '../lib/config';
 import { PINNED_CONTRACT_ABI } from '../lib/constants';
 import { queryKeyForRouterAddress } from '../lib/endpoints';
 import { getRouterContract } from '../lib/onchain';
 import { OnchainConfig } from '../lib/types';
 
 import { useGlobalLoader } from './useGlobalLoader';
+import { useChain } from '@account-kit/react';
 
 const ConfigContext = createContext<{ config: OnchainConfig } | undefined>(
   undefined
 );
-
-const ClientContext = createContext<
-  | {
-      walletClient: OnchainConfig['walletClient'];
-      publicClient: OnchainConfig['publicClient'];
-    }
-  | undefined
->(undefined);
 
 function useContractQuery(
   publicClient: OnchainConfig['publicClient'],
@@ -54,59 +43,9 @@ function useContractQuery(
 }
 
 export function OnchainProvider({ children }: PropsWithChildren) {
-  const walletClientQuery = useWalletClient({
-    chainId: appConfig.chains[0].id,
-    config: appConfig,
-  });
-  const walletClient = walletClientQuery.data;
-  const publicClient = usePublicClient({
-    chainId: appConfig.chains[0].id,
-    config: appConfig,
-  });
+  const chain = useChain();
   const { isDisconnected } = useAccount();
-  const showLoader =
-    !isDisconnected && (!walletClient || walletClientQuery.isLoading);
-  const value = useMemo(() => {
-    if (!walletClient || walletClientQuery.isLoading || !publicClient) {
-      return undefined;
-    }
-    return { walletClient, publicClient };
-  }, [walletClient, publicClient, walletClientQuery.isLoading]);
-  useGlobalLoader({
-    id: 'onchain-client',
-    showLoader,
-    helperText: 'initializing your wallet client',
-  });
-  useGlobalLoader({
-    id: 'onchain-data',
-    showLoader: !value && !isDisconnected,
-    helperText: 'initializing onchain data',
-  });
-
-  if (isDisconnected || !value) {
-    return children;
-  }
-  return (
-    <ClientContext.Provider value={value}>
-      <ConfigProvider>{children}</ConfigProvider>
-    </ClientContext.Provider>
-  );
-}
-
-function ConfigInnerProvider({
-  walletClient,
-  publicClient,
-  children,
-}: PropsWithChildren<{
-  publicClient: OnchainConfig['publicClient'];
-  walletClient: OnchainConfig['walletClient'];
-}>) {
   const contractQuery = useContractQuery(publicClient, walletClient);
-  useGlobalLoader({
-    id: 'deployed-contracts',
-    showLoader: !!contractQuery && contractQuery.isLoading,
-    helperText: 'finding your account',
-  });
   const contract = useMemo(
     () =>
       contractQuery.data
@@ -119,44 +58,39 @@ function ConfigInnerProvider({
             },
           })
         : null,
-    [contractQuery.data, publicClient, walletClient]
+    [contractQuery.data]
   );
-
   const value = useMemo(() => {
     if (!contractQuery || contractQuery.isLoading) {
       return undefined;
     }
     return {
       config: {
-        publicClient,
-        walletClient,
         contract,
       },
     };
-  }, [contract, contractQuery, publicClient, walletClient]);
+  }, [contract, contractQuery]);
+  useGlobalLoader({
+    id: 'onchain-client',
+    showLoader,
+    helperText: 'initializing your wallet client',
+  });
+  useGlobalLoader({
+    id: 'onchain-data',
+    showLoader: !value && !isDisconnected,
+    helperText: 'initializing onchain data',
+  });
+  useGlobalLoader({
+    id: 'deployed-contracts',
+    showLoader: !!contractQuery && contractQuery.isLoading,
+    helperText: 'finding your account',
+  });
 
-  if (!value) {
+  if (isDisconnected || !value) {
     return children;
   }
-
   return (
     <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>
-  );
-}
-
-function ConfigProvider({ children }: PropsWithChildren) {
-  const clients = useContext(ClientContext);
-  if (!clients) {
-    return children;
-  }
-
-  return (
-    <ConfigInnerProvider
-      publicClient={clients.publicClient}
-      walletClient={clients.walletClient}
-    >
-      {children}
-    </ConfigInnerProvider>
   );
 }
 

@@ -1,82 +1,38 @@
-import { ConnectButton as RConnectButton } from '@rainbow-me/rainbowkit';
-
+import { useAuthModal, useSignerStatus, useUser } from '@account-kit/react';
 import { GlowButton } from './GlowButton';
 
 import './connection.css';
+import { Spinner } from '@chakra-ui/react';
 
 export function ConnectButton() {
+  const user = useUser();
+  const { openAuthModal } = useAuthModal();
+  const signerStatus = useSignerStatus();
+  if (!signerStatus || signerStatus.isInitializing) {
+    return <Spinner size="sm" />;
+  }
+
+  if (user) {
+    return (
+      <GlowButton
+        fontSize="md"
+        fontWeight="normal"
+        onClick={openAuthModal}
+        type="button"
+      >
+        {user.userId}
+      </GlowButton>
+    );
+  }
+
   return (
-    <RConnectButton.Custom>
-      {({
-        account,
-        chain,
-        openAccountModal,
-        openChainModal,
-        openConnectModal,
-        authenticationStatus,
-        mounted,
-      }) => {
-        // Note: If your app doesn't use authentication, you
-        // can remove all 'authenticationStatus' checks
-        const ready = mounted && authenticationStatus !== 'loading';
-        const connected =
-          ready &&
-          account &&
-          chain &&
-          (!authenticationStatus || authenticationStatus === 'authenticated');
-
-        return (
-          <div
-            {...(!ready && {
-              'aria-hidden': true,
-              style: {
-                opacity: 0,
-                pointerEvents: 'none',
-                userSelect: 'none',
-              },
-            })}
-          >
-            {(() => {
-              if (!connected) {
-                return (
-                  <GlowButton
-                    fontSize="lg"
-                    fontWeight="normal"
-                    onClick={openConnectModal}
-                    type="button"
-                  >
-                    connect
-                  </GlowButton>
-                );
-              }
-
-              if (chain.unsupported) {
-                return (
-                  <GlowButton
-                    fontSize="md"
-                    fontWeight="normal"
-                    onClick={openChainModal}
-                    type="button"
-                  >
-                    wrong network
-                  </GlowButton>
-                );
-              }
-
-              return (
-                <GlowButton
-                  fontSize="md"
-                  fontWeight="normal"
-                  onClick={openAccountModal}
-                  type="button"
-                >
-                  {account.displayName.toLowerCase()}
-                </GlowButton>
-              );
-            })()}
-          </div>
-        );
-      }}
-    </RConnectButton.Custom>
+    <GlowButton
+      fontSize="lg"
+      fontWeight="normal"
+      onClick={openAuthModal}
+      type="button"
+    >
+      connect
+    </GlowButton>
   );
 }
