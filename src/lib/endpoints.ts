@@ -11,6 +11,7 @@ import {
 import { useErrorToast } from '../hooks/useErrorToast';
 import { useOnchain } from '../hooks/useOnchain';
 
+import { zeroAddress } from 'viem';
 import {
   addRoute,
   deleteRoute,
@@ -29,7 +30,7 @@ export function appSettingsFromConfig(
 ): Omit<AppSettings, 'searchFallback'> {
   return {
     rpc: config.walletClient.chain.rpcUrls.default.http[0],
-    address: config.walletClient.account.address,
+    address: config.walletClient?.account.address ?? '0x',
     chainId: config.walletClient.chain.id,
     contract: config.contract?.address ?? '0x',
   };
@@ -423,8 +424,8 @@ export function useDeployRouter(
       queryClient.setQueryData(
         [
           'router_address',
-          config.walletClient.chain.id,
-          config.walletClient.account.address,
+          config.publicClient.chain.id,
+          config.walletClient?.account.address ?? zeroAddress,
         ],
         contract?.address
       );

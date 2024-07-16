@@ -1,32 +1,12 @@
 import { useRef } from 'react';
-import { BsGithub } from 'react-icons/bs';
 import { Link, useLocation } from 'react-router-dom';
-import { mainnet } from 'viem/chains';
 
-import { HamburgerIcon, MoonIcon, SunIcon } from '@chakra-ui/icons';
-import {
-  Box,
-  Divider,
-  Drawer,
-  DrawerBody,
-  DrawerCloseButton,
-  DrawerContent,
-  DrawerHeader,
-  DrawerOverlay,
-  Heading,
-  HStack,
-  Icon,
-  IconButton,
-  Switch,
-  useColorMode,
-  useDisclosure,
-} from '@chakra-ui/react';
+import { Box, Heading, HStack, useColorMode } from '@chakra-ui/react';
 
 import { AppDestinationsResponse } from '../hooks/useAppDestinations';
 import { useAppState } from '../hooks/useAppState';
 
 import { ConnectButton } from './ConnectButton';
-import { GlowButton } from './GlowButton';
 
 export function Navbar({ destinations, isLoading }: AppDestinationsResponse) {
   const { colorMode, toggleColorMode } = useColorMode();

@@ -1,13 +1,15 @@
 import {
-  Account,
   Address,
   Chain,
   GetContractReturnType,
+  HttpTransport,
   PublicClient,
-  Transport,
-  WalletClient,
 } from 'viem';
 
+import {
+  UseBundlerClientResult,
+  UseSmartAccountClientResult,
+} from '@account-kit/react';
 import { PINNED_CONTRACT_ABI } from './constants';
 
 // eslint-disable-next-line no-shadow
@@ -74,7 +76,6 @@ export type Route = {
  */
 export type AppSettings = {
   searchFallback: string;
-  rpc: string;
   chainId: number;
   address: Address;
   contract: Address;
@@ -99,10 +100,10 @@ export type AppSettings = {
  * }
  */
 export type OnchainConfig = {
-  publicClient: PublicClient;
-  walletClient: WalletClient<Transport, Chain, Account>;
+  walletClient: UseSmartAccountClientResult['client'];
+  publicClient: UseBundlerClientResult;
   contract: GetContractReturnType<
     typeof PINNED_CONTRACT_ABI,
-    WalletClient & PublicClient
+    PublicClient<HttpTransport, Chain>
   > | null;
 };

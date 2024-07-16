@@ -5,12 +5,22 @@ import {
   useEffect,
   useMemo,
 } from 'react';
-import { getContract } from 'viem';
-import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
+import {
+  Chain,
+  getContract,
+  HttpTransport,
+  PublicClient,
+  zeroAddress,
+} from 'viem';
 
+import {
+  useBundlerClient,
+  useChain,
+  useSignerStatus,
+  useSmartAccountClient,
+} from '@account-kit/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { appConfig } from '../lib/config';
 import { PINNED_CONTRACT_ABI } from '../lib/constants';
 import { queryKeyForRouterAddress } from '../lib/endpoints';
 import { getRouterContract } from '../lib/onchain';
@@ -35,14 +45,21 @@ function useContractQuery(
   walletClient: OnchainConfig['walletClient']
 ) {
   const queryClient = useQueryClient();
+  const { chain } = useChain();
   const queryKey = queryKeyForRouterAddress({
-    address: walletClient.account.address,
-    chainId: walletClient.chain.id,
+    address: walletClient?.account.address || zeroAddress,
+    chainId: chain.id,
   });
+
   const query = useQuery({
     queryKey,
-    queryFn: async () =>
-      getRouterContract(publicClient, walletClient).then((v) => v ?? null),
+    queryFn: async () => {
+      if (!walletClient) return null;
+
+      return getRouterContract(publicClient, walletClient).then(
+        (v) => v ?? null
+      );
+    },
   });
   const isNull = query.isFetched && query.data === null;
   useEffect(() => {
@@ -54,24 +71,24 @@ function useContractQuery(
 }
 
 export function OnchainProvider({ children }: PropsWithChildren) {
-  const walletClientQuery = useWalletClient({
-    chainId: appConfig.chains[0].id,
-    config: appConfig,
+  const { client } = useSmartAccountClient({
+    type: 'LightAccount',
+    // TODO: wtf is the bug that's not using this from config??
+    gasManagerConfig: {
+      policyId: import.meta.env.VITE_POLICY_ID!,
+    },
   });
-  const walletClient = walletClientQuery.data;
-  const publicClient = usePublicClient({
-    chainId: appConfig.chains[0].id,
-    config: appConfig,
-  });
-  const { isDisconnected } = useAccount();
-  const showLoader =
-    !isDisconnected && (!walletClient || walletClientQuery.isLoading);
-  const value = useMemo(() => {
-    if (!walletClient || walletClientQuery.isLoading || !publicClient) {
-      return undefined;
-    }
-    return { walletClient, publicClient };
-  }, [walletClient, publicClient, walletClientQuery.isLoading]);
+  const bundlerClient = useBundlerClient();
+  const { isAuthenticating, isInitializing, isDisconnected } =
+    useSignerStatus();
+
+  const showLoader = isAuthenticating || isInitializing;
+  const value = useMemo(
+    () =>
+      client ? { publicClient: bundlerClient, walletClient: client } : null,
+    [bundlerClient, client]
+  );
+
   useGlobalLoader({
     id: 'onchain-client',
     showLoader,
@@ -102,30 +119,30 @@ function ConfigInnerProvider({
   walletClient: OnchainConfig['walletClient'];
 }>) {
   const contractQuery = useContractQuery(publicClient, walletClient);
+
   useGlobalLoader({
     id: 'deployed-contracts',
     showLoader: !!contractQuery && contractQuery.isLoading,
     helperText: 'finding your account',
   });
+
   const contract = useMemo(
     () =>
       contractQuery.data
         ? getContract({
             address: contractQuery.data,
             abi: PINNED_CONTRACT_ABI,
-            client: {
-              public: publicClient,
-              wallet: walletClient,
-            },
+            client: publicClient as PublicClient<HttpTransport, Chain>,
           })
         : null,
-    [contractQuery.data, publicClient, walletClient]
+    [contractQuery.data, publicClient]
   );
 
   const value = useMemo(() => {
     if (!contractQuery || contractQuery.isLoading) {
       return undefined;
     }
+
     return {
       config: {
         publicClient,

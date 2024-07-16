@@ -19,7 +19,7 @@ contract RouterTest is Test {
     }
     
     function setUp() public {
-        router = new Router_V1();
+        router = new Router_V1(address(this));
     }
 
     function test_CreateAndGetRoute() public {

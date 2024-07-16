@@ -1,19 +1,16 @@
-import { useMemo } from 'react';
+import { useEffect } from 'react';
 import { HashRouter, Route, Routes, useNavigate } from 'react-router-dom';
-import { useAccountEffect, WagmiProvider } from 'wagmi';
 
+import { AlchemyAccountProvider, useSignerStatus } from '@account-kit/react';
 import {
   Box,
   ChakraProvider,
   ColorModeScript,
   Fade,
-  useColorMode,
   VStack,
 } from '@chakra-ui/react';
-import { RainbowKitProvider, Theme } from '@rainbow-me/rainbowkit';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 
-import { WalletAvatar } from './components/AvatarComponent';
 import { Footer } from './components/Footer';
 import { Navbar } from './components/Navbar';
 import { useAppDestinations } from './hooks/useAppDestinations';
@@ -23,18 +20,21 @@ import { appConfig } from './lib/config';
 import { persister, queryClient } from './lib/queryClient';
 import { Routing } from './routing/Routing';
 import { chakraTheme } from './theme/chakraTheme';
-import { darkRainbowTheme, lightRainbowTheme } from './theme/rainbowTheme';
 
 import '@rainbow-me/rainbowkit/styles.css';
+import './global.css';
 
 export function Content() {
   const appDestinations = useAppDestinations();
   const navigate = useNavigate();
-  useAccountEffect({
-    onDisconnect() {
+  const { isDisconnected } = useSignerStatus();
+
+  useEffect(() => {
+    if (isDisconnected) {
       navigate('/');
-    },
-  });
+    }
+  }, [isDisconnected]);
+
   useGlobalLoader({
     id: 'app-destinations',
     showLoader: appDestinations.isLoading,
@@ -66,20 +66,7 @@ export function Content() {
 }
 
 function UI(): JSX.Element {
-  const { colorMode } = useColorMode();
-  const rainbowTheme: Theme | undefined = useMemo(
-    () => (colorMode === 'light' ? lightRainbowTheme : darkRainbowTheme),
-    [colorMode]
-  );
-  return (
-    <RainbowKitProvider
-      modalSize="compact"
-      avatar={WalletAvatar}
-      theme={rainbowTheme}
-    >
-      <Content />
-    </RainbowKitProvider>
-  );
+  return <Content />;
 }
 
 function App(): JSX.Element {
@@ -94,19 +81,19 @@ function App(): JSX.Element {
           client={queryClient}
           persistOptions={{ persister }}
         >
-          {isGoRoute ? (
-            <Box h="100vh" w="100vw">
-              <Routing />
-            </Box>
-          ) : (
-            <WagmiProvider config={appConfig}>
+          <AlchemyAccountProvider config={appConfig} queryClient={queryClient}>
+            {isGoRoute ? (
+              <Box h="100vh" w="100vw">
+                <Routing />
+              </Box>
+            ) : (
               <HashRouter>
                 <OnchainProvider>
                   <UI />
                 </OnchainProvider>
               </HashRouter>
-            </WagmiProvider>
-          )}
+            )}
+          </AlchemyAccountProvider>
         </PersistQueryClientProvider>
       </GlobalLoaderProvider>
     </ChakraProvider>

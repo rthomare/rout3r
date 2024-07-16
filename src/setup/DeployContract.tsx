@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAccount } from 'wagmi';
 
+import { useChain } from '@account-kit/react';
 import { Button, Flex, Text, VStack } from '@chakra-ui/react';
 
 import { useRouterContract } from '../hooks/useRouterContract';
@@ -11,7 +11,7 @@ export function DeployContract({
 }: {
   onComplete?: () => void;
 }): JSX.Element {
-  const { chain } = useAccount();
+  const { chain } = useChain();
   const { isDeployed, contract, deploy } = useRouterContract();
   const navigate = useNavigate();
   const onSuccess = useCallback(() => {
