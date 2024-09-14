@@ -1,7 +1,12 @@
 import { mapSubroutes } from '../utils/general';
 
-import { SEARCH_REPLACEMENT } from './constants';
+import {
+  BROWSER_SEARCH_PARAM,
+  BROWSER_SEARCH_VALUE,
+  SEARCH_REPLACEMENT,
+} from './constants';
 import { AppSettings, Route } from './types';
+import { isAddress } from 'viem';
 
 export function storeAppSettings(params: AppSettings) {
   localStorage.setItem('appSettings', JSON.stringify(params));
@@ -23,9 +28,62 @@ export function retrieveAppSettings(): AppSettings | undefined {
  *    https://google.com/search?q=%@@@
  * );
  */
-export function createRouterURL(): string {
+export function createRouterURL(settings: AppSettings): string {
   // url encode rpcUrl and searchFallback
-  return `${origin}/#go?q=%s`;
+  return `${origin}/#go?rpcUrl=${encodeURIComponent(
+    settings.rpc
+  )}&address=${encodeURIComponent(
+    settings.address
+  )}&fallbackSearchUrl=${encodeURIComponent(
+    settings.searchFallback
+  )}&contract=${encodeURIComponent(
+    settings.contract
+  )}&chainId=${encodeURIComponent(
+    settings.chainId
+  )}&${BROWSER_SEARCH_PARAM}=${BROWSER_SEARCH_VALUE}`;
+}
+
+/*
+ * @function createRouterURL
+ * Creates a route url.
+ * @returns A route url.
+ *
+ * @example
+ * const routeUrl = createRouterURL(
+ *    https://alchemy.com/rpc,
+ *    https://google.com/search?q=%@@@
+ * );
+ */
+export function settingsFromRouterUrl(url: URL): AppSettings {
+  // url encode rpcUrl and searchFallback
+  const rpcUrl = url.searchParams.get('rpcUrl');
+  const address = url.searchParams.get('address');
+  const fallbackSearchUrl = url.searchParams.get('fallbackSearchUrl');
+  const contract = url.searchParams.get('contract');
+  const chainId = url.searchParams.get('chainId');
+
+  if (!rpcUrl || !address || !fallbackSearchUrl || !contract || !chainId) {
+    throw new Error('Invalid Router URL');
+  }
+
+  if (isNaN(parseInt(chainId))) {
+    throw new Error('Invalid chain id in URL');
+  }
+
+  if (!isAddress(address)) {
+    throw new Error('Invalid address in URL');
+  }
+
+  if (!isAddress(contract)) {
+    throw new Error('Invalid contract in URL');
+  }
+  return {
+    rpc: rpcUrl,
+    address,
+    searchFallback: fallbackSearchUrl,
+    contract,
+    chainId: parseInt(chainId),
+  };
 }
 
 /*

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { isChrome, isFirefox, isSafari } from 'react-device-detect';
 import {
   BsBrowserChrome,
@@ -24,10 +24,10 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import { useAppSettings } from '../hooks/useAppSettings';
 import { useCopy } from '../hooks/useCopy';
 import { useOnchain } from '../hooks/useOnchain';
 import { SEARCH_REPLACEMENT } from '../lib/constants';
+import { AppSettings } from '../lib/types';
 import { createRouterURL } from '../lib/engine';
 
 function defaultBrowserIndex() {
@@ -46,20 +46,18 @@ export function SetupBrowser({
   const [searchFallback, setSearchFallback] = useState(
     `https://www.google.com/search?q=${SEARCH_REPLACEMENT}`
   );
-  const routerUrl = createRouterURL();
   const defaultIndex = defaultBrowserIndex();
   const { config } = useOnchain();
-  const { updateSettings } = useAppSettings();
-  const setup = useCallback(() => {
-    updateSettings({
-      searchFallback,
-      chainId: config.walletClient.chain.id,
-      rpc: config.walletClient.chain.rpcUrls.default.http[0],
-      address: config.walletClient.account.address,
-      contract: config.contract?.address ?? '0x',
-    });
-    onSetup();
-  }, [searchFallback, config, onSetup, updateSettings]);
+  const appSettings: Omit<AppSettings, 'searchFallback'> = {
+    rpc: config.walletClient.chain.rpcUrls.default.http[0],
+    chainId: config.walletClient.chain.id,
+    address: config.walletClient.account.address,
+    contract: config.contract?.address ?? '0x',
+  };
+  const routerUrl = useMemo(
+    () => createRouterURL({ ...appSettings, searchFallback: searchFallback }),
+    [appSettings]
+  );
 
   return (
     <>
@@ -171,7 +169,7 @@ export function SetupBrowser({
           </AccordionItem>
         </Accordion>
       </VStack>
-      <Button onClick={setup} mt={2}>
+      <Button onClick={onSetup} mt={2}>
         next
       </Button>
     </>
