@@ -1,14 +1,19 @@
 import {
-  Account,
   Address,
   Chain,
   GetContractReturnType,
   PublicClient,
-  Transport,
   WalletClient,
 } from 'viem';
+import type {
+  LightAccount,
+  LightAccountVersion,
+  LightAccountClientActions,
+} from '@account-kit/smart-contracts';
+import type { AlchemyWebSigner } from '@account-kit/signer';
 
 import { PINNED_CONTRACT_ABI } from './constants';
+import { AlchemySmartAccountClient } from '@account-kit/infra';
 
 // eslint-disable-next-line no-shadow
 export enum RouteType {
@@ -83,24 +88,24 @@ export type AppSettings = {
 /*
  * @type OnchainConfig
  * The configuration for the onchain actions within the application
- * @param publicClient - The public client to use for onchain actions.
- * @param walletClient - The wallet client to use for onchain actions.
+ * @param client - The smart account client to use for the router.
  * @param contract - The deployed contract to use for the router.
  *   Note: This is optional as the contract may not be deployed yet.
  *
  * @example
- * const walletClient = new WalletClient<Transport, Chain, Account>(transport, chain, account);
- * const publicClient = new PublicClient(transport, chain);
+ * const client = new AlchemySmartAccountClient();
  * const contract = new Contract<Router>(transport, chain, account, Router.abi, Router.address);
  * const config: OnchainConfig = {
- *  publicClient: publicClient,
- *  walletClient: walletClient,
+ *  client: client,
  *  contract: contract,
  * }
  */
 export type OnchainConfig = {
-  publicClient: PublicClient;
-  walletClient: WalletClient<Transport, Chain, Account>;
+  client: AlchemySmartAccountClient<
+    Chain,
+    LightAccount<AlchemyWebSigner, LightAccountVersion<'LightAccount'>>,
+    LightAccountClientActions<AlchemyWebSigner>
+  >;
   contract: GetContractReturnType<
     typeof PINNED_CONTRACT_ABI,
     WalletClient & PublicClient

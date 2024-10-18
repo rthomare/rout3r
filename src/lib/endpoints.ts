@@ -11,26 +11,27 @@ import {
 import { useErrorToast } from '../hooks/useErrorToast';
 import { useOnchain } from '../hooks/useOnchain';
 
-import {
-  addRoute,
-  deleteRoute,
-  deployContract,
-  getRoute,
-  getRoutes,
-  searchRoute,
-  updateRoute,
-} from './onchain';
+import { deployContract, getRoute, getRoutes, searchRoute } from './onchain';
 import { AppSettings, OnchainConfig, Route } from './types';
+import { useSendUserOperation } from '@account-kit/react';
+import { decodeFunctionData, encodeFunctionData } from 'viem';
 
 const STALE_TIME = 1000 * 60 * 60; // 1 hour
 
 export function appSettingsFromConfig(
   config: OnchainConfig
 ): Omit<AppSettings, 'searchFallback'> {
+  if (!config.client.account) {
+    throw new Error('No account found for app settings.');
+  }
+  if (!config.client.chain) {
+    throw new Error('No chain found for app settings.');
+  }
+
   return {
-    rpc: config.walletClient.chain.rpcUrls.default.http[0],
-    address: config.walletClient.account.address,
-    chainId: config.walletClient.chain.id,
+    rpc: config.client.chain.rpcUrls.default.http[0],
+    address: config.client.account.address,
+    chainId: config.client.chain.id,
     contract: config.contract?.address ?? '0x',
   };
 }
@@ -175,70 +176,72 @@ export function useGetRoutes() {
  * @returns The mutation.
  *
  * @example
- * const { mutate, mutateAsync } = useCreateRoute(
+ * const { createRoute, isLoading } = useCreateRoute(
  *   () => console.log('Route created'),
  *   (error) => console.error(error)
  * );
  *
- * mutate({
+ * createRoute({
  *   command: 'g',
  *   name: 'Google',
  *   description: 'Searches Google',
  *   url: 'https://www.google.com/search?q=%@@@',
  *   subRoutes: [],
  * });
- *
- * const route = await mutateAsync({
- *  command: 'b',
- *   name: 'Bing',
- *   description: 'Searches Bing',
- *   url: 'https://www.bing.com/search?q=%@@@',
- *   subRoutes: [{
- *     command: 'i',
- *     url: 'https://www.bing.com/images/search?q=%@@@',
- *   }],
- * });
  */
 export function useCreateRoute(
   onSuccess?: (route: Route) => void,
   onError?: (error: Error) => void
 ) {
-  const queryClient = useQueryClient();
   const { config } = useOnchain();
   const toast = useToast();
-  const props = appSettingsFromConfig(config);
-  const qrk = queryKeyForRoutes(props);
   const errorToast = useErrorToast("route couldn't created");
-  return useMutation({
-    mutationKey: qrk,
-    mutationFn: async (route: Omit<Route, 'id'>) =>
-      addRoute(config, route).then(async (v) => {
-        // Update the cache
-        const qk = queryKeyForRoute(route.command, props);
-        await queryClient.setQueryData(qk, v);
-        await queryClient.invalidateQueries({
-          queryKey: qrk,
+  const { sendUserOperation, isSendingUserOperation: isLoading } =
+    useSendUserOperation({
+      client: config.client,
+      waitForTxn: true,
+      onSuccess: ({ request }) => {
+        const { args } = decodeFunctionData({
+          abi: config.contract!.abi,
+          data: request!.callData,
         });
-        return v;
-      }),
-    onSuccess: (route) => {
-      toast({
-        title: 'route created.',
-        description: `route ${route.command} has been created.`,
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-        position: 'top',
+        const route = args![0] as Route;
+        toast({
+          title: 'route created.',
+          description: `route ${route.command} has been created.`,
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+          position: 'top',
+        });
+        onSuccess?.(route);
+      },
+      onSettled: (_, error) => {
+        if (error) {
+          errorToast(error);
+        }
+      },
+      onError,
+    });
+
+  const createRoute = useCallback(
+    (route: Omit<Route, 'id'>) => {
+      sendUserOperation({
+        uo: {
+          target: config.contract!.address,
+          data: encodeFunctionData({
+            abi: config.contract!.abi,
+            functionName: 'addRoute',
+            args: [route],
+          }),
+        },
       });
-      onSuccess?.(route);
+      return;
     },
-    onSettled: (_, error) => {
-      if (error) {
-        errorToast(error);
-      }
-    },
-    onError,
-  });
+    [config]
+  );
+
+  return { createRoute, isLoading };
 }
 
 /*
@@ -249,57 +252,65 @@ export function useCreateRoute(
  * @returns The mutation.
  *
  * @example
- * const { mutate, mutateAsync } = useDeleteRoute(
+ * const { deleteRoute, isLoading } = useDeleteRoute(
  *   () => console.log('Route removed'),
  *   (error) => console.error(error)
  * );
  *
- * mutate('g');
- *
- * await mutateAsync('b');
+ * deleteRoute('g');
  */
 export function useDeleteRoute(
-  command: string,
   onSuccess?: () => void,
   onError?: (error: Error) => void
 ) {
-  const queryClient = useQueryClient();
   const { config } = useOnchain();
-  const props = appSettingsFromConfig(config);
-  const qrk = queryKeyForRoutes(props);
-  const qk = queryKeyForRoute(command, props);
   const toast = useToast();
-  const errorToast = useErrorToast("route couldn't deleted");
-  return useMutation({
-    mutationKey: qk,
-    mutationFn: async () =>
-      deleteRoute(config, command).then(async () => {
-        // Invalidate the cache
-        await queryClient.invalidateQueries({
-          queryKey: qk,
+  const errorToast = useErrorToast("route couldn't created");
+  const { sendUserOperation, isSendingUserOperation: isLoading } =
+    useSendUserOperation({
+      client: config.client,
+      waitForTxn: true,
+      onSuccess: ({ request }) => {
+        const { args } = decodeFunctionData({
+          abi: config.contract!.abi,
+          data: request!.callData,
         });
-        await queryClient.invalidateQueries({
-          queryKey: qrk,
+        const command = args![0] as string;
+        toast({
+          title: 'route deleted.',
+          description: `route (command: ${command}) has been deleted.`,
+          status: 'info',
+          duration: 3000,
+          isClosable: true,
+          position: 'top',
         });
-      }),
-    onSuccess: () => {
-      toast({
-        title: 'route deleted.',
-        description: `route (command: ${command}) has been deleted.`,
-        status: 'info',
-        duration: 3000,
-        isClosable: true,
-        position: 'top',
+        onSuccess?.();
+      },
+      onSettled: (_, error) => {
+        if (error) {
+          errorToast(error);
+        }
+      },
+      onError,
+    });
+
+  const deleteRoute = useCallback(
+    async (command: string) => {
+      sendUserOperation({
+        uo: {
+          target: config.contract!.address,
+          data: encodeFunctionData({
+            abi: config.contract!.abi,
+            functionName: 'deleteRoute',
+            args: [command],
+          }),
+        },
       });
-      onSuccess?.();
     },
-    onSettled: (_, error) => {
-      if (error) {
-        errorToast(error);
-      }
-    },
-    onError,
-  });
+    [config]
+  );
+
+  return { deleteRoute, isLoading };
 }
 
 /*
@@ -310,28 +321,17 @@ export function useDeleteRoute(
  * @returns The mutation.
  *
  * @example
- * const { mutate, mutateAsync } = useUpdateRoute(
+ * const { updateRoute, isLoading } = useUpdateRoute(
  *   () => console.log('Route updated'),
  *   (error) => console.error(error)
  * );
  *
- * mutate({
+ * updateRoute({
  *   command: 'g',
  *   name: 'Google',
  *   description: 'Searches Google',
  *   url: 'https://www.google.com/search?q=%@@@',
  *   subRoutes: [],
- * });
- *
- * await mutateAsync({
- *   command: 'b',
- *   name: 'Bing',
- *   description: 'Searches Bing',
- *   url: 'https://www.bing.com/search?q=%@@@',
- *   subRoutes: [{
- *     command: 'i',
- *     url: 'https://www.bing.com/images/search?q=%@@@',
- *   }],
  * });
  */
 export function useUpdateRoute(
@@ -339,40 +339,55 @@ export function useUpdateRoute(
   onSuccess?: (route: Route) => void,
   onError?: (error: Error) => void
 ) {
-  const queryClient = useQueryClient();
   const { config } = useOnchain();
-  const props = appSettingsFromConfig(config);
-  const qk = queryKeyForRoute(command, props);
   const toast = useToast();
-  const errorToast = useErrorToast("route couldn't updated");
-  return useMutation({
-    mutationKey: qk,
-    mutationFn: async (
-      updateData: Omit<Route, 'command' | 'routeType' | 'isValue'>
-    ) =>
-      updateRoute(config, command, updateData).then(async (v) => {
-        // Update the cache
-        await queryClient.setQueryData(qk, v);
-        return v;
-      }),
-    onSuccess: (route) => {
-      toast({
-        title: 'route Updated.',
-        description: `route ${command} has been updated.`,
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-        position: 'top',
+  const errorToast = useErrorToast("route couldn't created");
+  const { sendUserOperation, isSendingUserOperation: isLoading } =
+    useSendUserOperation({
+      client: config.client,
+      waitForTxn: true,
+      onSuccess: ({ request }) => {
+        const { args } = decodeFunctionData({
+          abi: config.contract!.abi,
+          data: request!.callData,
+        });
+        const route = args![0] as Route;
+        toast({
+          title: 'route Updated.',
+          description: `route ${command} has been updated.`,
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+          position: 'top',
+        });
+        onSuccess?.(route);
+      },
+      onSettled: (_, error) => {
+        if (error) {
+          errorToast(error);
+        }
+      },
+      onError,
+    });
+
+  const createRoute = useCallback(
+    (route: Omit<Route, 'command' | 'routeType' | 'isValue'>) => {
+      sendUserOperation({
+        uo: {
+          target: config.contract!.address,
+          data: encodeFunctionData({
+            abi: config.contract!.abi,
+            functionName: 'updateRoute',
+            args: [route],
+          }),
+        },
       });
-      onSuccess?.(route);
+      return;
     },
-    onSettled: (_, error) => {
-      if (error) {
-        errorToast(error);
-      }
-    },
-    onError,
-  });
+    [config]
+  );
+
+  return { createRoute, isLoading };
 }
 
 /*
@@ -392,6 +407,7 @@ export function useUpdateRoute(
  *
  * await mutateAsync();
  */
+// TODO use factory account instead of deploying byte code
 export function useDeployRouter(
   onSuccess?: (contract: OnchainConfig['contract']) => void,
   onError?: (error: Error) => void
@@ -423,8 +439,8 @@ export function useDeployRouter(
       queryClient.setQueryData(
         [
           'router_address',
-          config.walletClient.chain.id,
-          config.walletClient.account.address,
+          config.client.chain.id,
+          config.client.account.address,
         ],
         contract?.address
       );
