@@ -5,13 +5,14 @@ import { useAccount } from 'wagmi';
 import { Button, Flex, Text, VStack } from '@chakra-ui/react';
 
 import { useRouterContract } from '../hooks/useRouterContract';
+import { useOnchain } from '../hooks/useOnchain';
 
 export function DeployContract({
   onComplete,
 }: {
   onComplete?: () => void;
 }): JSX.Element {
-  const { chain } = useAccount();
+  const { config } = useOnchain();
   const { isDeployed, contract, deploy } = useRouterContract();
   const navigate = useNavigate();
   const onSuccess = useCallback(() => {
@@ -25,7 +26,7 @@ export function DeployContract({
       {isDeployed && (
         <VStack alignItems="flex-start">
           <Link
-            to={`${chain?.blockExplorers?.default.url}/search?q=${contract?.address}`}
+            to={`${config.client.chain?.blockExplorers?.default.url}/search?q=${contract?.address}`}
             target="_blank"
           >
             <Text textDecoration="underline">

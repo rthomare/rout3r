@@ -6,7 +6,6 @@ import {
   useMemo,
 } from 'react';
 import { Chain, getContract } from 'viem';
-import { useAccount } from 'wagmi';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PINNED_CONTRACT_ABI } from '../lib/constants';
 import { queryKeyForRouterAddress } from '../lib/endpoints';
@@ -14,7 +13,7 @@ import { getRouterContract } from '../lib/onchain';
 import { OnchainConfig } from '../lib/types';
 
 import { useGlobalLoader } from './useGlobalLoader';
-import { useSmartAccountClient } from '@account-kit/react';
+import { useSignerStatus, useSmartAccountClient } from '@account-kit/react';
 import { AlchemySmartAccountClient } from '@account-kit/infra';
 
 const ConfigContext = createContext<{ config: OnchainConfig } | undefined>(
@@ -45,16 +44,19 @@ function useContractQuery(client: AlchemySmartAccountClient) {
 }
 
 export function OnchainProvider({ children }: PropsWithChildren) {
+  const { isConnected } = useSignerStatus();
+  if (!isConnected) {
+    throw new Error('OnchainProvider must be used within a connected wallet');
+  }
   const { client, isLoadingClient } = useSmartAccountClient<Chain>({
     type: 'LightAccount',
   });
-  const { isDisconnected } = useAccount();
-  const showLoader = !isDisconnected && (!client || isLoadingClient);
+  const showLoader = isConnected && (!client || isLoadingClient);
   const value = useMemo(() => {
     if (!client || isLoadingClient || client.chain === undefined) {
       return undefined;
     }
-    return { client };
+    return client;
   }, [client, isLoadingClient]);
   useGlobalLoader({
     id: 'onchain-client',
@@ -63,15 +65,15 @@ export function OnchainProvider({ children }: PropsWithChildren) {
   });
   useGlobalLoader({
     id: 'onchain-data',
-    showLoader: !value && !isDisconnected,
+    showLoader: !value && isConnected,
     helperText: 'initializing onchain data',
   });
 
-  if (isDisconnected || !value) {
+  if (!isConnected || !value) {
     return children;
   }
   return (
-    <ClientContext.Provider value={value as unknown as OnchainConfig['client']}>
+    <ClientContext.Provider value={value as OnchainConfig['client']}>
       <ConfigProvider>{children}</ConfigProvider>
     </ClientContext.Provider>
   );

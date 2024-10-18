@@ -1,4 +1,4 @@
-import { HashRouter, Route, Routes, useNavigate } from 'react-router-dom';
+import { HashRouter, Route, Routes } from 'react-router-dom';
 import {
   Box,
   ChakraProvider,
@@ -12,10 +12,10 @@ import { Navbar } from './components/Navbar';
 import { useAppDestinations } from './hooks/useAppDestinations';
 import { GlobalLoaderProvider, useGlobalLoader } from './hooks/useGlobalLoader';
 import { persister } from './lib/queryClient';
-import { Routing } from './routing/Routing';
 import { chakraTheme } from './theme/chakraTheme';
 import { config, queryClient } from './lib/config';
-import { AlchemyAccountProvider } from '@account-kit/react';
+import { AlchemyAccountProvider, useSignerStatus } from '@account-kit/react';
+import { OnchainProvider } from './hooks/useOnchain';
 import '../global.css';
 
 export function Content() {
@@ -50,6 +50,19 @@ export function Content() {
   );
 }
 
+function Routing() {
+  const signerStatus = useSignerStatus();
+  if (!signerStatus.isConnected) {
+    return <Content />;
+  } else {
+    return (
+      <OnchainProvider>
+        <Content />
+      </OnchainProvider>
+    );
+  }
+}
+
 function App(): JSX.Element {
   const isGoRoute = window.location.href.match('/#go') !== null;
   return (
@@ -67,9 +80,12 @@ function App(): JSX.Element {
               <Routing />
             </Box>
           ) : (
-            <AlchemyAccountProvider config={config} queryClient={queryClient}>
+            <AlchemyAccountProvider
+              config={config}
+              queryClient={queryClient}
+            >
               <HashRouter>
-                <Content />
+                <Routing />
               </HashRouter>
             </AlchemyAccountProvider>
           )}

@@ -1,4 +1,8 @@
-import { AlchemyAccountsUIConfig, createConfig } from '@account-kit/react';
+import {
+  AlchemyAccountsUIConfig,
+  cookieStorage,
+  createConfig,
+} from '@account-kit/react';
 import { arbitrumSepolia, alchemy } from '@account-kit/infra';
 import { QueryClient } from '@tanstack/react-query';
 
@@ -44,7 +48,8 @@ export const config = createConfig(
   {
     transport: alchemy({ apiKey: 'ez_8oILbkeEP7PCrEPLaDEii-p-9WHqy' }),
     chain: arbitrumSepolia,
-    ssr: false, // set to false if you're not using server-side rendering
+    ssr: false,
+    storage: cookieStorage,
     enablePopupOauth: true,
   },
   uiConfig

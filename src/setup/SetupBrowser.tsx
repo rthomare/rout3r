@@ -49,9 +49,9 @@ export function SetupBrowser({
   const defaultIndex = defaultBrowserIndex();
   const { config } = useOnchain();
   const appSettings: Omit<AppSettings, 'searchFallback'> = {
-    rpc: config.walletClient.chain.rpcUrls.default.http[0],
-    chainId: config.walletClient.chain.id,
-    address: config.walletClient.account.address,
+    rpc: config.client.chain.rpcUrls.default.http[0],
+    chainId: config.client.chain.id,
+    address: config.client.account.address,
     contract: config.contract?.address ?? '0x',
   };
   const routerUrl = useMemo(

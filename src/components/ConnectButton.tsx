@@ -12,6 +12,7 @@ export function ConnectButton() {
   const { openAuthModal } = useAuthModal();
   const signerStatus = useSignerStatus();
   const { logout } = useLogout();
+
   if (!signerStatus.isConnected) {
     return (
       <GlowButton
@@ -28,10 +29,10 @@ export function ConnectButton() {
     <GlowButton
       fontSize="md"
       fontWeight="normal"
-      onClick={() => logout}
+      onClick={logout as () => void}
       type="button"
     >
-      {user?.email} (logout)
+      Logout&nbsp;{user?.email ? `of ${user.email}` : ''}
     </GlowButton>
   );
 }
