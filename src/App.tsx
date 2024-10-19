@@ -80,10 +80,7 @@ function App(): JSX.Element {
               <Routing />
             </Box>
           ) : (
-            <AlchemyAccountProvider
-              config={config}
-              queryClient={queryClient}
-            >
+            <AlchemyAccountProvider config={config} queryClient={queryClient}>
               <HashRouter>
                 <Routing />
               </HashRouter>

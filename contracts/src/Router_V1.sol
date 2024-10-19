@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0 
 pragma solidity ^0.8.23;
 
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Route, RouteType} from "./Route.sol";
 import {IRouteReader} from "./IRouteReader.sol";
 import {IRouteMutator, RouteAddData, RouteUpdateData} from "./IRouteMutator.sol";
@@ -12,7 +13,7 @@ string constant HEAD = "r3";
 /// @title The Router Contract - backed by simple circular linked list implementation
 /// @dev The Router contract is a simple contract that allows the owner to 
 /// create, update and delete routes.
-contract Router_V1 is IRouteReader, IRouteMutator {
+contract Router_V1 is OwnableUpgradeable, IRouteReader, IRouteMutator {
     address owner;
     mapping (string => mapping (bool => string)) cll;
     mapping (string => Route) routes;

@@ -4,7 +4,6 @@ import {
   decodeFunctionResult,
   encodeFunctionData,
   getContractAddress,
-  Hex,
   http,
 } from 'viem';
 import { origin } from '../utils/general';
@@ -14,7 +13,6 @@ import {
   PINNED_CONTRACT_DEPLOYED_BYTECODE,
 } from './constants';
 import { AppSettings, OnchainConfig, Route } from './types';
-import { AlchemySmartAccountClient } from '@account-kit/infra';
 
 /*
  * A function to get the the rout3r contract if it exists onchain
@@ -26,7 +24,7 @@ import { AlchemySmartAccountClient } from '@account-kit/infra';
  * const contract = await getRouterContract(publicClient, walletClient);
  */
 export async function getRouterContract(
-  client: AlchemySmartAccountClient
+  client: OnchainConfig['client']
 ): Promise<Address | null> {
   if (!client.account) {
     throw new Error('No account found to get contract.');
@@ -88,19 +86,19 @@ export async function deployContract(
   if (!config.client.account) {
     throw new Error('No account found to deploy contract.');
   }
-  // const count = await config.client.getTransactionCount({
-  //   address: config.client.account.address,
-  // });
-  // const contractAddress = getContractAddress({
-  //   from: config.client.account.address,
-  //   nonce: BigInt(count),
-  // });
+  const count = await config.client.getTransactionCount({
+    address: config.client.account.address,
+  });
+  const contractAddress = getContractAddress({
+    from: config.client.account.address,
+    nonce: BigInt(count),
+  });
 
-  // const hash = await config.client.deployContract({
-  //   abi: [],
-  //   account: config.client.account.address,
-  //   bytecode: PINNED_CONTRACT_BYTECODE,
-  // });
+  const hash = await config.client.deployContract({
+    abi: [],
+    account: config.client.account.address,
+    bytecode: PINNED_CONTRACT_BYTECODE,
+  });
   // return checkTransactionSuccess(config, hash).then(() =>
   //   getContract({
   //     address: contractAddress,
