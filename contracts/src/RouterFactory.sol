@@ -5,9 +5,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import "@openzeppelin/contracts/proxy/ProxyAdmin.sol";
+import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-contract FactoryContract is Initializable, OwnableUpgradeable {
+contract RouterFactoryContract is Initializable, OwnableUpgradeable {
     address public implementationAddress;
     ProxyAdmin public proxyAdmin;
     

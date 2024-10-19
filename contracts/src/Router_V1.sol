@@ -2,6 +2,7 @@
 pragma solidity ^0.8.23;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Route, RouteType} from "./Route.sol";
 import {IRouteReader} from "./IRouteReader.sol";
 import {IRouteMutator, RouteAddData, RouteUpdateData} from "./IRouteMutator.sol";
@@ -13,21 +14,15 @@ string constant HEAD = "r3";
 /// @title The Router Contract - backed by simple circular linked list implementation
 /// @dev The Router contract is a simple contract that allows the owner to 
 /// create, update and delete routes.
-contract Router_V1 is OwnableUpgradeable, IRouteReader, IRouteMutator {
+contract Router_V1 is Initializable, OwnableUpgradeable, IRouteReader, IRouteMutator {
     address owner;
     mapping (string => mapping (bool => string)) cll;
     mapping (string => Route) routes;
 
-    constructor() {
+    initialize() {
         owner = msg.sender;
         cll[HEAD][NEXT] = HEAD;
         cll[HEAD][PREV] = HEAD;
-    }
-
-    /// @notice Modifier to check if the caller is the owner
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function");
-        _;
     }
 
     function reservedHead() internal pure returns (Route memory) {
