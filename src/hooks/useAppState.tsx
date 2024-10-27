@@ -1,6 +1,13 @@
 import { useMemo } from 'react';
 import { useAccount } from 'wagmi';
 
+import {
+  useAuthModal,
+  useLogout,
+  useSignerStatus,
+  useUser,
+} from '@account-kit/react';
+
 import { useOnchainRaw } from './useOnchain';
 
 /*
@@ -23,10 +30,10 @@ export type AppState = {
  * @returns the application state
  */
 export function useAppState() {
+  const signerStatus = useSignerStatus();
   const onchain = useOnchainRaw();
-  const { isConnected } = useAccount();
   return useMemo(() => {
-    if (!isConnected) {
+    if (!signerStatus.isConnected) {
       // just make sure we're not connected with a wallet
       return {
         isLoading: false,
@@ -53,5 +60,5 @@ export function useAppState() {
       cachedBlock: 0,
       error: null,
     };
-  }, [onchain, isConnected]);
+  }, [onchain, signerStatus.isConnected]);
 }

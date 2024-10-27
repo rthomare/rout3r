@@ -1,40 +1,25 @@
-import { useMemo } from 'react';
-import { HashRouter, Route, Routes, useNavigate } from 'react-router-dom';
-import { useAccountEffect, WagmiProvider } from 'wagmi';
-
+import { HashRouter, Route, Routes } from 'react-router-dom';
 import {
   Box,
   ChakraProvider,
   ColorModeScript,
   Fade,
-  useColorMode,
   VStack,
 } from '@chakra-ui/react';
-import { RainbowKitProvider, Theme } from '@rainbow-me/rainbowkit';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-
-import { WalletAvatar } from './components/AvatarComponent';
 import { Footer } from './components/Footer';
 import { Navbar } from './components/Navbar';
 import { useAppDestinations } from './hooks/useAppDestinations';
 import { GlobalLoaderProvider, useGlobalLoader } from './hooks/useGlobalLoader';
-import { OnchainProvider } from './hooks/useOnchain';
-import { appConfig } from './lib/config';
-import { persister, queryClient } from './lib/queryClient';
-import { Routing } from './routing/Routing';
+import { persister } from './lib/queryClient';
 import { chakraTheme } from './theme/chakraTheme';
-import { darkRainbowTheme, lightRainbowTheme } from './theme/rainbowTheme';
-
-import '@rainbow-me/rainbowkit/styles.css';
+import { config, queryClient } from './lib/config';
+import { AlchemyAccountProvider, useSignerStatus } from '@account-kit/react';
+import { OnchainProvider } from './hooks/useOnchain';
+import '../global.css';
 
 export function Content() {
   const appDestinations = useAppDestinations();
-  const navigate = useNavigate();
-  useAccountEffect({
-    onDisconnect() {
-      navigate('/');
-    },
-  });
   useGlobalLoader({
     id: 'app-destinations',
     showLoader: appDestinations.isLoading,
@@ -65,21 +50,17 @@ export function Content() {
   );
 }
 
-function UI(): JSX.Element {
-  const { colorMode } = useColorMode();
-  const rainbowTheme: Theme | undefined = useMemo(
-    () => (colorMode === 'light' ? lightRainbowTheme : darkRainbowTheme),
-    [colorMode]
-  );
-  return (
-    <RainbowKitProvider
-      modalSize="compact"
-      avatar={WalletAvatar}
-      theme={rainbowTheme}
-    >
-      <Content />
-    </RainbowKitProvider>
-  );
+function Routing() {
+  const signerStatus = useSignerStatus();
+  if (!signerStatus.isConnected) {
+    return <Content />;
+  } else {
+    return (
+      <OnchainProvider>
+        <Content />
+      </OnchainProvider>
+    );
+  }
 }
 
 function App(): JSX.Element {
@@ -99,13 +80,11 @@ function App(): JSX.Element {
               <Routing />
             </Box>
           ) : (
-            <WagmiProvider config={appConfig}>
+            <AlchemyAccountProvider config={config} queryClient={queryClient}>
               <HashRouter>
-                <OnchainProvider>
-                  <UI />
-                </OnchainProvider>
+                <Routing />
               </HashRouter>
-            </WagmiProvider>
+            </AlchemyAccountProvider>
           )}
         </PersistQueryClientProvider>
       </GlobalLoaderProvider>

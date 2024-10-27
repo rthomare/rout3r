@@ -1,42 +1,18 @@
 import {
-  Account,
   Address,
-  Chain,
   createPublicClient,
   decodeFunctionResult,
   encodeFunctionData,
-  getContract,
   getContractAddress,
-  Hex,
   http,
-  PublicClient,
-  Transport,
-  WalletClient,
 } from 'viem';
-
 import { origin } from '../utils/general';
-
 import {
   ORIGIN_REPLACEMENT,
   PINNED_CONTRACT_ABI,
-  PINNED_CONTRACT_BYTECODE,
   PINNED_CONTRACT_DEPLOYED_BYTECODE,
 } from './constants';
 import { AppSettings, OnchainConfig, Route } from './types';
-
-async function checkTransactionSuccess(
-  onchainConfig: OnchainConfig,
-  hash: Hex,
-  errorTitle?: string
-) {
-  return onchainConfig.publicClient
-    .waitForTransactionReceipt({ hash })
-    .then((r) => {
-      if (r.status !== 'success') {
-        throw new Error(`Transaction failed ${errorTitle ?? ''}`);
-      }
-    });
-}
 
 /*
  * A function to get the the rout3r contract if it exists onchain
@@ -48,22 +24,25 @@ async function checkTransactionSuccess(
  * const contract = await getRouterContract(publicClient, walletClient);
  */
 export async function getRouterContract(
-  publicClient: PublicClient,
-  walletClient: WalletClient<Transport, Chain, Account>
+  client: OnchainConfig['client']
 ): Promise<Address | null> {
-  const count = await publicClient.getTransactionCount({
-    address: walletClient.account.address,
+  if (!client.account) {
+    throw new Error('No account found to get contract.');
+  }
+
+  const count = await client.getTransactionCount({
+    address: client.account.address,
   });
   let nonce = BigInt(count - 1);
   while (nonce > -1) {
     const contractAddress = getContractAddress({
-      from: walletClient.account.address,
+      from: client.account.address,
       nonce,
     });
     // We need to check if the contract is the pinned contract successively
     // until we can find the contract
     // eslint-disable-next-line no-await-in-loop
-    const code = await publicClient.getBytecode({
+    const code = await client.getCode({
       address: contractAddress,
     });
     // simple heuristic to check if the contract is the pinned
@@ -75,6 +54,21 @@ export async function getRouterContract(
   }
   return null;
 }
+
+// TODO: Look into if we need this function
+// async function checkTransactionSuccess(
+//   onchainConfig: OnchainConfig,
+//   hash: Hex,
+//   errorTitle?: string
+// ) {
+//   return onchainConfig.client
+//     .waitForTransactionReceipt({ hash })
+//     .then((r) => {
+//       if (r.status !== 'success') {
+//         throw new Error(`Transaction failed ${errorTitle ?? ''}`);
+//       }
+//     });
+// }
 
 /*
  * Deploy the rout3r contract onchain
@@ -89,31 +83,30 @@ export async function getRouterContract(
 export async function deployContract(
   config: OnchainConfig
 ): Promise<OnchainConfig['contract']> {
-  if (!config.walletClient.account) {
+  if (!config.client.account) {
     throw new Error('No account found to deploy contract.');
   }
-  const count = await config.publicClient.getTransactionCount({
-    address: config.walletClient.account.address,
+  const count = await config.client.getTransactionCount({
+    address: config.client.account.address,
   });
   const contractAddress = getContractAddress({
-    from: config.walletClient.account.address,
+    from: config.client.account.address,
     nonce: BigInt(count),
   });
-  const hash = await config.walletClient.deployContract({
+
+  const hash = await config.client.deployContract({
     abi: [],
-    account: config.walletClient.account.address,
+    account: config.client.account.address,
     bytecode: PINNED_CONTRACT_BYTECODE,
   });
-  return checkTransactionSuccess(config, hash).then(() =>
-    getContract({
-      address: contractAddress,
-      abi: PINNED_CONTRACT_ABI,
-      client: {
-        public: config.publicClient,
-        wallet: config.walletClient,
-      },
-    })
-  );
+  // return checkTransactionSuccess(config, hash).then(() =>
+  //   getContract({
+  //     address: contractAddress,
+  //     abi: PINNED_CONTRACT_ABI,
+  //     client:  config.client,
+  //   })
+  // );
+  throw new Error('Not implemented');
 }
 
 /*
@@ -184,11 +177,14 @@ export async function getRoute(
   if (!config.contract) {
     throw new Error('No contract found to update route.');
   }
+  if (!config.client.chain) {
+    throw new Error('No chain found to get route.');
+  }
   return searchRoute(command, {
-    address: config.walletClient.account.address,
+    address: config.client.account.address,
     contract: config.contract.address,
-    chainId: config.walletClient.chain.id,
-    rpc: config.walletClient.chain.rpcUrls.default.http[0],
+    chainId: config.client.chain.id,
+    rpc: config.client.chain.rpcUrls.default.http[0],
   }).then((route) => {
     if (!route) {
       throw new Error('Route not found');
@@ -224,7 +220,7 @@ export async function getRoutes(
   const [routes, length, newCursor] = (await config.contract.read.getRoutes(
     [cursor, limit],
     {
-      account: config.walletClient.account,
+      account: config.client.account,
     }
   )) as [Route[], bigint, string];
   const validatedRoutes = routes
@@ -241,108 +237,4 @@ export async function getRoutes(
     cursor: newCursor,
     length,
   };
-}
-
-/*
- * Add a route onchain
- * @param config - the onchain config to use that contains the account, chain and client info
- * @param route - the route to add
- * @returns the route with the id
- *
- * @example
- * const { config } = useOnchain();
- * const route = await addRoute(config, {
- *   command: 'g',
- *   name: 'Google',
- *   url: 'https://www.google.com/search?q=%@@@',
- *   description: 'Searches Google',
- *   subRoutes: [],,
- * });
- */
-export async function addRoute(
-  config: OnchainConfig,
-  createRouteData: Omit<Route, 'routeType' | 'isValue'>
-): Promise<Route> {
-  if (!config.contract) {
-    throw new Error('No contract found to update route.');
-  }
-  const { request, result: route } = await config.contract.simulate.addRoute(
-    [createRouteData],
-    {
-      account: config.walletClient.account.address,
-    }
-  );
-  const hash = await config.contract.write.addRoute([route], {
-    ...request,
-    account: config.walletClient.account,
-  });
-  await checkTransactionSuccess(config, hash);
-  return route as unknown as Route;
-}
-
-/*
- * Update a route onchain
- * @param config - the onchain config to use that contains the account, chain and client info
- * @param route - the route to update
- * @returns the route
- * @throws an error if the client does not have an account
- * @throws an error if the contract is not found
- *
- * @example
- * const { config } = useOnchain();
- * const route = await updateRoute(config, {
- *   command: 'g',
- *   name: 'Google',
- *   url: 'https://www.google.com/search?q=%@@@',
- *   description: 'Searches Google',
- *   subRoutes: [],
- * });
- */
-export async function updateRoute(
-  config: OnchainConfig,
-  command: string,
-  updateRouteData: Omit<Route, 'command' | 'routeType' | 'isValue'>
-) {
-  if (!config.walletClient.account) {
-    throw new Error('No account found to add route.');
-  }
-  if (!config.contract) {
-    throw new Error('No contract found to update route.');
-  }
-  const { request, result: route } = await config.contract.simulate.updateRoute(
-    [command, updateRouteData],
-    {
-      account: config.walletClient.account.address,
-    }
-  );
-  const hash = await config.walletClient.writeContract({
-    ...request,
-    account: config.walletClient.account,
-  });
-  await checkTransactionSuccess(config, hash);
-  return route as unknown as Route;
-}
-
-/*
- * Delete a route onchain
- * @param config - the onchain config to use that contains the account, chain and client info
- * @param id - the id of the route to delete
- * @returns the route
- * @throws an error if the contract is not found
- *
- * @example
- * const { config } = useOnchain();
- * await deleteRoute(config, 'g');
- */
-export async function deleteRoute(config: OnchainConfig, command: string) {
-  if (!config.contract) {
-    throw new Error('No contract found to delete route.');
-  }
-  const { request } = await config.contract.simulate.deleteRoute([command], {
-    account: config.walletClient.account.address,
-  });
-  return config.walletClient.writeContract({
-    ...request,
-    account: config.walletClient.account,
-  });
 }

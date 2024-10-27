@@ -5,44 +5,34 @@ import {
   useEffect,
   useMemo,
 } from 'react';
-import { getContract } from 'viem';
-import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
-
+import { Chain, getContract } from 'viem';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-
-import { appConfig } from '../lib/config';
 import { PINNED_CONTRACT_ABI } from '../lib/constants';
 import { queryKeyForRouterAddress } from '../lib/endpoints';
 import { getRouterContract } from '../lib/onchain';
 import { OnchainConfig } from '../lib/types';
 
 import { useGlobalLoader } from './useGlobalLoader';
+import { useSignerStatus, useSmartAccountClient } from '@account-kit/react';
+import { AlchemySmartAccountClient } from '@account-kit/infra';
 
 const ConfigContext = createContext<{ config: OnchainConfig } | undefined>(
   undefined
 );
 
-const ClientContext = createContext<
-  | {
-      walletClient: OnchainConfig['walletClient'];
-      publicClient: OnchainConfig['publicClient'];
-    }
-  | undefined
->(undefined);
+const ClientContext = createContext<OnchainConfig['client'] | undefined>(
+  undefined
+);
 
-function useContractQuery(
-  publicClient: OnchainConfig['publicClient'],
-  walletClient: OnchainConfig['walletClient']
-) {
+function useContractQuery(client: AlchemySmartAccountClient) {
   const queryClient = useQueryClient();
   const queryKey = queryKeyForRouterAddress({
-    address: walletClient.account.address,
-    chainId: walletClient.chain.id,
+    address: client.account?.address ?? '0x0',
+    chainId: client.chain?.id ?? 0,
   });
   const query = useQuery({
     queryKey,
-    queryFn: async () =>
-      getRouterContract(publicClient, walletClient).then((v) => v ?? null),
+    queryFn: async () => getRouterContract(client).then((v) => v ?? null),
   });
   const isNull = query.isFetched && query.data === null;
   useEffect(() => {
@@ -54,24 +44,20 @@ function useContractQuery(
 }
 
 export function OnchainProvider({ children }: PropsWithChildren) {
-  const walletClientQuery = useWalletClient({
-    chainId: appConfig.chains[0].id,
-    config: appConfig,
+  const { isConnected } = useSignerStatus();
+  if (!isConnected) {
+    throw new Error('OnchainProvider must be used within a connected wallet');
+  }
+  const { client, isLoadingClient } = useSmartAccountClient<Chain>({
+    type: 'LightAccount',
   });
-  const walletClient = walletClientQuery.data;
-  const publicClient = usePublicClient({
-    chainId: appConfig.chains[0].id,
-    config: appConfig,
-  });
-  const { isDisconnected } = useAccount();
-  const showLoader =
-    !isDisconnected && (!walletClient || walletClientQuery.isLoading);
+  const showLoader = isConnected && (!client || isLoadingClient);
   const value = useMemo(() => {
-    if (!walletClient || walletClientQuery.isLoading || !publicClient) {
+    if (!client || isLoadingClient || client.chain === undefined) {
       return undefined;
     }
-    return { walletClient, publicClient };
-  }, [walletClient, publicClient, walletClientQuery.isLoading]);
+    return client;
+  }, [client, isLoadingClient]);
   useGlobalLoader({
     id: 'onchain-client',
     showLoader,
@@ -79,29 +65,27 @@ export function OnchainProvider({ children }: PropsWithChildren) {
   });
   useGlobalLoader({
     id: 'onchain-data',
-    showLoader: !value && !isDisconnected,
+    showLoader: !value && isConnected,
     helperText: 'initializing onchain data',
   });
 
-  if (isDisconnected || !value) {
+  if (!isConnected || !value) {
     return children;
   }
   return (
-    <ClientContext.Provider value={value}>
+    <ClientContext.Provider value={value as OnchainConfig['client']}>
       <ConfigProvider>{children}</ConfigProvider>
     </ClientContext.Provider>
   );
 }
 
 function ConfigInnerProvider({
-  walletClient,
-  publicClient,
+  client,
   children,
 }: PropsWithChildren<{
-  publicClient: OnchainConfig['publicClient'];
-  walletClient: OnchainConfig['walletClient'];
+  client: OnchainConfig['client'];
 }>) {
-  const contractQuery = useContractQuery(publicClient, walletClient);
+  const contractQuery = useContractQuery(client);
   useGlobalLoader({
     id: 'deployed-contracts',
     showLoader: !!contractQuery && contractQuery.isLoading,
@@ -113,13 +97,10 @@ function ConfigInnerProvider({
         ? getContract({
             address: contractQuery.data,
             abi: PINNED_CONTRACT_ABI,
-            client: {
-              public: publicClient,
-              wallet: walletClient,
-            },
+            client: client,
           })
         : null,
-    [contractQuery.data, publicClient, walletClient]
+    [contractQuery.data, client]
   );
 
   const value = useMemo(() => {
@@ -128,12 +109,11 @@ function ConfigInnerProvider({
     }
     return {
       config: {
-        publicClient,
-        walletClient,
+        client,
         contract,
       },
     };
-  }, [contract, contractQuery, publicClient, walletClient]);
+  }, [contract, contractQuery, client]);
 
   if (!value) {
     return children;
@@ -145,19 +125,12 @@ function ConfigInnerProvider({
 }
 
 function ConfigProvider({ children }: PropsWithChildren) {
-  const clients = useContext(ClientContext);
-  if (!clients) {
+  const client = useContext(ClientContext);
+  if (!client) {
     return children;
   }
 
-  return (
-    <ConfigInnerProvider
-      publicClient={clients.publicClient}
-      walletClient={clients.walletClient}
-    >
-      {children}
-    </ConfigInnerProvider>
-  );
+  return <ConfigInnerProvider client={client}>{children}</ConfigInnerProvider>;
 }
 
 export function useOnchain() {
