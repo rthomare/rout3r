@@ -6,6 +6,7 @@ import {
   useUser,
 } from '@account-kit/react';
 import './connection.css';
+import { Tooltip } from '@chakra-ui/react';
 
 export function ConnectButton() {
   const user = useUser();
@@ -32,7 +33,7 @@ export function ConnectButton() {
       onClick={logout as () => void}
       type="button"
     >
-      Logout&nbsp;{user?.email ? `of ${user.email}` : ''}
+      <Tooltip label={`logged in as ${user?.email}`}>logout</Tooltip>
     </GlowButton>
   );
 }
