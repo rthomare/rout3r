@@ -3,27 +3,28 @@ pragma solidity ^0.8.23;
 
 import {Test, console} from "forge-std/Test.sol";
 import {Route} from "../src/Route.sol";
-import {Router_V1} from "../src/Router_V1.sol";
+import {Router} from "../src/Router.sol";
+import {RouterFactory} from "../src/RouterFactory.sol";
 import {RouteAddData, RouteUpdateData} from "../src/IRouteMutator.sol";
+import {TestUtils} from "./Utils.sol";
 
 /// @title RouterTest - a contract to test the Router contract
 /// @dev The RouterTest contract is used to test the Router contract
 /// Note: There are reserved routes created as part of construction and contract deployment
 contract RouterTest is Test {
-    Router_V1 public router;
-
-    function newRoute(uint256 id) pure internal returns (RouteAddData memory) {
-        string[] memory subRoutes = new string[](0);
-        string memory idString = vm.toString(id);
-        return RouteAddData(idString, idString, idString, idString, subRoutes);
-    }
+    Router public router;
+    address user;
     
     function setUp() public {
-        router = new Router_V1();
+        RouterFactory factory = new RouterFactory();
+        user = address(0x123);
+        vm.startPrank(user);
+        router = Router(factory.createRouter(0));
     }
 
     function test_CreateAndGetRoute() public {
-        RouteAddData memory createdRoute = newRoute(0);
+        vm.startPrank(user);
+        RouteAddData memory createdRoute = TestUtils.newRoute(0);
         router.addRoute(createdRoute);
         Route memory gotRoute = router.getRoute("0");
         assertEq(gotRoute.command, "0");
@@ -54,7 +55,7 @@ contract RouterTest is Test {
 
     function test_RoutePagination() public {
         for (uint256 i = 0; i < 15; i++) {
-            router.addRoute(newRoute(i));
+            router.addRoute(TestUtils.newRoute(i));
         }
         // account for reserved routes
         (Route[] memory routes, uint256 length, string memory cursor) = router.getRoutes("", 10);
@@ -72,7 +73,7 @@ contract RouterTest is Test {
     function test_DeleteRoute() public {
         // account for reserved routes 16 total
         for (uint i = 0; i < 15; i++) {
-            router.addRoute(newRoute(i));
+            router.addRoute(TestUtils.newRoute(i));
         }
         (Route[] memory routes, uint256 length, string memory cursor) = router.getRoutes("", 10);
         assertEq(length, 10);
@@ -92,7 +93,7 @@ contract RouterTest is Test {
     function test_DeleteRoutes() public {
         // account for reserved routes 16 total
         for (uint i = 0; i < 15; i++) {
-            router.addRoute(newRoute(i));
+            router.addRoute(TestUtils.newRoute(i));
         }
         (Route[] memory routes, uint256 length, string memory cursor) = router.getRoutes("", 10);
         assertEq(length, 10);
@@ -114,7 +115,7 @@ contract RouterTest is Test {
     }
 
     function test_UpdateRoute() public {
-        router.addRoute(newRoute(0));
+        router.addRoute(TestUtils.newRoute(0));
         string memory command = "0";
         Route memory createdRoute = router.getRoute(command);
         assertEq(createdRoute.name, "0");
@@ -129,7 +130,7 @@ contract RouterTest is Test {
     }
 
     function test_InvalidRoute() public {
-        router.addRoute(newRoute(0));
+        router.addRoute(TestUtils.newRoute(0));
         string memory command = "0";
         Route memory createdRoute = router.getRoute(command);
         assertEq(createdRoute.name, command);
@@ -142,7 +143,7 @@ contract RouterTest is Test {
 
     function test_RoutePaginationAfterDelete() public {
         for (uint i = 0; i < 5; i++) {
-            router.addRoute(newRoute(i));
+            router.addRoute(TestUtils.newRoute(i));
         }
         router.deleteRoute("0");
         (Route[] memory routes, uint256 length, string memory cursor) = router.getRoutes("", 10);
