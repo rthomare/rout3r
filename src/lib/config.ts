@@ -5,17 +5,11 @@ import {
   http,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { arbitrumSepolia } from 'viem/chains';
-import { createConfig } from 'wagmi';
+
+import { arbitrumSepolia } from '@account-kit/infra';
+import { AlchemyAccountsUIConfig, createConfig } from '@account-kit/react';
 
 // import { injected, walletConnect } from 'wagmi/connectors';
-import { connectorsForWallets } from '@rainbow-me/rainbowkit';
-import {
-  injectedWallet,
-  walletConnectWallet,
-} from '@rainbow-me/rainbowkit/wallets';
-
-import { anvilConnector } from './anvilConnector';
 
 declare module 'wagmi' {
   interface Register {
@@ -70,38 +64,72 @@ export const anvilClients = () => {
 };
 
 const IS_FULL_DEV = !!process.env.VITE_FULL_DEV;
+// export const config = () => {
+//   if (IS_FULL_DEV) {
+//     const { walletClient } = anvilClients();
+//     const connector = anvilConnector({
+//       account: walletClient.account,
+//     });
+//     return createConfig({
+//       ssr: false,
+//       chains: [walletClient.chain],
+//       client: () => walletClient,
+//       connectors: [connector],
+//     });
+//   }
+//   const connectors = connectorsForWallets(
+//     [
+//       {
+//         groupName: 'Recommended',
+//         wallets: [injectedWallet, walletConnectWallet],
+//       },
+//     ],
+//     {
+//       appName: 'Rout3r',
+//       projectId: 'daba908b6f524d3924a0ed3ac48d4077',
+//     }
+//   );
+//   return createConfig({
+//     chains: [arbitrumSepolia],
+//     transports: {
+//       [arbitrumSepolia.id]: http(),
+//     },
+//     connectors,
+//   });
+// };
+
 export const config = () => {
   if (IS_FULL_DEV) {
-    const { walletClient } = anvilClients();
-    const connector = anvilConnector({
-      account: walletClient.account,
-    });
-    return createConfig({
-      ssr: false,
-      chains: [walletClient.chain],
-      client: () => walletClient,
-      connectors: [connector],
-    });
+    throw new Error(
+      'IS_FULL_DEV is not supported until the dev script is updated to run bundler as well'
+    );
   }
-  const connectors = connectorsForWallets(
-    [
-      {
-        groupName: 'Recommended',
-        wallets: [injectedWallet, walletConnectWallet],
-      },
-    ],
-    {
-      appName: 'Rout3r',
-      projectId: 'daba908b6f524d3924a0ed3ac48d4077',
-    }
-  );
-  return createConfig({
-    chains: [arbitrumSepolia],
-    transports: {
-      [arbitrumSepolia.id]: http(),
+  const uiConfig: AlchemyAccountsUIConfig = {
+    illustrationStyle: 'outline',
+    auth: {
+      sections: [[{ type: 'email' }], [{ type: 'passkey' }]],
+      addPasskeyOnSignup: false,
     },
-    connectors,
-  });
+  };
+
+  return createConfig(
+    {
+      chain: arbitrumSepolia,
+      connections: [
+        {
+          chain: arbitrumSepolia,
+          apiKey: import.meta.env.VITE_API_KEY!,
+          gasManagerConfig: {
+            policyId: import.meta.env.VITE_POLICY_ID!,
+          },
+        },
+      ],
+      signerConnection: {
+        apiKey: import.meta.env.VITE_API_KEY!,
+      },
+    },
+    uiConfig
+  );
 };
 
 export const appConfig = config();

@@ -17,8 +17,8 @@ contract Router_V1 is IRouteReader, IRouteMutator {
     mapping (string => mapping (bool => string)) cll;
     mapping (string => Route) routes;
 
-    constructor() {
-        owner = msg.sender;
+    constructor(address owner_) {
+        owner = owner_;
         cll[HEAD][NEXT] = HEAD;
         cll[HEAD][PREV] = HEAD;
     }

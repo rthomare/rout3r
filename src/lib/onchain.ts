@@ -1,18 +1,19 @@
 import {
-  Account,
   Address,
-  Chain,
-  createPublicClient,
+  concat,
   decodeFunctionResult,
+  encodeAbiParameters,
   encodeFunctionData,
   getContract,
   getContractAddress,
   Hex,
-  http,
+  keccak256,
   PublicClient,
-  Transport,
+  toHex,
   WalletClient,
 } from 'viem';
+
+import { UseSmartAccountClientResult } from '@account-kit/react';
 
 import { origin } from '../utils/general';
 
@@ -23,6 +24,32 @@ import {
   PINNED_CONTRACT_DEPLOYED_BYTECODE,
 } from './constants';
 import { AppSettings, OnchainConfig, Route } from './types';
+
+function getRouterContractDeployData(
+  walletClient: Exclude<UseSmartAccountClientResult['client'], undefined>
+) {
+  const byteCode = concat([
+    PINNED_CONTRACT_BYTECODE,
+    encodeAbiParameters(
+      [
+        {
+          name: 'owner_',
+          type: 'address',
+          internalType: 'address',
+        },
+      ],
+      [walletClient.account.address]
+    ),
+  ]);
+
+  const salt = keccak256(toHex(BigInt(walletClient.account.address) + 2n));
+
+  return {
+    salt,
+    byteCode,
+    deployer: '0x4e59b44847b379578588920ca78fbf26c0b4956c' as Address,
+  };
+}
 
 async function checkTransactionSuccess(
   onchainConfig: OnchainConfig,
@@ -49,30 +76,32 @@ async function checkTransactionSuccess(
  */
 export async function getRouterContract(
   publicClient: PublicClient,
-  walletClient: WalletClient<Transport, Chain, Account>
+  walletClient: UseSmartAccountClientResult['client']
 ): Promise<Address | null> {
-  const count = await publicClient.getTransactionCount({
-    address: walletClient.account.address,
+  if (!walletClient) return null;
+
+  const { salt, byteCode, deployer } =
+    getRouterContractDeployData(walletClient);
+
+  const contractAddress = getContractAddress({
+    from: deployer,
+    opcode: 'CREATE2',
+    bytecode: byteCode,
+    salt,
   });
-  let nonce = BigInt(count - 1);
-  while (nonce > -1) {
-    const contractAddress = getContractAddress({
-      from: walletClient.account.address,
-      nonce,
-    });
-    // We need to check if the contract is the pinned contract successively
-    // until we can find the contract
-    // eslint-disable-next-line no-await-in-loop
-    const code = await publicClient.getBytecode({
-      address: contractAddress,
-    });
-    // simple heuristic to check if the contract is the pinned
-    // contract by just checking the first 10 and last 10 bytes
-    if (code && code === PINNED_CONTRACT_DEPLOYED_BYTECODE) {
-      return contractAddress;
-    }
-    nonce -= 1n;
+  // We need to check if the contract is the pinned contract successively
+  // until we can find the contract
+  // eslint-disable-next-line no-await-in-loop
+  const code = await publicClient.getBytecode({
+    address: contractAddress,
+  });
+
+  // simple heuristic to check if the contract is the pinned
+  // contract by just checking the first 10 and last 10 bytes
+  if (code && code === PINNED_CONTRACT_DEPLOYED_BYTECODE) {
+    return contractAddress;
   }
+
   return null;
 }
 
@@ -89,28 +118,39 @@ export async function getRouterContract(
 export async function deployContract(
   config: OnchainConfig
 ): Promise<OnchainConfig['contract']> {
-  if (!config.walletClient.account) {
+  if (!config.walletClient) {
     throw new Error('No account found to deploy contract.');
   }
-  const count = await config.publicClient.getTransactionCount({
-    address: config.walletClient.account.address,
-  });
+
+  const { salt, byteCode, deployer } = getRouterContractDeployData(
+    config.walletClient
+  );
+
   const contractAddress = getContractAddress({
-    from: config.walletClient.account.address,
-    nonce: BigInt(count),
+    from: deployer,
+    opcode: 'CREATE2',
+    bytecode: byteCode,
+    salt,
   });
-  const hash = await config.walletClient.deployContract({
-    abi: [],
-    account: config.walletClient.account.address,
-    bytecode: PINNED_CONTRACT_BYTECODE,
+
+  const { hash } = await config.walletClient.sendUserOperation({
+    uo: {
+      target: deployer,
+      data: concat([salt, byteCode]),
+    },
   });
-  return checkTransactionSuccess(config, hash).then(() =>
+
+  const txHash = await config.walletClient.waitForUserOperationTransaction({
+    hash,
+  });
+
+  return checkTransactionSuccess(config, txHash).then(() =>
     getContract({
       address: contractAddress,
       abi: PINNED_CONTRACT_ABI,
       client: {
-        public: config.publicClient,
-        wallet: config.walletClient,
+        public: config.publicClient as PublicClient,
+        wallet: config.walletClient as unknown as WalletClient,
       },
     })
   );
@@ -133,11 +173,9 @@ export async function deployContract(
  */
 export async function searchRoute(
   command: string,
-  appSettings: Omit<AppSettings, 'searchFallback'>
+  appSettings: Omit<AppSettings, 'searchFallback'>,
+  publicClient: OnchainConfig['publicClient']
 ): Promise<Route | undefined> {
-  const publicClient = createPublicClient({
-    transport: http(appSettings.rpc),
-  });
   const data = encodeFunctionData({
     abi: PINNED_CONTRACT_ABI,
     functionName: 'getRoute',
@@ -150,9 +188,11 @@ export async function searchRoute(
       account: appSettings.address,
     })
     .catch(() => ({ data: undefined }));
+
   if (!result.data) {
     return undefined;
   }
+
   const route = decodeFunctionResult({
     abi: PINNED_CONTRACT_ABI,
     functionName: 'getRoute',
@@ -181,15 +221,19 @@ export async function getRoute(
   config: OnchainConfig,
   command: string
 ): Promise<Route> {
-  if (!config.contract) {
+  if (!config.contract || !config.walletClient) {
     throw new Error('No contract found to update route.');
   }
-  return searchRoute(command, {
-    address: config.walletClient.account.address,
-    contract: config.contract.address,
-    chainId: config.walletClient.chain.id,
-    rpc: config.walletClient.chain.rpcUrls.default.http[0],
-  }).then((route) => {
+
+  return searchRoute(
+    command,
+    {
+      address: config.walletClient?.account.address,
+      contract: config.contract.address,
+      chainId: config.publicClient.chain.id,
+    },
+    config.publicClient
+  ).then((route) => {
     if (!route) {
       throw new Error('Route not found');
     }
@@ -218,15 +262,17 @@ export async function getRoutes(
   cursor: string;
   length: bigint;
 }> {
-  if (!config.contract) {
+  if (!config.contract || !config.walletClient) {
     throw new Error('No contract found to update route.');
   }
-  const [routes, length, newCursor] = (await config.contract.read.getRoutes(
-    [cursor, limit],
-    {
-      account: config.walletClient.account,
-    }
-  )) as [Route[], bigint, string];
+
+  const [routes, length, newCursor] = (await config.publicClient.readContract({
+    abi: PINNED_CONTRACT_ABI,
+    address: config.contract.address,
+    functionName: 'getRoutes',
+    args: [cursor, limit],
+  })) as [Route[], bigint, string];
+
   const validatedRoutes = routes
     .filter((val) => val.isValue)
     .map((v) => ({
@@ -263,20 +309,33 @@ export async function addRoute(
   config: OnchainConfig,
   createRouteData: Omit<Route, 'routeType' | 'isValue'>
 ): Promise<Route> {
-  if (!config.contract) {
+  if (!config.contract || !config.walletClient) {
     throw new Error('No contract found to update route.');
   }
-  const { request, result: route } = await config.contract.simulate.addRoute(
+
+  const { result: route } = await config.contract.simulate.addRoute(
     [createRouteData],
     {
       account: config.walletClient.account.address,
     }
   );
-  const hash = await config.contract.write.addRoute([route], {
-    ...request,
-    account: config.walletClient.account,
+
+  const { hash } = await config.walletClient.sendUserOperation({
+    uo: {
+      target: config.contract.address,
+      data: encodeFunctionData({
+        abi: config.contract.abi,
+        functionName: 'addRoute',
+        args: [createRouteData],
+      }),
+    },
   });
-  await checkTransactionSuccess(config, hash);
+
+  const txHash = await config.walletClient.waitForUserOperationTransaction({
+    hash,
+  });
+  await checkTransactionSuccess(config, txHash);
+
   return route as unknown as Route;
 }
 
@@ -303,23 +362,35 @@ export async function updateRoute(
   command: string,
   updateRouteData: Omit<Route, 'command' | 'routeType' | 'isValue'>
 ) {
-  if (!config.walletClient.account) {
+  if (!config.walletClient) {
     throw new Error('No account found to add route.');
   }
   if (!config.contract) {
     throw new Error('No contract found to update route.');
   }
-  const { request, result: route } = await config.contract.simulate.updateRoute(
+  const { result: route } = await config.contract.simulate.updateRoute(
     [command, updateRouteData],
     {
       account: config.walletClient.account.address,
     }
   );
-  const hash = await config.walletClient.writeContract({
-    ...request,
-    account: config.walletClient.account,
+
+  const { hash } = await config.walletClient.sendUserOperation({
+    uo: {
+      target: config.contract.address,
+      data: encodeFunctionData({
+        abi: config.contract.abi,
+        functionName: 'updateRoute',
+        args: [command, updateRouteData],
+      }),
+    },
   });
-  await checkTransactionSuccess(config, hash);
+
+  const txHash = await config.walletClient.waitForUserOperationTransaction({
+    hash,
+  });
+
+  await checkTransactionSuccess(config, txHash);
   return route as unknown as Route;
 }
 
@@ -335,14 +406,20 @@ export async function updateRoute(
  * await deleteRoute(config, 'g');
  */
 export async function deleteRoute(config: OnchainConfig, command: string) {
-  if (!config.contract) {
+  if (!config.contract || !config.walletClient) {
     throw new Error('No contract found to delete route.');
   }
-  const { request } = await config.contract.simulate.deleteRoute([command], {
-    account: config.walletClient.account.address,
+
+  const { hash } = await config.walletClient.sendUserOperation({
+    uo: {
+      target: config.contract.address,
+      data: encodeFunctionData({
+        abi: config.contract.abi,
+        functionName: 'deleteRoute',
+        args: [command],
+      }),
+    },
   });
-  return config.walletClient.writeContract({
-    ...request,
-    account: config.walletClient.account,
-  });
+
+  return config.walletClient.waitForUserOperationTransaction({ hash });
 }

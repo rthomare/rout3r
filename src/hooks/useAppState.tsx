@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { useAccount } from 'wagmi';
 
+import { useAccount } from '@account-kit/react';
 import { useOnchainRaw } from './useOnchain';
 
 /*
@@ -24,12 +24,15 @@ export type AppState = {
  */
 export function useAppState() {
   const onchain = useOnchainRaw();
-  const { isConnected } = useAccount();
+  const { account, isLoadingAccount } = useAccount({
+    type: 'LightAccount',
+  });
+
   return useMemo(() => {
-    if (!isConnected) {
+    if (!account) {
       // just make sure we're not connected with a wallet
       return {
-        isLoading: false,
+        isLoading: isLoadingAccount,
         isWalletConnected: false,
         isContractDeployed: false,
         cachedBlock: 0,
@@ -47,11 +50,11 @@ export function useAppState() {
       };
     }
     return {
-      isLoading: false,
+      isLoading: isLoadingAccount,
       isWalletConnected: true,
       isContractDeployed: !!onchain.config.contract,
       cachedBlock: 0,
       error: null,
     };
-  }, [onchain, isConnected]);
+  }, [account, onchain, isLoadingAccount]);
 }
