@@ -1,6 +1,6 @@
 // contracts/FactoryContract.sol
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.23;
 import { Router } from "./Router.sol";
 import { LibClone } from "@solady/utils/LibClone.sol";
 

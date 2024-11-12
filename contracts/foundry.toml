@@ -5,6 +5,12 @@ ffi = true
 ast = true
 build_info = true
 extra_output = ["storageLayout"]
-libs = ["lib"]
+libs = ['lib', 'scripts']
+
+[profile.compiler]
+version = "0.8.23"
+
+[etherscan]
+deployment_chain = { key = "${ETHERSCAN_API_KEY}", url = "${CONTRACT_VERIFIER_URL}" }
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
