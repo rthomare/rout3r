@@ -1,12 +1,6 @@
 import { useMemo } from 'react';
-import { useAccount } from 'wagmi';
 
-import {
-  useAuthModal,
-  useLogout,
-  useSignerStatus,
-  useUser,
-} from '@account-kit/react';
+import { useSignerStatus } from '@account-kit/react';
 
 import { useOnchainRaw } from './useOnchain';
 

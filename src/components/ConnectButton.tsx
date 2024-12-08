@@ -1,6 +1,6 @@
 import { GlowButton } from './GlowButton';
 import {
-  useAuthModal,
+  useAuthenticate,
   useLogout,
   useSignerStatus,
   useUser,
@@ -10,7 +10,8 @@ import { Tooltip } from '@chakra-ui/react';
 
 export function ConnectButton() {
   const user = useUser();
-  const { openAuthModal } = useAuthModal();
+  const { authenticate, isPending } = useAuthenticate();
+
   const signerStatus = useSignerStatus();
   const { logout } = useLogout();
 
@@ -19,10 +20,17 @@ export function ConnectButton() {
       <GlowButton
         fontSize="lg"
         fontWeight="normal"
-        onClick={openAuthModal}
+        onClick={() =>
+          authenticate({
+            // redirect login flow
+            type: 'oauth',
+            authProviderId: 'google',
+            mode: 'popup',
+          })
+        }
         type="button"
       >
-        connect
+        start
       </GlowButton>
     );
   }

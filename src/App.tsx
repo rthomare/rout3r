@@ -14,12 +14,18 @@ import { GlobalLoaderProvider, useGlobalLoader } from './hooks/useGlobalLoader';
 import { persister } from './lib/queryClient';
 import { chakraTheme } from './theme/chakraTheme';
 import { config, queryClient } from './lib/config';
-import { AlchemyAccountProvider, useSignerStatus } from '@account-kit/react';
+import {
+  AlchemyAccountProvider,
+  useAuthenticate,
+  useSignerStatus,
+} from '@account-kit/react';
 import { OnchainProvider } from './hooks/useOnchain';
 import '../global.css';
 
 export function Content() {
   const appDestinations = useAppDestinations();
+  const signerStatus = useSignerStatus();
+  const auth = useAuthenticate();
   useGlobalLoader({
     id: 'app-destinations',
     showLoader: appDestinations.isLoading,
@@ -31,6 +37,10 @@ export function Content() {
       in={!appDestinations.isLoading}
       unmountOnExit
     >
+      {JSON.stringify(signerStatus)}
+      <br />
+      {JSON.stringify(auth)}
+      <br />
       <VStack h="100vh" w="100vw" padding={8} paddingBottom={4}>
         <Navbar {...appDestinations} />
         <Box flexGrow={1} w="100%" padding="1rem 0">

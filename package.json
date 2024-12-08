@@ -26,8 +26,8 @@
     "cz": "cz"
   },
   "dependencies": {
-    "@account-kit/infra": "^4.0.0",
-    "@account-kit/react": "^4.0.0",
+    "@account-kit/infra": "^4.6.0",
+    "@account-kit/react": "^4.6.0",
     "@chakra-ui/icons": "^2.0.17",
     "@chakra-ui/react": "^2.4.9",
     "@emotion/react": "^11.8.1",
