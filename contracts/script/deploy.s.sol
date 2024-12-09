@@ -1,6 +1,6 @@
 // deploy_factory.s.sol
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.23;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
@@ -64,7 +64,7 @@ contract FactoryDeployment is Script {
 
     function deploy() internal returns (string memory factoryAddress) {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        bytes32 salt = vm.envOr("SALT", bytes32(0x0)); // Default to zero if not provided
+        string memory salt = vm.envString("SALT");
         vm.startBroadcast(deployerPrivateKey);
 
         // Initialize the deployer contract
@@ -72,25 +72,21 @@ contract FactoryDeployment is Script {
 
         // Deploy the factory with the specified salt
         factoryAddress = vm.toString(deployer.deployFactory(salt));
-        log("Factory deployed at address and salt:", factoryAddress, vm.toString(salt));
+        string memory derivedAddress = vm.toString(vm.addr(deployerPrivateKey));
+        log("Factory deployed at address, from deployer:", factoryAddress, derivedAddress);
         vm.stopBroadcast();
     }
 
     function verifyContract(string memory contractAddress) internal {
-        string memory etherscanApiKey = vm.envString("ETHERSCAN_API_KEY");
-        uint256 chainId = block.chainid; // Dynamically get the chain ID
 
         // Running the verify command in a system call
-        string[] memory cmds = new string[](9);
+        string[] memory cmds = new string[](6);
         cmds[0] = "forge";
         cmds[1] = "verify-contract";
-        cmds[2] = "--contract";
-        cmds[3] = "src/RouterFactory.sol:RouterFactory"; 
+        cmds[2] = "--compiler-version";
+        cmds[3] = "0.8.23";
         cmds[4] = contractAddress;
-        cmds[5] = "--chain-id";
-        cmds[6] = vm.toString(chainId);
-        cmds[7] = "--etherscan-api-key";
-        cmds[8] = etherscanApiKey;
+        cmds[5] = "src/RouterFactory.sol:RouterFactory"; 
         vm.ffi(cmds);
 
         string memory contractBlockExplorerUrl = concat(vm.envString("BLOCK_EXPLORER_URL"), "address/", contractAddress);
