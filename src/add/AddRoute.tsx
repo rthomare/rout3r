@@ -13,8 +13,8 @@ export function AddRoute(): JSX.Element {
       <RouteForm
         route={{}}
         onSubmit={async (routeData) => {
-          const route = await createRouteMutation.mutateAsync(routeData);
-          navigate(`/routes/edit/${route.command}`);
+          const route = await createRouteMutation.createRoute(routeData);
+          navigate(`/routes/edit/${routeData.command}`);
         }}
       />
     </>

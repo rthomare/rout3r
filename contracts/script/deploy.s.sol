@@ -5,18 +5,16 @@ pragma solidity ^0.8.23;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {RouterFactory} from "../src/RouterFactory.sol";
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 contract FactoryDeployer {
-    event FactoryDeployed(address factoryAddress, string salt);
+    event FactoryDeployed(address factoryAddress, bytes32 salt);
 
-    function deployFactory(string memory salt) public returns (address) {
+    function deployFactory(bytes32 salt) public returns (address) {
         bytes memory bytecode = type(RouterFactory).creationCode;
+
         address factoryAddress;
-        bytes32 saltbytes;
         assembly {
-            saltbytes := mload(add(salt, 32))
-            factoryAddress := create2(0, add(bytecode, 0x20), mload(bytecode), saltbytes)
+            factoryAddress := create2(0, add(bytecode, 0x20), mload(bytecode), salt)
             if iszero(extcodesize(factoryAddress)) {
                 revert(0, 0)
             }
@@ -25,9 +23,23 @@ contract FactoryDeployer {
         emit FactoryDeployed(factoryAddress, salt);
         return factoryAddress;
     }
+
+    function computeFactoryAddress(bytes32 salt) public view returns (address) {
+        bytes memory bytecode = type(RouterFactory).creationCode;
+
+        bytes32 hash = keccak256(
+            abi.encodePacked(
+                bytes1(0xff),
+                address(this),
+                salt,
+                keccak256(bytecode)
+            )
+        );
+        return address(uint160(uint256(hash)));
+    }
 }
 
-contract DeployFactory is Script {
+contract FactoryDeployment is Script {
     function log(string memory message) internal view {
         console.log(message);
     }
@@ -66,6 +78,7 @@ contract DeployFactory is Script {
     }
 
     function verifyContract(string memory contractAddress) internal {
+
         // Running the verify command in a system call
         string[] memory cmds = new string[](6);
         cmds[0] = "forge";
