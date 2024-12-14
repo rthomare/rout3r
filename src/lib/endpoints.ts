@@ -15,6 +15,7 @@ import { deployContract, getRoute, getRoutes, searchRoute } from './onchain';
 import { AppSettings, OnchainConfig, Route } from './types';
 import { useSendUserOperation } from '@account-kit/react';
 import { decodeFunctionData, encodeFunctionData } from 'viem';
+import { arbitrumSepolia } from 'viem/chains';
 
 const STALE_TIME = 1000 * 60 * 60; // 1 hour
 
@@ -60,10 +61,8 @@ function queryKeyForRoutes(
   ];
 }
 
-export function queryKeyForRouterAddress(
-  appSettings: Omit<AppSettings, 'searchFallback' | 'rpc' | 'contract'>
-) {
-  return ['router_address', appSettings.chainId, appSettings.address];
+export function queryKeyForRouterAddress() {
+  return ['router_address', arbitrumSepolia.id];
 }
 
 /*
@@ -409,18 +408,18 @@ export function useUpdateRoute(
  */
 // TODO use factory account instead of deploying byte code
 export function useDeployRouter(
+  client: OnchainConfig['client'],
   onSuccess?: (contract: OnchainConfig['contract']) => void,
   onError?: (error: Error) => void
 ) {
-  const { config } = useOnchain();
   const queryClient = useQueryClient();
   const toast = useToast();
   const errorToast = useErrorToast("couldn't deploy router contract");
-  const qk = queryKeyForRouterAddress(appSettingsFromConfig(config));
+  const qk = queryKeyForRouterAddress();
   return useMutation({
     mutationKey: qk,
     mutationFn: async () =>
-      deployContract(config).then(async (contract) => {
+      deployContract(client).then(async (contract) => {
         // Invalidate the cache
         await queryClient.invalidateQueries({
           queryKey: qk,
@@ -437,11 +436,7 @@ export function useDeployRouter(
         position: 'top',
       });
       queryClient.setQueryData(
-        [
-          'router_address',
-          config.client.chain.id,
-          config.client.account.address,
-        ],
+        ['router_address', client.chain.id, client.account.address],
         contract?.address
       );
       onSuccess?.(contract);

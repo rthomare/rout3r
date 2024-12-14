@@ -20,6 +20,7 @@ export function ConnectButton() {
       <GlowButton
         fontSize="lg"
         fontWeight="normal"
+        isLoading={isPending}
         onClick={() =>
           authenticate({
             // redirect login flow
@@ -35,13 +36,15 @@ export function ConnectButton() {
     );
   }
   return (
-    <GlowButton
-      fontSize="md"
-      fontWeight="normal"
-      onClick={logout as () => void}
-      type="button"
-    >
-      <Tooltip label={`logged in as ${user?.email}`}>logout</Tooltip>
-    </GlowButton>
+    <>
+      <GlowButton
+        fontSize="md"
+        fontWeight="normal"
+        onClick={logout as () => void}
+        type="button"
+      >
+        <Tooltip label={`logged in as ${user?.email}`}>logout</Tooltip>
+      </GlowButton>
+    </>
   );
 }

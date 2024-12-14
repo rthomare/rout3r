@@ -3,6 +3,7 @@ import {
   createPublicClient,
   decodeFunctionResult,
   encodeFunctionData,
+  getContract,
   getContractAddress,
   http,
 } from 'viem';
@@ -81,32 +82,31 @@ export async function getRouterContract(
  * const hash = await deployContract(walletClient);
  */
 export async function deployContract(
-  config: OnchainConfig
+  client: OnchainConfig['client']
 ): Promise<OnchainConfig['contract']> {
-  if (!config.client.account) {
+  if (!client.account) {
     throw new Error('No account found to deploy contract.');
   }
-  const count = await config.client.getTransactionCount({
-    address: config.client.account.address,
+  const count = await client.getTransactionCount({
+    address: client.account.address,
   });
   const contractAddress = getContractAddress({
-    from: config.client.account.address,
+    from: client.account.address,
     nonce: BigInt(count),
   });
 
-  const hash = await config.client.deployContract({
+  const hash = await client.deployContract({
     abi: [],
-    account: config.client.account.address,
-    bytecode: PINNED_CONTRACT_BYTECODE,
+    account: client.account.address,
+    bytecode: PINNED_CONTRACT_DEPLOYED_BYTECODE,
   });
-  // return checkTransactionSuccess(config, hash).then(() =>
-  //   getContract({
-  //     address: contractAddress,
-  //     abi: PINNED_CONTRACT_ABI,
-  //     client:  config.client,
-  //   })
-  // );
-  throw new Error('Not implemented');
+  return checkTransactionSuccess(config, hash).then(() =>
+    getContract({
+      address: contractAddress,
+      abi: PINNED_CONTRACT_ABI,
+      client,
+    })
+  );
 }
 
 /*

@@ -46,7 +46,9 @@ function CodeLink() {
     <HStack
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      onClick={() => navigate('https://github.com/rthomare/rout3r')}
+      onClick={() =>
+        window.open('https://github.com/rthomare/rout3r', '_blank')
+      }
       _hover={{ color: 'gray.600' }}
       cursor="pointer"
     >
@@ -81,9 +83,10 @@ function Donate() {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onClick={() =>
-        navigate(
+        window.open(
           `${mainnet.blockExplorers?.default.url}/address/` +
-            `0x197A002614cd5D82Fa547988A0FF0455f658894A`
+            `0x197A002614cd5D82Fa547988A0FF0455f658894A`,
+          '_blank'
         )
       }
       _hover={{ color: 'gray.600' }}
@@ -112,8 +115,6 @@ function Donate() {
 }
 
 export function Footer() {
-  const { colorMode, toggleColorMode } = useColorMode();
-  // get the version from the package.json
   return (
     <HStack fontSize="lg" gap={4} color="GrayText">
       <Donate />

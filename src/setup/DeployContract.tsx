@@ -1,9 +1,6 @@
 import { useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAccount } from 'wagmi';
-
 import { Button, Flex, Text, VStack } from '@chakra-ui/react';
-
 import { useRouterContract } from '../hooks/useRouterContract';
 import { useOnchain } from '../hooks/useOnchain';
 
