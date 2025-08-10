@@ -1,113 +1,12 @@
 import {
-  Address,
   createPublicClient,
   decodeFunctionResult,
   encodeFunctionData,
-  getContractAddress,
   http,
 } from 'viem';
 import { origin } from '../utils/general';
-import {
-  ORIGIN_REPLACEMENT,
-  PINNED_CONTRACT_ABI,
-  PINNED_CONTRACT_DEPLOYED_BYTECODE,
-} from './constants';
+import { ORIGIN_REPLACEMENT, CONTARCT_ABI } from './constants';
 import { AppSettings, OnchainConfig, Route } from './types';
-
-/*
- * A function to get the the rout3r contract if it exists onchain
- * @param config - the onchain config to use that contains the account, chain and client info
- *
- * @example
- * const publicClient = usePublicClient();
- * const walletClient = useWalletClient();
- * const contract = await getRouterContract(publicClient, walletClient);
- */
-export async function getRouterContract(
-  client: OnchainConfig['client']
-): Promise<Address | null> {
-  if (!client.account) {
-    throw new Error('No account found to get contract.');
-  }
-
-  const count = await client.getTransactionCount({
-    address: client.account.address,
-  });
-  let nonce = BigInt(count - 1);
-  while (nonce > -1) {
-    const contractAddress = getContractAddress({
-      from: client.account.address,
-      nonce,
-    });
-    // We need to check if the contract is the pinned contract successively
-    // until we can find the contract
-    // eslint-disable-next-line no-await-in-loop
-    const code = await client.getCode({
-      address: contractAddress,
-    });
-    // simple heuristic to check if the contract is the pinned
-    // contract by just checking the first 10 and last 10 bytes
-    if (code && code === PINNED_CONTRACT_DEPLOYED_BYTECODE) {
-      return contractAddress;
-    }
-    nonce -= 1n;
-  }
-  return null;
-}
-
-// TODO: Look into if we need this function
-// async function checkTransactionSuccess(
-//   onchainConfig: OnchainConfig,
-//   hash: Hex,
-//   errorTitle?: string
-// ) {
-//   return onchainConfig.client
-//     .waitForTransactionReceipt({ hash })
-//     .then((r) => {
-//       if (r.status !== 'success') {
-//         throw new Error(`Transaction failed ${errorTitle ?? ''}`);
-//       }
-//     });
-// }
-
-/*
- * Deploy the rout3r contract onchain
- * @param client - the wallet client to use for deployment
- * @returns the txn hash if successful
- * @throws an error if the client does not have an account
- *
- * @example
- * const { config } = useOnchain();
- * const hash = await deployContract(walletClient);
- */
-export async function deployContract(
-  config: OnchainConfig
-): Promise<OnchainConfig['contract']> {
-  if (!config.client.account) {
-    throw new Error('No account found to deploy contract.');
-  }
-  const count = await config.client.getTransactionCount({
-    address: config.client.account.address,
-  });
-  const contractAddress = getContractAddress({
-    from: config.client.account.address,
-    nonce: BigInt(count),
-  });
-
-  const hash = await config.client.deployContract({
-    abi: [],
-    account: config.client.account.address,
-    bytecode: PINNED_CONTRACT_BYTECODE,
-  });
-  // return checkTransactionSuccess(config, hash).then(() =>
-  //   getContract({
-  //     address: contractAddress,
-  //     abi: PINNED_CONTRACT_ABI,
-  //     client:  config.client,
-  //   })
-  // );
-  throw new Error('Not implemented');
-}
 
 /*
  * Get a route by command
@@ -132,7 +31,7 @@ export async function searchRoute(
     transport: http(appSettings.rpc),
   });
   const data = encodeFunctionData({
-    abi: PINNED_CONTRACT_ABI,
+    abi: CONTARCT_ABI,
     functionName: 'getRoute',
     args: [command],
   });
@@ -147,7 +46,7 @@ export async function searchRoute(
     return undefined;
   }
   const route = decodeFunctionResult({
-    abi: PINNED_CONTRACT_ABI,
+    abi: CONTARCT_ABI,
     functionName: 'getRoute',
     data: result.data,
   }) as Route;

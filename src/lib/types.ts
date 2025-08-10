@@ -12,7 +12,7 @@ import type {
 } from '@account-kit/smart-contracts';
 import type { AlchemyWebSigner } from '@account-kit/signer';
 
-import { PINNED_CONTRACT_ABI } from './constants';
+import { CONTARCT_ABI } from './constants';
 import { AlchemySmartAccountClient } from '@account-kit/infra';
 
 // eslint-disable-next-line no-shadow
@@ -107,7 +107,7 @@ export type OnchainConfig = {
     LightAccountClientActions<AlchemyWebSigner>
   >;
   contract: GetContractReturnType<
-    typeof PINNED_CONTRACT_ABI,
+    typeof CONTARCT_ABI,
     WalletClient & PublicClient
   > | null;
 };

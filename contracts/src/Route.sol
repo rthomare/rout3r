@@ -1,7 +1,10 @@
-// SPDX-License-Identifier: GPL-3.0 
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.23;
 
-enum RouteType{ MANUAL, RESERVED }
+enum RouteType {
+    MANUAL,
+    RESERVED
+}
 
 /// @title The Route Struct - represents a route in the Router contract
 /// @dev The route format is specific as follows:

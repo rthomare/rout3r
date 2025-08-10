@@ -4,7 +4,6 @@ pragma solidity ^0.8.23;
 import {Test, console} from "forge-std/Test.sol";
 import {Route} from "../src/Route.sol";
 import {Router} from "../src/Router.sol";
-import {RouterFactory} from "../src/RouterFactory.sol";
 import {RouteAddData, RouteUpdateData} from "../src/IRouteMutator.sol";
 import {TestUtils} from "./Utils.sol";
 
@@ -14,16 +13,15 @@ import {TestUtils} from "./Utils.sol";
 contract RouterTest is Test {
     Router public router;
     address user;
-    
+
     function setUp() public {
-        RouterFactory factory = new RouterFactory();
-        user = address(0x123);
+        router = new Router();
+        user = address(0x124);
         vm.startPrank(user);
-        router = Router(factory.createRouter(0));
+        assertNotEq(router.owner(), user);
     }
 
     function test_CreateAndGetRoute() public {
-        vm.startPrank(user);
         RouteAddData memory createdRoute = TestUtils.newRoute(0);
         router.addRoute(createdRoute);
         Route memory gotRoute = router.getRoute("0");
@@ -72,7 +70,7 @@ contract RouterTest is Test {
 
     function test_DeleteRoute() public {
         // account for reserved routes 16 total
-        for (uint i = 0; i < 15; i++) {
+        for (uint256 i = 0; i < 15; i++) {
             router.addRoute(TestUtils.newRoute(i));
         }
         (Route[] memory routes, uint256 length, string memory cursor) = router.getRoutes("", 10);
@@ -92,7 +90,7 @@ contract RouterTest is Test {
 
     function test_DeleteRoutes() public {
         // account for reserved routes 16 total
-        for (uint i = 0; i < 15; i++) {
+        for (uint256 i = 0; i < 15; i++) {
             router.addRoute(TestUtils.newRoute(i));
         }
         (Route[] memory routes, uint256 length, string memory cursor) = router.getRoutes("", 10);
@@ -142,7 +140,7 @@ contract RouterTest is Test {
     }
 
     function test_RoutePaginationAfterDelete() public {
-        for (uint i = 0; i < 5; i++) {
+        for (uint256 i = 0; i < 5; i++) {
             router.addRoute(TestUtils.newRoute(i));
         }
         router.deleteRoute("0");

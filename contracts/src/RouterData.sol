@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0 
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.23;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -11,14 +11,14 @@ bool constant PREV = false;
 bool constant NEXT = true;
 
 /// @title The Router Contract - backed by simple circular linked list implementation
-/// @dev The Router contract is a simple contract that allows the owner to 
+/// @dev The Router contract is a simple contract that allows the owner to
 /// create, update and delete routes.
 contract RouterData is Ownable, IRouteReader, IRouteMutator {
-    mapping (string => mapping (bool => string)) cll;
-    mapping (string => Route) routes;
+    mapping(string => mapping(bool => string)) cll;
+    mapping(string => Route) routes;
     string _head;
 
-    constructor(Route memory head, address initialOwner) Ownable (initialOwner) {
+    constructor(Route memory head, address initialOwner) Ownable(initialOwner) {
         _head = head.command;
         cll[_head][PREV] = _head;
         cll[_head][NEXT] = _head;
@@ -36,18 +36,11 @@ contract RouterData is Ownable, IRouteReader, IRouteMutator {
     }
 
     /// @notice Adds a node to the linked list at end of the list
-    function addRoute(RouteAddData memory route) onlyOwner public returns (Route memory) {
+    function addRoute(RouteAddData memory route) public onlyOwner returns (Route memory) {
         string memory pointer = route.command;
         /// @dev Check if the route already exists and throw an error if it does
-        Route memory newRoute = Route(
-            route.command, 
-            route.name, 
-            route.url, 
-            route.description, 
-            route.subRoutes, 
-            true, 
-            RouteType.MANUAL
-        );
+        Route memory newRoute =
+            Route(route.command, route.name, route.url, route.description, route.subRoutes, true, RouteType.MANUAL);
         cll[pointer][PREV] = cll[_head][PREV];
         cll[cll[_head][PREV]][NEXT] = pointer;
         cll[pointer][NEXT] = _head;
@@ -57,7 +50,7 @@ contract RouterData is Ownable, IRouteReader, IRouteMutator {
     }
 
     /// @notice Updates a node in the linked list
-    function updateRoute(string memory command, RouteUpdateData memory route) onlyOwner public {
+    function updateRoute(string memory command, RouteUpdateData memory route) public onlyOwner {
         routes[command].name = route.name;
         routes[command].url = route.url;
         routes[command].description = route.description;
@@ -65,7 +58,7 @@ contract RouterData is Ownable, IRouteReader, IRouteMutator {
     }
 
     /// @notice Removes a node from the linked list
-    function deleteRoute(string memory command) onlyOwner public {
+    function deleteRoute(string memory command) public onlyOwner {
         string memory prev = cll[command][PREV];
         string memory next = cll[command][NEXT];
         cll[prev][NEXT] = next;
